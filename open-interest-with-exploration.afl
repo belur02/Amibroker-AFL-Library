@@ -1,0 +1,329 @@
+//Author :  Venkatesh Rao
+//Credits to all authors , code adopted from open source authors and modified as per real time needs!
+_SECTION_BEGIN("Total OI");
+//Default columns disabled and Date column first and Ticker name second
+SetOption("NoDefaultColumns", True );
+AddColumn( DateTime(), "Date", formatDateTime );
+AddTextColumn(Name(), "- - Script - -");
+//AddTextColumn(trendSTATUS,"OI Status",1, colorBlack, trendCOLOR,width=110);
+AddColumn(C,"Close",1.2,IIf(C>Ref(C,-1),colorGreen,colorRed));
+AddColumn(ROC(C,1),"%",1.2, IIf(C>Ref(C,-1),colorGreen,colorRed), colorDefault, width = 40);
+// Open Interest for the current month
+Symbol1OI_Vege=Foreign(Name(),"I"); // first symbol 
+// Open Interest for the next month
+Symbol2OI_Vege=Foreign(StrReplace(Name(), "-I", "-II" ),"I");  // second symbol OI
+// // Open Interest for the far month
+Symbol3OI_Vege=Foreign(StrReplace(Name(), "-I", "-III" ),"I");   /// Third Symbol OI 
+// Cumulative Open Interest for the Script
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together
+
+AddColumn(CombinedOI_Vege ," -    COI    - ",1.0);
+//Average of last 50 days COI
+AddColumn(MA(CombinedOI_Vege, 50), " 50DMACOI ", 1.0);
+AddColumn(CombinedOI_Vege-Ref(CombinedOI_Vege, -1), "COI added", 1.0, IIf(C>Ref(C,-1),colorGreen,colorRed));
+Filter = (CombinedOI_Vege-Ref(CombinedOI_Vege, -1)) >10000;
+coiadd = CombinedOI_Vege-Ref(CombinedOI_Vege, -1);
+chg = MA(CombinedOI_Vege, 87);
+AddColumn((coiadd/chg)*100, "%", 1.2, IIf(C>Ref(C,-1),colorGreen,colorRed), colorDefault, width = 40);
+SetSortColumns(-8, 10);
+AddColumn(V/CombinedOI_Vege, "Del%",1.2);
+
+V1 = Ref(V,-1);C1 = Ref(C,-1);
+oi1 = Ref(CombinedOI_Vege,-1);
+vol_up = V>V1;
+price_up = C>C1;
+oi_up = CombinedOI_Vege>OI1;
+vol_dn = V<V1;
+price_dn = C<C1;
+oi_dn = CombinedOI_Vege<OI1;
+ROChag = ROC(CombinedOI_Vege,1);
+//long_buildup = price_up AND vol_up AND oi_up;
+//short_buildup = price_dn AND vol_up AND oi_up;
+//long_unwinding = price_up AND vol_dn AND oi_dn;
+//short_covering = price_dn AND vol_dn AND oi_dn;
+
+long_buildup = price_up AND oi_up;
+short_buildup = price_dn AND oi_up;
+short_covering = price_up AND oi_dn;
+long_unwinding = price_dn AND oi_dn;
+trendSTATUS =
+WriteIf(long_buildup,"long_buildup",
+WriteIf(short_buildup,"short_buildup",
+WriteIf(long_unwinding,"long_unwinding",
+WriteIf(short_covering,"short_covering"," "))));
+trendCOLOR = IIf(long_buildup, colorGreen,IIf(short_buildup, colorRed,IIf(long_unwinding, colorLightOrange,IIf(short_covering, colorLightGrey, colorWhite))));
+Plot(Symbol1OI_Vege ," Current Month OI",trendCOLOR ,styleHistogram);
+ 
+Title = Name() + " - " + Date() + ", "
+    +" Open="   +WriteVal(O,1.0)+ ", "
+    +" High=" +WriteVal(H,1.0)+  ", "
+    +" Low=" +WriteVal(L,1.0)+ ", "
+    +" Close=" +WriteVal(C,1.0) +", "
+    +" OI=" +WriteVal(OI,1.0)+", " +" OI% Chg=" +WriteVal(ROChag,1.0);
+ 
+Long = (price_up AND oi_up AND C1>Ref(C1,-1) AND oi1 >Ref(oi1 ,-1));
+Short = (price_dn AND oi_up AND C1<Ref(C1,-1) AND oi1 >Ref(oi1 ,-1));
+shortcover = (price_up AND oi_dn AND C1>Ref(C1,-1) AND oi1 <Ref(oi1 ,-1));
+unwind = (price_dn AND oi_dn AND C1<Ref(C1,-1) AND oi1 <Ref(oi1 ,-1)); 
+ 
+Buy = (price_up AND oi_up AND C1>Ref(C1,-1) AND oi1 >Ref(oi1 ,-1));
+Sell = ( price_dn AND oi_up AND C1<Ref(C1,-1) AND oi1 <Ref(oi1 ,-1));
+Cover = (price_up AND oi_dn AND C1>Ref(C1,-1) AND oi1 <Ref(oi1 ,-1));
+Short = ( price_dn AND oi_dn AND C1<Ref(C1,-1) AND oi1 <Ref(oi1 ,-1)); 
+Filter = Long OR Short  ;
+ 
+
+AddTextColumn(trendSTATUS,"OI Status",1, colorBlack, trendCOLOR, width = 80);
+
+//Mark Minervini Trend Templete
+ma50= MA(C, 50);
+ma150= MA(C, 150);
+ma200= MA(C, 200);
+
+min1 = C > ma50;
+min2 = ma50 > ma150;
+min3 = ma150 > ma200;
+min4 = ma200 > Ref(MA(C, 200), -1);
+min5 = ma150 > Ref(MA(C, 150), -1);
+min6 = ma50 > Ref(MA(C, 50), -1);
+min7 = C/Ref(HHV(High,260),-1) >0.75;
+min8 = C/Ref(LLV(Low,260),-1) >1.3;
+minervinitt = min1 AND min2 AND min3 AND min4 AND min5 AND min6 AND min7 AND min8;
+trendtemplete = WriteIf(minervinitt, "Minervini", "");
+AddtextColumn(trendtemplete, "TRENDTEMPLETE", 1, colorBlack, trendCOLOR,width=60);
+
+//AddColumn(Symbol1OI_Vege,"OI 1",1,IIf(Symbol1OI_Vege>Ref(Symbol1OI_Vege,-1),colorGreen,colorRed), colorDefault, width = 80);
+//AddColumn(ROC(Symbol1OI_Vege,1),"% ",1.2, IIf(ROC(Symbol2OI_Vege,1)>50 AND ROC(Symbol3OI_Vege,1)>50,colorGreen,colorDefault), IIf(ROC(Symbol2OI_Vege,1)>50 AND ROC(Symbol3OI_Vege,1)>50,colorLightGrey,colorDefault), width = 40);
+
+//AddColumn(Symbol2OI_Vege,"OI 2",1,IIf(Symbol2OI_Vege>Ref(Symbol2OI_Vege,-1),colorGreen,colorRed));
+//AddColumn(ROC(Symbol2OI_Vege,1),"% ",1.2, IIf(ROC(Symbol2OI_Vege,1)>50,colorGreen,colorDefault), IIf(ROC(Symbol2OI_Vege,1)>50,colorLightGrey,colorDefault), width = 50);
+
+//AddColumn(Symbol3OI_Vege,"OI 3",1,IIf(Symbol3OI_Vege>Ref(Symbol3OI_Vege,-1),colorGreen,colorRed));
+//AddColumn(ROC(Symbol3OI_Vege,1),"% ",1.2, IIf(ROC(Symbol3OI_Vege,1)>50,colorGreen,colorDefault), IIf(ROC(Symbol3OI_Vege,1)>50,colorLightGrey,colorDefault), width = 50);
+
+//AddColumn(MA(Close, 20), "20DMA",1, IIf(C>(MA(Close, 20)),colorGreen,colorRed), colorDefault, width = 50);
+//AddColumn(MA(Close, 50), "50DMA",1, IIf(C>(MA(Close, 50)),colorGreen,colorRed), colorDefault, width = 50);
+//AddColumn(MA(Close, 100), "100DMA",1, IIf(C>(MA(Close, 100)),colorGreen,colorRed), colorDefault, width = 50);
+//AddColumn( MACD(), "MACD", 1.2 , IIf(MACD(12,26) - Signal(12,26,9)>0, colorGreen, colorRed), colorDefault, width= 50);
+//SetSortColumns( -7,-8);
+//AddColumn(RSI(),"RSI",1.2,IIf( RSI(14)<30 AND Cross(RSI(14),20),colorGreen, IIf( RSI(14)>30,colorRed,Null)), colorDefault, width = 40 );
+ 
+// Attempt at StochasticRSI v1.1
+// will use the "Slow Stochastic" calculations, i.e. smoothing
+// both the original and then the smoothed Stochastic yet again
+
+RSIperiods = Param( "RSIperiods", 14, 1, 100, 1 );
+Stochperiods = Param( "Stochperiods", 14, 1, 100, 1 );
+
+Kperiods = Param( "Kperiods", 3, 1, 50, 1 );
+Dperiods = Param( "Dperiods", 3, 1, 50, 1 );
+OBthreshold = Param( "OBthreshold", 80, 55, 100, 5 );
+OSthreshold = Param( "OSthreshold", 20, 0, 50, 5 );
+
+TheRSI = RSI( RSIperiods );
+llRSI = LLV( TheRSI, Stochperiods );
+hhRSI = HHV( TheRSI, Stochperiods );
+
+StochasticRSI = 100 * ( ( TheRSI - llRSI ) / ( hhRSI - llRSI + 0.00001 ) );
+
+StocK_rsi = MA( StochasticRSI, Kperiods );
+StocD_rsi = MA( StocK_rsi, Dperiods );
+
+Plot( StocK_rsi, "StochK(" + Kperiods + ") of RSI(" + RSIperiods + ")", colorRed, styleLine | styleLine );
+Plot( StocD_rsi, "StochD(" + Dperiods + ") of RSI(" + RSIperiods + ")", colorBlue, styleLine | styleLine );
+//AddColumn(Stock_rsi, "StocRSI", 1.2, IIf(StocK_rsi<OSthreshold AND StocK_rsi>StocD_rsi, colorGreen, colorRed), colorDefault, width = 40);
+//start here
+i=0;
+//52 Week High Low
+High52 = HHV(High,250);
+Low52 = LLV(Low,250);
+//long build
+
+//ADX
+B1=ADX(14)>20;
+B2=ADX(14)<20;
+IIf(B2,i+1,i);
+ADXStatus=WriteIf(B1,"Trendy","Neutral");
+ADXColor=IIf(B1,colorGreen,IIf(B2,colorRed,colorLightGrey));
+AddtextColumn(ADXStatus, "ADX", 1, colorBlack, trendCOLOR,width=60);
+
+
+//Bollinger Band
+BB1=C>BBandTop(C,20,2) AND Ref(C,-1)<Ref(BBandTop(C,20,2),-1);
+BB2=C<BBandBot(C,20,2) AND Ref(C,-1)>Ref(BBandBot(C,20,2),-1);
+BBStatus=WriteIf(BB1,"Above Top",WriteIf(BB2,"Below Bottom",WriteIf(IsNull(MA(C,20)),"N/A","Neutral")));
+BBColor=IIf(BB1,colorRed,IIf(BB2,colorGreen,colorLightGrey));
+IIf(BB2,i+1,i);
+
+//Moving Average (Short, Mid & Long Term)
+MAShort = C>MA(C,15);
+IIf(MAShort,i+1,i);
+MAMid = C>MA(C,45);
+IIf(MAMid,i+1,i);
+MALong = C>MA(C,100);
+IIf(MALong,i+1,i);
+ShortStatus = WriteIf(MAShort,"Bullish",WriteIf(IsNull(MA(C,15)) ,"N/A","Bearish"));
+ShortColor = IIf(MAShort,colorGreen,colorRed);
+MidStatus = WriteIf(MAMid,"Bullish",WriteIf(IsNull(MA(C,45))," N/A","Bearish"));
+MidColor = IIf(MAMid,colorGreen,colorRed);
+LongStatus = WriteIf(MALong,"Bullish",WriteIf(IsNull(MA(C,100)) ,"N/A","Bearish"));
+LongColor = IIf(MALong,colorGreen,colorRed);
+
+//MACD
+MACDBull=MACD(12,26)>Signal(12,26,9);
+IIf(MACDBull,i+1,i);
+MACDStatus=WriteIf(MACDBull,"Bullish",WriteIf(IsNull(MACD(12,26)),"N/A","Bearish"));
+MACDColor=IIf(MACDBull,colorGreen,colorRed);
+
+//Aroon
+Period=14;
+LLVBarsSince=LLVBars(L,Period)+1;
+HHVBarsSince=HHVBars(H,Period)+1;
+AroonDown=100*(Period-LLVBarsSince)/(Period-1);
+AroonUp=100*(Period-HHVBarsSince)/(Period-1);
+AroonOsc=AroonUp-AroonDown;
+Aroon=AroonOsc>0;
+IIf(Aroon,i+1,i);
+AroonStatus=WriteIf(Aroon,"Bullish",WriteIf(IsNull (RSI(14)),"N/A","Bearish"));
+AroonColor=IIf(Aroon,colorGreen,IIf(IsNull(RSI(14) ),colorLightGrey,colorRed));
+
+//Stochastic
+StochKBull=StochK(14,3)>StochD(14,3,3);
+IIf(StochKBull,i+1,i);
+StochKStatus=WriteIf(StochKBull,"Bullish",WriteIf( IsNull(StochK(14,3)),"N/A","Bearish"));
+StochKColor=IIf(StochKBull,colorGreen,colorRed);
+
+//RSI
+//R1=RSI(14)>30 AND Ref(RSI(14),-1)<30 AND Ref(RSI(14),-2)<30;
+//R2=RSI(14)<70 AND Ref(RSI(14),-1)>70 AND Ref(RSI(14),-2)>70;
+R1=RSI(14)>30 AND Ref(RSI(14),-1)<RSI(14) AND Ref(RSI(14),-2)<RSI(14);
+R2=RSI(14)<70 AND Ref(RSI(14),-1)>RSI(14) AND Ref(RSI(14),-2)>Ref(RSI(14),-1);
+IIf(R1,i+1,i);
+RSIStatus=WriteIf(R1,"Improving",WriteIf(R2,"Declining",WriteIf(IsNull(RSI(14)),"N/A","Neutral")));
+RSIColor=IIf(R1,colorGreen,IIf(R2,colorRed,colorLightGrey));
+//www.pipschart.com
+//MFI
+M1=MFI(14)>80;
+M2=MFI(14)<20;
+IIf(M2,i+1,i);
+MFIStatus=WriteIf(M1,"Overbought",WriteIf(M2,"Over sold",WriteIf(IsNull(MFI(14)),"N/A","Neutral")));
+MFIColor=IIf(M1,colorRed,IIf(M2,colorGreen,colorLightGrey));
+
+_SECTION_BEGIN("TenkanSen");
+TS=(HHV(High,9)+LLV(Low,9))/2;			
+Plot(TS,"TenkanSen",colorRed , styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("KijunSen");
+KJ=(HHV(High,26)+LLV(Low,26))/2;		
+Plot(KJ,"KijunSen",colorBlue , styleThick);
+_SECTION_END();
+
+_SECTION_BEGIN("Cloud");
+SpanA=(TS+KJ)/2;
+SenkouSpanA =Ref((TS+KJ)/2,-26); 
+SpanB=(HHV(High,52)+LLV(Low,52))/2;		
+SenkouSpanB =Ref((HHV(High,52)+LLV(Low,52))/2,-26); 
+PlotOHLC(0,SpanA,SpanB,SpanB,"Cloud",IIf(SpanA>SpanB,ParamColor("Color Up",colorAqua),ParamColor("Color Down",colorPink)),styleCloud+styleNoTitle+styleNoLabel,Null,Null,26);
+_SECTION_END();
+sa=SenkouSpanA;
+sb=SenkouSpanB;
+
+dk_date = (DateNum() > 10000 * (2017 - 1900) + 100 * 9 + 13);
+// Strong //
+Buy_s1 = Cross(TS,KJ) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB AND C > Ref(C,-25);	
+Sell_s1 = Cross(KJ,TS) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB AND C < Ref(C,-25);	
+Buy_s2 = Cross(C,KJ) AND KJ > SenkouSpanA AND KJ > SenkouSpanB AND C > SenkouSpanA AND C > SenkouSpanB AND C > Ref(C,-25);		
+Sell_s2 = Cross(KJ,C) AND KJ < SenkouSpanA AND KJ < SenkouSpanB AND C < SenkouSpanA AND C < SenkouSpanB AND C < Ref(C,-25);		
+Buy_s3 = Cross(C,Ref(H,-25)) AND C > SenkouSpanA AND C > SenkouSpanB;												
+Sell_s3 = Cross(Ref(H,-25),C) AND C < SenkouSpanA AND C < SenkouSpanB;												
+Buy_s4 = C > SenkouSpanA AND C > SenkouSpanB;
+// Medium //
+Buy_m1 = Cross(TS,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),		
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m1 = Cross(KJ,TS) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),	
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Buy_m2 = Cross(C,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m2 = Cross(KJ,C) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+// Weak //
+Buy_w1 = Cross(TS,KJ) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Sell_w1 = Cross(KJ,TS) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Buy_w2 = Cross(C,KJ) AND C < SenkouSpanA AND KJ < SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB;								
+Sell_w2 = Cross(KJ,C) AND C > SenkouSpanA AND KJ > SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB;							
+
+
+//---------------------------------------------------------------------------------------------------------------//
+/*
+AddColumn(Buy_s1, "TS_KJ", 1.0, colorBlue);
+AddColumn(Buy_s2, "C_KJ", 1.0, colorBlue);
+AddColumn(Buy_s3, "Chikou", 1.0, colorBlue);
+*/
+/*
+AddColumn(V, " Volume ", 1.0, IIf(V>=2*MA(V,10), colorViolet, IIf(V> MA(V,10) AND V<2*MA(V,10), colorBrightGreen, colorRed)));
+
+AddColumn(MA(V,10), "  MA(V,10)  ", 1.0, colorBlack);
+AddColumn(MA(V,20), "  MA(V,20)  ", 1.0, colorBlack);
+AddColumn(C, " Price ", 1.0, IIf(C>Ref(H,-25), colorBrightGreen, colorRed));
+*/
+ TrendScore =
+ IIf(long_buildup, 1,0) +
+ IIf(minervinitt, 1,0) +
+ IIf(BB2,1,0)+
+ IIf(MAShort,1,0)+
+ IIf(MAMid,1,0) +
+ IIf(MAMid,1,0) +
+ IIf(MALong,1,0)+
+ IIf(MACDBull,1,0) +
+ IIf(Aroon,1,0) +
+ IIf(StochKBull,1,0)+
+ IIf(R1,1,0) +
+ IIf(B1,1,0) +
+ IIf(M2,1,0)  +
+ IIf(Buy_s1, 1,0) +
+ IIf(Buy_s2, 1,0) +
+ IIf(Buy_s3, 1,0) ;
+
+
+
+
+
+/*
+TrendScore =
+
+IIf(C>=Ref(C,-11),1,-1)+
+IIf(C>=Ref(C,-12),1,-1)+
+IIf(C>=Ref(C,-13),1,-1)+
+IIf(C>=Ref(C,-14),1,-1)+
+IIf(C>=Ref(C,-15),1,-1)+
+IIf(C>=Ref(C,-16),1,-1)+
+IIf(C>=Ref(C,-17),1,-1)+
+IIf(C>=Ref(C,-18),1,-1)+
+IIf(C>=Ref(C,-19),1,-1)+
+IIf(C>=Ref(C,-20),1,-1);
+*/
+
+
+
+
+Filter = coiadd/chg>0.045 OR coiadd/chg<-0.05;;
+//AddColumn(High52,"52 Week High");
+//AddColumn(Low52,"52 Week Low");
+//AddColumn(C,"Close",1,IIf(C>Ref(C,-1),colorGreen,colorRed));
+//AddColumn(V,"Volume",1,IIf(V>Ref(V,-1),colorGreen,colorRed));
+AddTextColumn(BBStatus,"BBand",1,colorWhite,BBColor, width=70);
+AddTextColumn(ShortStatus,"MA(15)",1,colorWhite,ShortColor, 60);
+AddTextColumn(MidStatus,"MA(45)",1,colorWhite,MidColor, 60);
+AddTextColumn(LongStatus,"MA(100)",1,colorWhite,LongColor, 60);
+AddTextColumn(MACDStatus,"MACD",1,colorWhite,MACDColor, 60);
+AddTextColumn(AroonStatus,"Aroon",1,colorWhite,AroonColor, 60);
+AddTextColumn(StochKStatus,"Stochastic",1,colorWhite,StochKColor, 60);
+AddTextColumn(RSIStatus,"RSI(14)",1,colorWhite,RSIColor, 60);
+AddTextColumn(MFIStatus,"MFI(14)",1,colorWhite,MFIColor, width=70);
+AddColumn((Buy_s1 + Buy_s2 + Buy_s3 + Buy_s4 +Buy_w1 + Buy_w2 + Buy_m1 + Buy_m2), "Ichimoku", 1.0, colorBlue);
+AddColumn(TrendScore,"#", 1.0, colorDefault, colorDefault, 40);
+_SECTION_END();
+
