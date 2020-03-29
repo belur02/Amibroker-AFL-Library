@@ -1,0 +1,31 @@
+// Downloaded From www.WiseStockTrader.com
+_SECTION_BEGIN("Kijun Sen");
+
+TK = ( HHV( H, 9 ) + LLV( L, 9 ) )/2; 
+KJ17 = ( HHV( H, 17 ) + LLV( L, 17) )/2; 
+KJ26 = ( HHV( H, 26 ) + LLV( L, 26) )/2; 
+KJ33 = ( HHV( H, 33 ) + LLV( L, 33) )/2; 
+KJ42 = ( HHV( H, 42 ) + LLV( L, 42) )/2; 
+KJ52 = ( HHV( H, 52 ) + LLV( L, 52) )/2; 
+KJ65 = ( HHV( H, 65 ) + LLV( L, 65) )/2; 
+KJ76 = ( HHV( H, 76 ) + LLV( L, 76) )/2; 
+KJ129 = ( HHV( H, 129 ) + LLV( L, 129) )/2; 
+KJ172 = ( HHV( H, 172 ) + LLV( L, 172) )/2; 
+KJ200 = ( HHV( H, 200 ) + LLV( L, 200) )/2; 
+KJ257 = ( HHV( H, 257 ) + LLV( L, 257) )/2; 
+
+Plot(TK,"TK",colorBlue,styleThick);
+Plot(KJ17,"KJ17",colorRed,styleThick); 
+Plot(KJ26,"KJ26",colorViolet,styleThick); 
+Plot(KJ33,"KJ33",colorPaleGreen,styleThick); 
+Plot(KJ42,"KJ42",colorTan,styleLine); 
+Plot(KJ52,"KJ52",colorCustom12,styleLine); 
+Plot(KJ65,"KJ65",colorGold,styleThick); 
+Plot(KJ76,"KJ76",colorPaleTurquoise,styleLine); 
+Plot(KJ129,"KJ129",colorOrange,styleThick); 
+Plot(KJ172,"KJ172",colorLightBlue,styleLine); 
+Plot(KJ200,"KJ200",colorCustom11,styleLine); 
+Plot(KJ257,"KJ257",colorBlack,styleThick); 
+
+
+_SECTION_END();

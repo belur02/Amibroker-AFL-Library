@@ -1,0 +1,7 @@
+Plot( Volume, _DEFAULT_NAME(), IIf( C > O, ParamColor("Up Color", colorDarkGreen ), ParamColor("Down Color", colorDarkRed ) ), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram  ) );
+Plot(MA(V, 21), "Average Vol", colorLavender, styleArea, Null, Null, 0, 0, 1);
+Plot(MA(V, 21), "Average Vol", colorGrey40, styleThick, Null, Null, 0, 0, 1);
+
+// Downloaded From https://www.WiseStockTrader.com
+
+_SECTION_END();

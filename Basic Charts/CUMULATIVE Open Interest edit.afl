@@ -1,0 +1,26 @@
+_SECTION_BEGIN("Total OI - 3 Symbols ");
+
+Symbol1OI_Vege=Foreign(Name(),"I");  // first symbol 
+Symbol2OI_Vege=Foreign(StrReplace(Name(), "-I", "-II" ),"I");  // second symbol OI
+Symbol3OI_Vege=Foreign(StrReplace(Name(), "-I", "-III" ),"I");   /// Third Symbol OI 
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
+//Plot(Symbol1OI_Vege ," Current Month OI",colorBlack,styleLine);
+//Plot(Symbol2OI_Vege ," Near Month OI",colorBlue,styleLine);
+//Plot(Symbol3OI_Vege ," Far Month OI",colorGreen,styleLine);
+//Plot(CombinedOI_Vege ,"COI",IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram  ));
+Plot(CombinedOI_Vege ,"COI", colorBlue, styleThick);
+Plot( MA( CombinedOI_Vege, 50 ), "50MACOI", colorLightGrey, styleArea, 5 );
+
+Plot( MA( CombinedOI_Vege, 20 ), "20MACOI", colorGrey40, styleLine, 5 );
+Plot( MA( CombinedOI_Vege, 20 ), "20MACOI", colorLavender, styleArea, 5 );
+Filter=1;
+AddColumn(Symbol1OI_Vege ,"Symb 1  OI");
+AddColumn(CombinedOI_Vege ,"Total OI");
+_SECTION_END();
+
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

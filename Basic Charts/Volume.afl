@@ -1,0 +1,23 @@
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram  ) );
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+_SECTION_BEGIN( "Volume" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+if ( ShowVolume )
+{
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, V, 0, V, "V", VolColor , styleOwnScale|styleCandle,  20) ;
+}
+_SECTION_END();

@@ -1,0 +1,46 @@
+section_begin("ichimoku");
+
+// Parameters
+tenkan_p = param("Tenkan-sen Period", 9, 2, 200, 1, 0);
+tenkan_c = paramcolor("Tenkan-sen Color", colorblue);
+tenkan_s = paramstyle("Tenkan-sen Style", styleline | stylethick);
+
+kijun_p = param("Kijun-sen Period", 26, 2, 200, 1, 0);
+kijun_c = paramcolor("Kijun-sen Color", colorred);
+kijun_s = paramstyle("Kijun-sen Style", styleline | stylethick);
+
+senkou_a_c = paramcolor("Senkou Span A Color", colorbrightgreen);
+senkou_a_s = paramstyle("Senkou Span A Style", styleline | stylethick);
+
+senkou_b_p = param("Senkou Span B Period", 52, 2, 200, 1, 0);
+senkou_b_c = paramcolor("Senkou Span B Color", colorpink);
+senkou_b_s = paramstyle("Senkou Span B Style", styleline | stylethick);
+
+senkou_p = param("Sekou Displacement", 26, 0, 200, 1, 0);
+
+kumo_a_c = paramcolor("Kumo A Color", colorblend(senkou_a_c, colorwhite, 0.6));
+kumo_b_c = paramcolor("Kumo B Color", colorblend(senkou_b_c, colorwhite, 0.4));
+kumo_s = paramstyle("Kumo Style", stylecloud, stylecloud);
+
+chikou_p = param("Chikou Displacement (-ve)", 26, 2, 200, 1, 0);
+chikou_c = paramcolor("Lagging Color", colorgreen);
+chikou_s = paramstyle("Lagging Style", styleline | stylethick);
+chikou_p *= -1;
+
+// Calculations
+tenkan_a = (hhv(h, tenkan_p) + llv(l, tenkan_p)) / 2;
+kijun_a = (hhv(h, kijun_p) + llv(l, kijun_p)) / 2;
+senkou_a_a = (tenkan_a + kijun_a) / 2;
+senkou_b_a = (hhv(h, senkou_b_p) + llv(l, senkou_b_p)) / 2;
+chikou_a = c;
+kumo_c = iif(senkou_a_a > senkou_b_a, kumo_a_c, kumo_b_c);
+
+// Plots
+plot(tenkan_a,"Tenkan-sen", tenkan_c, tenkan_s);
+plot(kijun_a, "Kijun-sen", kijun_c, kijun_s);
+plot(senkou_a_a, "Senkou Span A", senkou_a_c, senkou_a_s, 0, 0, senkou_p);
+plot(senkou_b_a, "Senkou Span B", senkou_b_c, senkou_b_s, 0, 0, senkou_p);
+plot(c, "Chikou Span", chikou_c, chikou_s, 0, 0, chikou_p);
+plotohlc(senkou_a_a, senkou_a_a, senkou_b_a, senkou_b_a, "Kumo", kumo_c, kumo_s, 0, 0, senkou_p);
+
+_section_end();

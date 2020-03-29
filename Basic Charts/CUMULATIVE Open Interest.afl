@@ -1,0 +1,16 @@
+_SECTION_BEGIN("Total OI - 3 Symbols ");
+
+Symbol1OI_Vege=Foreign(Name(),"I");  // first symbol 
+Symbol2OI_Vege=Foreign(StrReplace(Name(), "I.NFO", "II.NFO" ),"I");  // second symbol OI
+Symbol3OI_Vege=Foreign(StrReplace(Name(), "I.NFO", "III.NFO" ),"I");   /// Third Symbol OI 
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
+Plot(Symbol1OI_Vege ," Current Month OI",colorBlack,styleLine);
+Plot(Symbol2OI_Vege ," Near Month OI",colorBlue,styleLine);
+Plot(Symbol3OI_Vege ," Far Month OI",colorGreen,styleLine);
+Plot(CombinedOI_Vege ,"COI",colorRed,styleHistogram);
+
+Filter=1;
+AddColumn(Symbol1OI_Vege ,"Symb 1  OI");
+AddColumn(CombinedOI_Vege ,"Total OI");
+_SECTION_END();

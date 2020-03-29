@@ -1,0 +1,31 @@
+/* vwap crossover */
+_SECTION_BEGIN("WMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15 );
+Plot( WMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorBlue), ParamStyle("Style") ); 
+_SECTION_END();
+ 
+//====//
+ 
+f=Param(" Periods  ",5,1,5000); 
+VWAP=Sum(V*C,f)/Sum(V,f); 
+Plot (VWAP,"VWAP",ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+GraphXSpace=3;
+Buy = Cross(VWAP,WMA(C,15));
+Sell = Cross(WMA(C,15),VWAP);
+PlotShapes(shapeUpArrow*Buy,colorBlack);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+//====//
+ 
+_SECTION_BEGIN("Price1");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{VALUES}}", VWAP, SelectedValue( ROC( VWAP, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+Filter=Buy;
+AddColumn(Buy ,"cross MA 20 50",1.0);
+AddColumn(Open,"Open",1.0);
+AddColumn(High,"High",1.0);
+AddColumn(Low,"Low",1.0);
+AddColumn(Close,"Close",1.0);
+AddColumn(Volume,"Volume",1.0);
