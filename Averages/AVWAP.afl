@@ -1,0 +1,14 @@
+_SECTION_BEGIN("AVWAP Trading Setup");
+dn = DateTime();
+sd = SelectedValue( dn );
+start = dn == sd;
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+VSS = CV - ValueWhen( start, CV );
+denom = IIf( VSS == 0, 1, VSS );
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+M = IIf( BarsSince( start ), num/denom, mp );
+Plot( C, Date() + " Close", colorBrightGreen, styleBar );
+Plot( M, "M" + _PARAM_VALUES(), colorBrightGreen, styleThick );
+_SECTION_END();

@@ -1,0 +1,52 @@
+Version( 6.21 );
+
+dn = DateTime();
+sd = SelectedValue( dn );
+
+start = dn == sd;
+
+mp = C;
+
+PV = mp * V;
+CV = Cum( V );
+VSS = CV - ValueWhen( start, CV );
+
+denom = IIf( VSS == 0, 1, VSS );
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+
+M = IIf( BarsSince( start ), num / denom, mp );
+
+SetChartOptions( 0, chartShowDates );
+SetChartBkColor( ColorRGB( 0, 0, 0 ) );
+Plot( C, Date() + " Close", colorYellow, styleBar );
+Plot( M, "M" + _PARAM_VALUES(), colorYellow, styleThick );
+
+GuiSetFont( "Lucida Console", 10 );
+GuiButton( "Store VWAP", 1, 10, 50, 120, 30, 7 );
+GuiButton( "Reset VWAPs", 2, 10, 85, 120, 30, 7 );
+GuiSetColors( 1, 2, 2, colorRed, colorBlack, colorRed, colorWhite, colorBlue, colorYellow, colorRed, colorBlack, colorYellow );
+
+id = GuiGetEvent( 0, 0 );
+event = GuiGetEvent( 0, 1 );
+
+for( i = 1; i <= 2; i++ )
+{
+    if( id == 1 && event == 1 )
+    {
+        Say( "Store VWAP" );
+        StaticVarSet( "cnt", Nz( StaticVarGet( "cnt" ) ) + 1, True );
+        StaticVarSet( Name() + "M" + StaticVarGet( "cnt" ), M, True );
+    }
+
+    if( id == 2 && event == 1 )
+    {
+        Say( "Reset VWAPs" );
+        StaticVarRemove( Name() + "M*" );
+        StaticVarRemove( "cnt" );
+    }
+}
+
+for( i = 1; i < Nz( StaticVarGet( "cnt" ) ); i++ )
+{
+    Plot( StaticVarGet( Name() + "M" + i ), "M" + i + _PARAM_VALUES(), colorYellow, styleThick );
+}
