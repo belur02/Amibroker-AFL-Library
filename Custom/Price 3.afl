@@ -1,0 +1,100 @@
+
+// Downloaded From https://www.WiseStockTrader.com
+//////////////////////////////////////////
+////        - ICHIMOKU CHART -        ////
+//////////////////////////////////////////
+SetSortColumns(-6);
+
+sa=SenkouSpanA;
+sb=SenkouSpanB;
+
+dk_date = (DateNum() > 10000 * (2017 - 1900) + 100 * 9 + 13);
+// Strong //
+Buy_s1 = Cross(TS,KJ) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB AND C > Ref(C,-25);	
+Sell_s1 = Cross(KJ,TS) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB AND C < Ref(C,-25);	
+Buy_s2 = Cross(C,KJ) AND KJ > SenkouSpanA AND KJ > SenkouSpanB AND C > SenkouSpanA AND C > SenkouSpanB AND C > Ref(C,-25);		
+Sell_s2 = Cross(KJ,C) AND KJ < SenkouSpanA AND KJ < SenkouSpanB AND C < SenkouSpanA AND C < SenkouSpanB AND C < Ref(C,-25);		
+Buy_s3 = Cross(C,Ref(H,-25)) AND C > SenkouSpanA AND C > SenkouSpanB;												
+Sell_s3 = Cross(Ref(H,-25),C) AND C < SenkouSpanA AND C < SenkouSpanB;												
+Buy_s4 = C > SenkouSpanA AND C > SenkouSpanB;
+// Medium //
+Buy_m1 = Cross(TS,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),		
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m1 = Cross(KJ,TS) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),	
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Buy_m2 = Cross(C,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m2 = Cross(KJ,C) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+// Weak //
+Buy_w1 = Cross(TS,KJ) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Sell_w1 = Cross(KJ,TS) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Buy_w2 = Cross(C,KJ) AND C < SenkouSpanA AND KJ < SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB;								
+Sell_w2 = Cross(KJ,C) AND C > SenkouSpanA AND KJ > SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB;							
+
+
+//---------------------------------------------------------------------------------------------------------------//
+Filter=C>1 AND V>1000; 
+
+AddColumn(Buy_s1, "TS_KJ", 1.0, colorBlue);
+AddColumn(Buy_s2, "C_KJ", 1.0, colorBlue);
+AddColumn(Buy_s3, "Chikou", 1.0, colorBlue);
+AddColumn((Buy_s1 + Buy_s2 + Buy_s3 ), "TT_Buy", 1.0, colorBlue);
+
+AddColumn(V, " Volume ", 1.0, IIf(V>=2*MA(V,10), colorViolet, IIf(V> MA(V,10) AND V<2*MA(V,10), colorBrightGreen, colorRed)));
+
+AddColumn(MA(V,10), "  MA(V,10)  ", 1.0, colorBlack);
+AddColumn(MA(V,20), "  MA(V,20)  ", 1.0, colorBlack);
+AddColumn(C, " Price ", 1.0, IIf(C>Ref(H,-25), colorBrightGreen, colorRed));
+
+// Downloaded From https://www.WiseStockTrader.com
+//////////////////////////////////////////
+////        - ICHIMOKU CHART -        ////
+//////////////////////////////////////////
+SetSortColumns(-6);
+
+sa=SenkouSpanA;
+sb=SenkouSpanB;
+
+dk_date = (DateNum() > 10000 * (2017 - 1900) + 100 * 9 + 13);
+// Strong //
+Buy_s1 = Cross(TS,KJ) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB AND C > Ref(C,-25);	
+Sell_s1 = Cross(KJ,TS) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB AND C < Ref(C,-25);	
+Buy_s2 = Cross(C,KJ) AND KJ > SenkouSpanA AND KJ > SenkouSpanB AND C > SenkouSpanA AND C > SenkouSpanB AND C > Ref(C,-25);		
+Sell_s2 = Cross(KJ,C) AND KJ < SenkouSpanA AND KJ < SenkouSpanB AND C < SenkouSpanA AND C < SenkouSpanB AND C < Ref(C,-25);		
+Buy_s3 = Cross(C,Ref(H,-25)) AND C > SenkouSpanA AND C > SenkouSpanB;												
+Sell_s3 = Cross(Ref(H,-25),C) AND C < SenkouSpanA AND C < SenkouSpanB;												
+Buy_s4 = C > SenkouSpanA AND C > SenkouSpanB;
+// Medium //
+Buy_m1 = Cross(TS,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),		
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m1 = Cross(KJ,TS) AND IIf(SenkouSpanA > SenkouSpanB, (TS < SenkouSpanA AND KJ < SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB),	
+												(TS > SenkouSpanA AND KJ > SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB));
+Buy_m2 = Cross(C,KJ) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+Sell_m2 = Cross(KJ,C) AND IIf(SenkouSpanA > SenkouSpanB, (C < SenkouSpanA AND KJ < SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB),		
+												(C > SenkouSpanA AND KJ > SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB));
+// Weak //
+Buy_w1 = Cross(TS,KJ) AND TS < SenkouSpanA AND KJ < SenkouSpanA AND TS < SenkouSpanB AND KJ < SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Sell_w1 = Cross(KJ,TS) AND TS > SenkouSpanA AND KJ > SenkouSpanA AND TS > SenkouSpanB AND KJ > SenkouSpanB							
+						AND IIf(C < Ref(C,-25), (TS > Ref(C,-25) AND KJ > Ref(C,-25)), (TS < Ref(C,-25) AND KJ < Ref(C,-25)));
+Buy_w2 = Cross(C,KJ) AND C < SenkouSpanA AND KJ < SenkouSpanA AND C < SenkouSpanB AND KJ < SenkouSpanB;								
+Sell_w2 = Cross(KJ,C) AND C > SenkouSpanA AND KJ > SenkouSpanA AND C > SenkouSpanB AND KJ > SenkouSpanB;							
+
+
+//---------------------------------------------------------------------------------------------------------------//
+Filter=C>1 AND V>1000; 
+
+AddColumn(Buy_s1, "TS_KJ", 1.0, colorBlue);
+AddColumn(Buy_s2, "C_KJ", 1.0, colorBlue);
+AddColumn(Buy_s3, "Chikou", 1.0, colorBlue);
+AddColumn((Buy_s1 + Buy_s2 + Buy_s3 ), "TT_Buy", 1.0, colorBlue);
+
+AddColumn(V, " Volume ", 1.0, IIf(V>=2*MA(V,10), colorViolet, IIf(V> MA(V,10) AND V<2*MA(V,10), colorBrightGreen, colorRed)));
+
+AddColumn(MA(V,10), "  MA(V,10)  ", 1.0, colorBlack);
+AddColumn(MA(V,20), "  MA(V,20)  ", 1.0, colorBlack);
+AddColumn(C, " Price ", 1.0, IIf(C>Ref(H,-25), colorBrightGreen, colorRed));

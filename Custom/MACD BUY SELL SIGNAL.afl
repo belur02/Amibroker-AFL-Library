@@ -1,0 +1,156 @@
+//------------------------------------------------------------------------------
+//  Formula Name	:      MACD COLOUR
+//  Author		:      Stock Bangladesh R&D Team
+		       //Mohammad Mushfiqur Rahman (kallal) 
+		       //Mehedi Arafat
+//  Uploader	:      www.stockbangladesh.com
+//  E-mail		:      info@stockbangladesh.com
+//  Amibroker Blog	:      www.stockbangladesh.com/blog
+//  Origin		:      Modified & Collected from different sources.
+//------------------------------------------------------------------------------
+
+_SECTION_BEGIN("MACD");
+r1 = Param( "Fast avg", 12, 2, 200, 1 );
+r2 = Param( "Slow avg", 26, 2, 200, 1 );
+r3 = Param( "Signal avg", 9, 2, 200, 1 );
+r4 = Param( "Wk slow", 17, 2, 200, 1 );
+r5 = Param( "Wk fast", 8, 2, 200, 1 );
+m1=MACD(r1,r2);
+s1=Signal(r1,r2,r3);
+GraphXSpace =20;
+
+mycolor=IIf(m1<0 AND m1>s1, 51,IIf(m1>0 AND m1>s1,colorLime,IIf(m1>0 AND m1<s1,colorOrange,colorRed)));
+Plot( m1, StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), mycolor,ParamStyle("MACD style") );
+Plot( s1 ,"Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+histcolor = IIf((m1-s1)-Ref((m1-s1),-1)> 0, colorLime, colorRed ); 
+
+TimeFrameSet( inDaily );// weekly 
+m1w=MACD(r4,r5);
+s1w=Signal(r4,r5,r3);
+kp=m1w-s1w;
+kph=Ref(kp,-1);
+TimeFrameRestore(); 
+
+kw=TimeFrameExpand( kp, inDaily ); // expand for display 
+khw=TimeFrameExpand( kph, inDaily ); // expand for display 
+mw=TimeFrameExpand( m1w, inDaily ); // expand for display 
+sw=TimeFrameExpand( s1w, inDaily ); // expand for display 
+
+hcolor=IIf(mw<0 AND mw>sw, 51,IIf(mw>0 AND mw>sw,colorLime,IIf(mw>0 AND mw<sw,colorOrange,colorRed)));
+gcolor=IIf(kw>khw,IIf(kw>0,colorDarkYellow,colorYellow),IIf(kw>0,colorSkyblue,colorBlue));
+
+Plot( 2,"Wkly MACD ribbon",hcolor,styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+Plot( 2,"Ribbon",gcolor,styleOwnScale|styleArea|styleNoLabel, -0.4, 40,-0.6 );
+
+Plot( m1-s1, "MACD Histogram",  mycolor, styleHistogram | styleThick| styleOwnScale  );
+
+_SECTION_END();
+
+_SECTION_BEGIN("Signals");
+//Zero crossover up
+
+j1=Cross(m1,0);
+PlotShapes(IIf(j1,shapeDigit1 ,Null),colorPaleGreen,0,Min(0,0),Min(0,0)); 
+PlotShapes(IIf(j1,shapeUpArrow,Null),colorGreen,0,Min(0,0),-10); 
+
+// crossover above zero
+
+j2=Cross(m1,s1) AND m1>0;
+PlotShapes(IIf(j2,shapeDigit2 ,Null),colorYellow,0,0,0); 
+PlotShapes(IIf(j2,shapeUpArrow,Null),colorGreen,0,0,-10); 
+
+//Zero crossover down
+
+j3=Cross(s1,m1) AND m1>0;
+PlotShapes(IIf(j3,shapeDigit3 ,Null),colorOrange,0,Min(0,0),0); 
+PlotShapes(IIf(j3,shapeDownArrow,Null),colorOrange,0,Min(0,0),-10); 
+
+// crossover below zero
+
+j4=Cross(0,m1);
+PlotShapes(IIf(j4,shapeDigit4 ,Null),colorRed,0,0,0); 
+PlotShapes(IIf(j4,shapeDownArrow,Null),colorRed,0,0,-10); 
+
+// Histogram peak and troughs
+pt=m1-s1;
+Tp = Ref(pT,-1) == HHV(pT,3);
+Vl = Ref(pT,-1)==LLV(pT,3);
+PlotShapes(IIf(Vl AND m1>s1 ,shapeSmallCircle+ shapePositionAbove,shapeNone),IIf(m1<0 ,colorYellow,colorLime),0,0,0);
+PlotShapes(IIf(Tp AND m1<s1 ,shapeSmallCircle+ shapePositionAbove,shapeNone),colorRed,0,0,0);
+
+//Zeroline reject bearish
+zd=BarsSince(j1);
+zlrd1=(zd<6 )AND j4;
+PlotShapes(IIf(zlrd1,shapeStar+ shapePositionAbove,shapeNone),colorDarkRed,0,0,20);
+
+//hooks bearish
+Hu=BarsSince(j2);
+Hu1=(Hu<6)AND j3;
+PlotShapes(IIf(Hu1,shapeStar+ shapePositionAbove,shapeNone),colorRed,0,0,20);
+
+//Zeroline reject Bullish
+zu=BarsSince(j4);
+zlru=zu<6 AND j1;
+PlotShapes(IIf(zlru,shapeStar+ shapePositionAbove,shapeNone),colorPink,0,0,20);
+
+//Hook Bullish
+Hd=BarsSince(j3);
+Hd1=Hd<6 AND j2;
+PlotShapes(IIf(Hd1,shapeStar+ shapePositionAbove,shapeNone),colorLime,0,0,20);
+
+//ADX related calculations
+plus=EMA(PDI(14),3)>Ref(EMA(PDI(14),3),-5);
+ap=EMA(ADX(14),3)>Ref(EMA(ADX(14),3),-5);
+Minus=EMA(MDI(14),3)>Ref(EMA(MDI(14),3),-5);
+
+//Power Dips - Bullish
+PDIp=ADX(14)>MDI(14) AND PDI(14)>MDI(14) AND ap AND Vl AND m1>s1 AND plus ;
+PlotShapes(IIf(PDIp,shapeHollowCircle+ shapePositionAbove,shapeNone),colorCustom12,0,0,0);
+
+//power buys
+pr2=ADX(14)>20 AND PDI(14)>20 AND ADX(14)>MDI(14) AND PDI(14)>MDI(14) AND plus AND j2;
+PlotShapes(IIf(pr2,shapeHollowCircle+ shapePositionAbove,shapeNone),colorCustom12,0,0,20);
+
+//Power Dips - Bearish
+PDIm=ADX(14)>PDI(14) AND MDI(14)>PDI(14) AND ap AND Tp AND m1<s1 AND Minus ;
+PlotShapes(IIf(PDIm,shapeHollowCircle+ shapePositionAbove,shapeNone),colorWhite,0,0,0);
+
+//Power shorts
+sr2=ADX(14)>20 AND MDI(14)>20 AND ADX(14)>PDI(14) AND MDI(14)>PDI(14) AND Minus AND j4;
+PlotShapes(IIf(sr2,shapeHollowCircle+ shapePositionAbove,shapeNone),colorRed,0,0,-20);
+
+//powerbuy2
+pr2a=ADX(14)>20 AND PDI(14)>20 AND ADX(14)>MDI(14) AND PDI(14)>MDI(14) AND  plus AND j1;
+PlotShapes(IIf(pr2a,shapeHollowCircle+ shapePositionAbove,shapeNone),colorCustom12,0,0,20);
+_SECTION_END();
+
+_SECTION_BEGIN("Exploration");
+Filter = j1 OR j2 OR j3 OR j4 OR PDIp OR PDIm OR pr2 OR sr2 ;
+
+AddColumn(j1,"ZL UP",1);
+AddColumn(J2,"MA Up",1);
+AddColumn(j3,"MA DN",1);
+AddColumn(J4,"ZL DN",1);
+AddColumn(PDIp,"PDIP UP",1);
+AddColumn(pr2,"PHK UP",1);
+AddColumn(PDIm,"PDIP DN",1);
+AddColumn(sr2,"PHk UP",1);
+_SECTION_END();
+
+_SECTION_BEGIN("Display the Signals");
+Title = "Trading the MACD" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor() +
+
+ "  - " + Date() +" - " +EncodeColor(colorLime)+ "MACD= "+WriteVal(m1)+"--"+EncodeColor(colorYellow)+
+WriteIf (j1, " MACD Crossed above zero","")+
+WriteIf (j2, " Bullish crossover above zero","")+
+WriteIf (j4, " MACD Crossed below Zero","")+
+WriteIf (j3, " Bearish crossover above zero","")+
+WriteIf (PDIP, "  Bullish Power Dip","")+
+WriteIf (pr2, " & Power Buy","")+
+WriteIf (sr2, " & Power Short","")+
+WriteIf (PDIm, " Bearish Power Dip","")+
+WriteIf (Hd1, " & Bullish Hook","")+
+WriteIf (Hu1, " & Bearish Hook","")+
+WriteIf (zlrd1, " & Bearish zeroline Reject","")+
+WriteIf (zlru, " & Bullish Zeroline Reject","");
+_SECTION_END();

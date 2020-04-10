@@ -1,0 +1,15 @@
+_SECTION_BEGIN( "Delivery" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+bluebar = Param( "Show Blue Bar", 90, 40, 99 );
+
+
+if ( ShowVolume )
+{
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, OpenInt/V*100, 0, OpenInt/V*100, _DEFAULT_NAME(), IIf(OpenInt/V*100>bluebar, colorBlue, VolColor) , styleCandle, 10) ;
+    Plot(MA(OpenInt/V*100, 10), _DEFAULT_NAME(), colorLightGrey, styleArea);
+    Plot(MA(OpenInt/V*100, 10), _DEFAULT_NAME(), colorBlack, styleLine);
+}
+_SECTION_END();

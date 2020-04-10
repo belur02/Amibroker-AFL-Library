@@ -1,0 +1,15 @@
+_SECTION_BEGIN( "Delivery" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+
+
+
+if ( ShowVolume )
+{
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, OpenInt/V*100, 0, OpenInt/V*100, "del%", IIf(OpenInt/V*100>90, colorBlue, VolColor) , styleCandle, 10) ;
+    Plot(MA(OpenInt/V*100, 10), "AvgVol", colorLightGrey, styleArea);
+    Plot(MA(OpenInt/V*100, 10), "AvgVol", colorBlack, styleThick);
+}
+_SECTION_END();

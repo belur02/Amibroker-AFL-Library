@@ -1,0 +1,46 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+//Plot( P, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+/*
+_SECTION_BEGIN("AVWAP Trading Setup");
+dn = DateTime();
+sd = SelectedValue( dn );
+start = dn == sd;
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+VSS = CV - ValueWhen( start, CV );
+denom = IIf( VSS == 0, 1, VSS );
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+M = IIf( BarsSince( start ), num/denom, mp );
+Plot( C, Date() + " Close", colorBlueGrey, styleCandle );
+Plot( M, "M" + _PARAM_VALUES(), colorBlueGrey, styleThick );
+_SECTION_END();
+*/
+
+/*
+
+*/

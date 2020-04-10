@@ -1,0 +1,4 @@
+_SECTION_BEGIN("Relative Strenght");
+base = ParamStr("NIFTY-I", GetBaseIndex() );
+Plot( RelStrength(base), _SECTION_NAME() + "(" + base + ")", ParamColor( "color", colorCycle ), ParamStyle("Style")  );
+_SECTION_END();

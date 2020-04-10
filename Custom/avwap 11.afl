@@ -1,0 +1,139 @@
+/*
+_SECTION_BEGIN("AVWAP Trading Setup");
+dn = DateTime();
+sd = SelectedValue( dn );
+start = dn == sd;
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+VSS = CV - ValueWhen( start, CV );
+denom = IIf( VSS == 0, 1, VSS );
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+M = IIf( BarsSince( start ), num/denom, mp );
+Plot( C, Date() + " Close", colorBlueGrey, styleCandle );
+Plot( M, "M" + _PARAM_VALUES(), colorBlueGrey, styleThick );
+_SECTION_END();
+*/
+
+_SECTION_BEGIN("avwap new");
+function NewDataJustArrived() {
+    // function by T. Janeczko
+    // mod. by fxshrat to check for new price data too
+    vname = "lbe" + GetChartID();
+    prev = Nz( StaticVarGet( vname ) );
+    curr = Status( "lastbarend" );    
+    StaticVarSet( vname, curr );  
+    // 
+    lastC = LastValue(C);
+    prevC = Nz( StaticVarGet( vname + "_Close" ) ); 
+    StaticVarSet( vname + "_Close", lastC );
+
+    return curr != prev || lastc != prevC;
+}
+
+/// VWAP-Multi-Storage AFL
+/// by fxshrat
+/// it uses CTRL + mouse button click toi set lines (read instructions in chart title
+/// code updates lines on new incoming price data.
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/10
+/// modified from GUI version
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/4
+
+dt = DateTime();
+sdt = SelectedValue(dt);
+newbar = NewDataJustArrived();
+
+gcmb = GetCursorMouseButtons();
+lmb = gcmb == 9;
+mmb = gcmb == 12;
+CTRL = GetAsyncKeyState(17) < 0;
+
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+CumPV = Cum( PV );
+
+start = dt == sdt;
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+denom = CV - ValueWhen( start, CV );
+vwap = IIf( BarsSince(start) > 0, num / Max(1, denom), mp );
+
+nm = Name();
+vwapstr = nm + "VWAP";
+cntstr = nm + "VWAP_cnt";
+dnstr = nm + "VWAP_DN";
+
+if( CTRL && lmb ) {
+	staticget = Nz( StaticVarGet( cntstr ) );
+	Say( "Store anchored we wap"+(staticget+1) );	
+	StaticVarSet( cntstr, staticget+1, True );
+	StaticVarSet( vwapstr + staticget, vwap, True );
+	StaticVarSet(dnstr + staticget, sdt, True );	
+}
+
+if( CTRL && mmb ) {
+	Say( "Reset we waps" );
+	StaticVarRemove( vwapstr + "*" );
+	StaticVarRemove( dnstr + "*" );
+	StaticVarRemove( cntstr );
+}
+
+// Output
+SetChartOptions( 0, chartShowDates | chartWrapTitle );
+Plot( C, Date() + " - Close", colorBlue, styleCandle );
+Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorOrange, styleThick );
+
+for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
+    if( newbar ) {
+		Say( "This is new bar or new data!" );
+		staticsd = StaticVarGet( dnstr + i );
+		staticstart = dt == staticsd;
+		staticnum = CumPV - ValueWhen( staticstart, CumPV );
+		staticdenom = CV - ValueWhen( staticstart, CV );
+		static_vwap = IIf( BarsSince( staticstart ) > 0, staticnum / Max(1, staticdenom), mp );		
+		StaticVarSet( vwapstr + i, static_vwap, True );
+	}
+   
+    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorRed, styleLine );
+}
+
+if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0)
+	Title = EncodeColor(colorRed) + "1. Hold CTRL key!\n2. Click left mouse button to create lines\n3. Click CTRL + Middle mouse button to delete lines\n{{VALUES}}";
+_SECTION_END();
+
+_SECTION_BEGIN("AVWAP exploration");
+
+AddColumn(StaticVarGet(vwapstr + i ), _PARAM_VALUES(), 1.2, colorDefault, colorDefault);
+
+for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
+    if( newbar ) {
+		staticsd = StaticVarGet( dnstr + i );
+		staticstart = dt == staticsd;
+		staticnum = CumPV - ValueWhen( staticstart, CumPV );
+		staticdenom = CV - ValueWhen( staticstart, CV );
+		static_vwap = IIf( BarsSince( staticstart ) > 0, staticnum / Max(1, staticdenom), mp );		
+		StaticVarSet( vwapstr + i, static_vwap, True );
+	}
+   
+    AddColumn(StaticVarGet(vwapstr + i ), "vwap", 1.2, colorDefault, colorDefault);
+}
+
+if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0);
+
+_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Bollinger Bands");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+Plot( BBandTop( P, Periods, Width ), "BBTop" + _PARAM_VALUES(), Color, Style ); 
+Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();

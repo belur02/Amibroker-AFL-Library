@@ -1,0 +1,244 @@
+// Downloaded From https://www.WiseStockTrader.com
+//================= PARTH DESAI===============
+//=======================MASTER STRATEGY=====================
+//########################################################################
+// SETUP ALL PARAMETERS
+//########################################################################
+//
+DisplayAlerts = ParamToggle("Pop up Alerts","Off|On",0);
+VoiceAlerts = ParamToggle("Voice Alerts","Off|On",0);
+ 
+timeout = 1000;
+ 
+StaticVarSetText( "CurrPos", "" );
+ 
+function GetSecondNum()
+{
+    Time = Now( 4 );
+    Seconds = int( Time % 100 );
+    Minutes = int( Time / 100 % 100 );
+    Hours = int( Time / 10000 % 100 );
+    SecondNum = int( Hours * 60 * 60 + Minutes * 60 + Seconds );
+    return SecondNum;
+}
+ 
+function PopupWindowEx( popupID, bodytext, captiontext, timeout, left, top )
+{
+    displayText = bodytext + captiontext;
+ 
+    if ( ( StaticVarGetText( Name() + "prevPopup" + popupID ) != displayText ) OR ( StaticVarGet( Name() + "prevPopupTime" + popupID ) < GetSecondNum() ) )
+    {
+        StaticVarSetText( Name() + "prevPopup" + popupID, displayText );
+        StaticVarSet( Name() + "prevPopupTime" + popupID, GetSecondNum() + timeout );
+        if (DisplayAlerts ==1) {
+			PopupWindow( bodytext, Captiontext + popupID, timeout, Left, top );
+        	PlaySound( "c:\\windows\\media\\ding.wav" );
+		 }
+		 if (VoiceAlerts ==1) Say (bodytext);
+    }
+}
+ 
+ 
+//=============================SETUP TREND======================================
+//SetBarsRequired(100000,0);
+pds = 20;
+MAFAST = EMA( Close, 20 );
+MASLOW = EMA( Close, 40 );
+ 
+DonchianUpper = HHV( Ref( H, -1 ), pds ); // Highest high value of highs in last 20 periods
+DonchianLower = LLV( Ref( L, -1 ), pds ); // Lowest low value of low in last 20 periods
+DonchianMiddle = ( DonchianUpper + DonchianLower ) / 2;
+ 
+UpTrend = C > ( LLV( L, 20 ) + 2 * ATR( 10 ) ) AND EMA( Close, 20 ) > EMA( Close, 40 );
+DnTrend = C < ( HHV( H, 20 ) - 2 * ATR( 10 ) ) AND EMA( Close, 20 ) < EMA( Close, 40 );
+Color = IIf( UpTrend, colorGreen, IIf( DnTrend, colorRed, colorCustom10 ) );
+ 
+// Plots a 20 period Donchian channel
+//Plot( C, "Price", Color, styleBar | styleThick );
+ 
+ 
+//=============================DISPLAY PARAMS======================================
+
+/*
+
+*/
+
+//SetChartBkGradientFill( ParamColor( "BgTop", ColorRGB( 0, 0, 0 ) ), ParamColor( "BgBottom", ColorRGB( 0, 0, 0 ) ), ParamColor( "titleblock", ColorRGB( 0, 0, 0 ) ) );
+
+//Volume Price Analysis AFL - VPA Version 3.0 -15-06-2015
+// Revision Details
+// V-2.0 AFL - fully re written for clarity, Minor bugs removed
+// V-2.1 support and resistance line added
+// V-2.2 Commentary for support and resistance line breaks Added.
+// V-2.3 Revision detail- High volume Lines added
+// V-2.4 Toggle switch for plotting S/R, High volume and Trend lines added
+// V-2.5 Bar coloring option included - VSA based or Trend Based
+// V-3.0 Trend detection Method changed to "Random Walk"
+//===================Version V.3.0 ======================
+//=========================================================================|
+//                    VPA Basic Module                                     |
+//=========================================================================|
+
+//=========================================================================|
+//                    Trend Analysis Module                                |
+//=========================================================================|
+
+//======================================================================|
+//                      VSA Signal generation                           |
+//======================================================================|
+
+//|============================================================================================|
+//|                                       TITLE                                                |
+//|============================================================================================|
+
+//====================================================================================|
+//                        Plotting Module                                             |
+//====================================================================================|
+
+//====================================================================================|
+//                       Commentry Module                                             |
+//====================================================================================|
+
+//====================================================================================|
+//                       Support & Resistance  Lines                                  |
+//====================================================================================|
+
+//==========================================================================|
+//                    Volume Lines Module                                   |
+//==========================================================================|
+// AFL Karthikmarar
+// HIGH VOLUME LINES AFL VERSION 1.00
+// Provids upto total 20 lines. Number of lines Adjustable from Parameter window
+
+/////////////////////////////
+ 
+// Supertrend - Translated from Kolier MQ4
+// see: http://kolier.li/indicator/kolier-supertrend-indi
+// translation in Amibroker AFL code by E.M.Pottasch, 2011
+ 
+procedure calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice)
+{
+global buffer_line_down;
+global buffer_line_up;
+buffer_line_down = Null;
+buffer_line_up = Null;
+  
+PHASE_NONE = 0;
+PHASE_BUY = 1;
+PHASE_SELL = -1;
+  
+phase=PHASE_NONE;
+band_upper = 0;band_lower = 0;
+    
+for(i = ATR_Period + 1; i < BarCount; i++)
+{
+    band_upper = CalcPrice[i] + ATR_Multiplier * tr[i];
+    band_lower = CalcPrice[i] - ATR_Multiplier * tr[i];
+      
+    if(phase==PHASE_NONE)
+    {
+        buffer_line_up[i] = CalcPrice[i];
+        buffer_line_down[i] = CalcPrice[i];
+    }
+    if(phase!=PHASE_BUY && Close[i]>buffer_line_down[i-1] && !IsEmpty(buffer_line_down[i-1])) 
+    {
+        phase = PHASE_BUY;
+        buffer_line_up[i] = band_lower;
+        buffer_line_up[i-1] = buffer_line_down[i-1];
+    }
+    if(phase!=PHASE_SELL && Close[i]<buffer_line_up[i-1] && !IsEmpty(buffer_line_up[i-1]))
+    {
+        phase = PHASE_SELL;
+        buffer_line_down[i] = band_upper;
+        buffer_line_down[i-1] = buffer_line_up[i-1];
+    }   
+    if(phase==PHASE_BUY && ((TrendMode==0 && !IsEmpty(buffer_line_up[i-2])) || TrendMode==1) )
+    {
+        if(band_lower>buffer_line_up[i-1]) 
+        {
+            buffer_line_up[i] = band_lower;
+        }
+        else
+        {
+            buffer_line_up[i] = buffer_line_up[i-1];
+        }
+    }
+    if(phase==PHASE_SELL && ((TrendMode==0 && !IsEmpty(buffer_line_down[i-2])) || TrendMode==1) )
+    {
+        if(band_upper<buffer_line_down[i-1])
+        {
+            buffer_line_down[i] = band_upper;
+        }
+        else
+        {
+            buffer_line_down[i] = buffer_line_down[i-1];
+        }
+    }
+}
+}
+  
+SetBarsRequired(sbrAll,sbrAll);
+ 
+TrendMode = ParamToggle("TrendMode","Off|On",1);
+ATR_Multiplier = Param("ATR_Multiplier",2,0.1,10,0.1);
+ATR_Period = Param( "ATR_Period",5,1,20,1);
+tr = ATR(ATR_Period);
+  
+CalcPrice = (H+L)/2;
+calcTrend_proc(ATR_Period,tr,ATR_Multiplier,TrendMode,CalcPrice);
+  
+SetChartOptions(0,chartShowDates);
+//Plot(C,"C",colorWhite,64);
+ 
+if ( TrendMode == 1 )
+{
+    Plot( buffer_line_up, "\ntu", ColorRGB( 28, 134, 238 ), styleThick );
+    Plot( buffer_line_down, " // td", ColorRGB( 205, 51, 51 ), styleThick );
+ 
+ 
+    Plot( 4, "", IIf( buffer_line_up, colorBrightGreen, colorBlack ), styleOwnScale | styleArea | styleNoLabel, -0.5, 100 );
+    Plot( 6, "", IIf( buffer_line_down, colorRed, colorBlack ), styleOwnScale | styleArea | styleNoLabel, -0.5, 100 );
+}
+
+SL = ( HHV( H, 26 ) + LLV( L, 26) )/2;// standard, base, or kijun-sen line
+TL = ( HHV( H, 9 ) + LLV( L, 9 ) )/2;// turning, conversion, or tenkan-sen line
+DL = Ref( C, 25 );						// delayed close price, or chikou span
+Span1 = Ref( ( SL + TL )/2, -25 );		//Span1 and Span2 define the clouds
+Span2 = Ref( (HHV( H, 52) + LLV(L, 52))/2, -25);
+
+CStyle = ParamToggle("Showcandles?","N|Y");//Choose Candle or Line for Price Plot
+hue = Param("Hue",140,0,255,1);
+sat = Param("Sat",100,0,255,1);
+bri = Param("bri",220,0,255,1);
+
+MaxGraph = 8;
+Refline = (Span1 + Span2)/2;
+Graph0 = Refline;
+Graph0Style = 16;//No line plotted, used as a reference line for arrows etc.
+if(Cstyle )
+Plot(C,"Price",colorWhite,styleCandle);
+else
+Plot(Close,"Close",colorWhite,styleCandle); 
+Plot(SL,"SL",colorGreen,styleThick); 
+Plot(TL,"TL",colorRed,styleThick); 
+Plot(DL,"DL",colorYellow,styleThick); 
+PlotOHLC(Span1,Span1,Span2,Span2,"Cloud",ColorHSB(Hue,sat,bri),styleCloud);
+
+above = IIf(TL>Span1 AND TL>Span2,1,0);
+within = IIf((TL>Span1 AND TL<Span2) OR (TL<Span1 AND TL>Span2) ,1,0);
+below = IIf(TL<Span1 AND TL<Span2,1,0);
+Buy = Cross(TL,SL);
+Sell = Cross(SL,TL);
+StrongBuy = Buy AND above;
+MediumBuy = Buy AND within;
+WeakBuy = Buy AND below;
+StrongSell = Sell AND below;
+MediumSell = Sell AND within;
+WeakSell = Sell AND above;
+
+IIf( (StrongBuy),PlotShapes(shapeUpArrow*StrongBuy,colorGreen),0);
+IIf( (MediumBuy),PlotShapes(shapeUpTriangle*MediumBuy,colorGreen),0);
+IIf( (WeakBuy),PlotShapes(shapeHollowUpArrow*WeakBuy,colorIndigo),0);
+IIf( (StrongSell),PlotShapes(shapeDownArrow*StrongSell,colorRed),0);
+IIf( (MediumSell),PlotShapes(shapeDownTriangle*MediumSell,colorRed),0);
+IIf( (WeakSell),PlotShapes(shapeHollowDownArrow*WeakSell,colorBrown),0);

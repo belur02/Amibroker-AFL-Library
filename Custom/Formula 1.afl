@@ -1,0 +1,4 @@
+filter = close > 50;
+
+AddColumn( Close, "Close" );
+

@@ -1,0 +1,38 @@
+//||===================================================================================||
+//|| RRSI - Regularized RSI V.1.0 -  by Karthimarar                               ||
+//|| www.karthikmarar.blogspot.com                                                     ||
+//|| Public release for personal use only.                                             ||
+//|| Please do not commercialize this indicator in its original or modified form       ||
+//||===================================================================================||
+
+_SECTION_BEGIN("Regularized RSI");
+SetChartBkColor(colorWhite); 
+per = Param("RSI Period",14,6,30,1);
+Lam = Param("Lamda",0.5,0.5,4,0.5);
+j = 1/(per+1);
+function RRSI( period ,alpha, Lamda)
+{
+P = N = 0;
+ 
+result = Null;
+ 
+for( i = 3; i < BarCount; i++ )
+{
+diff = C[ i ] - C[ i - 1 ];
+W = S = 0;
+if( diff > 0 ) W = diff;
+if( diff < 0 ) S = -diff;
+
+P[i] = (P[i-1] + alpha*(W[i]-P[i-1]) + Lamda*(P[i-1]+(P[i-1]-P[i-2])))/(1+Lamda);
+N[i] = (N[i-1] + alpha*(S[i]-N[i-1]) + Lamda*(N[i-1]+(P[i-1]-N[i-2])))/(1+Lamda);
+if( i >= period[i] )
+result[ i ] = 100 * P[i] / ( P[i] + N[i] );
+}
+return result;
+} 
+ 
+KRSI = RRSI(per,j,Lam);
+SMRSI = ( 4*KRSI + 3 * Ref(KRSI,-1) + 2 * Ref(KRSI,-2) + Ref(KRSI,-3) ) / 10;
+EncodeColor(colorRed);
+Plot(KRSI,EncodeColor(colorBlue)+"Regularized RSI"+" ("+WriteVal(per,0)+")",colorRed,1|styleLine);
+Plot(SMRSI,"",colorLime,1|styleLine);

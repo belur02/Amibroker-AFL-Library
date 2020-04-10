@@ -1,0 +1,21 @@
+/* vwap crossover */
+
+//====//
+ 
+f=Param(" Periods  ",5,1,5000); 
+VWAP=Sum(V*C,f)/Sum(V,f); 
+Plot (VWAP,"VWAP",ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+GraphXSpace=3;
+Buy = Cross(VWAP,WMA(C,15));
+Sell = Cross(WMA(C,15),VWAP);
+PlotShapes(shapeUpArrow*Buy,colorBlack);
+PlotShapes(shapeDownArrow*Sell,colorRed);
+//====//
+
+Filter=Buy;
+AddColumn(Buy ,"cross MA 20 50",1.0);
+AddColumn(Open,"Open",1.0);
+AddColumn(High,"High",1.0);
+AddColumn(Low,"Low",1.0);
+AddColumn(Close,"Close",1.0);
+AddColumn(Volume,"Volume",1.0);

@@ -1,0 +1,46 @@
+_SECTION_BEGIN("Price");
+Ticker = ParamStr("Symbol", Name() );
+
+// Downloaded From https://www.WiseStockTrader.com
+Length = 14;
+Price = EMA(Close, Length);
+ 
+// Keltner 
+kLength = Length;
+kN = 1.5;
+kATR = ATR(kLength);
+kUpper = Price + kN * kATR;
+kLower = Price - kN * kATR;
+ 
+// Bollinger
+bbLength = Length;
+bbN = 2;
+bbStDevValues = StDev(Close, bbLength);
+bbUpper = Price + bbN * bbStDevValues;
+bbLower = Price - bbN * bbStDevValues;
+ 
+IsBBSqueeze = bbUpper <= kUpper AND bbLower >= kLower;
+
+Proportion = (kUpper - kLower) / (bbUpper - bbLower);
+BBBreakout = Cross(1,Proportion); 
+Periods = Param("BBPeriods", 14, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+bbtop=BBandTop( C, Periods, Width );
+bbbot=BBandBot( C, Periods, Width );
+Plot(bbtop, "", Color, Style ); 
+Plot(bbbot , "", Color, Style );
+
+sqeezcolor=ColorRGB(194,220,218);
+
+PlotOHLC( bbtop,bbtop, bbbot,bbbot, "",IIf(IsBBSqueeze,colorYellow,colorWhite), styleCloud|styleNoRescale,  Null, Null, Null, -1 );
+Plot(Close,"Close",colorGreen,styleCandle); 
+
+Filter = BBBreakout;
+
+AddColumn(BBBreakout, "BB Breakout", 1, colorWhite, IIf(BBBreakout==1, colorRed, colorWhite));
+//set default sorting to Date/time in descending order in results window
+SetSortColumns(-2);
+
+_SECTION_END();

@@ -1,0 +1,24 @@
+// Downloaded From https://www.WiseStockTrader.com
+
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+// Downloaded From https://www.WiseStockTrader.com
+Overlay = ParamToggle("MA Overlay Volume?", " No | Yes ", 1);
+GraphZOrder = Overlay;
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}, Volume = ") + EncodeColor(colorGreen) + WriteVal(V,1.0) + StrFormat("  {{VALUES}}"));

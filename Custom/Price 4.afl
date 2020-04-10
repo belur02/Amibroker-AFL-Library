@@ -1,0 +1,75 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+//_SECTION_BEGIN("Price");
+//SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " +WriteVal( V, 1.0 ) +" {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 )) ));
+//Plot( C, "Close", ParamColor("Color", colorYellow ), styleBar, styleNoTitle | ParamStyle("Style") | GetPriceStyle() );
+//if( ParamToggle("Tooltip shows", "All Values|Only Prices" ) )
+//{
+//ToolTip=StrFormat("Open: %g\nHigh: %g\nLow: %g\nClose: %g (%.1f%%)\nVolume: "+NumToStr( V, 1 ), O, H, L, C, SelectedValue( ROC( C, 1 )));
+//}
+//_SECTION_END();
+
+_SECTION_BEGIN("EMA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 20, 2, 200, 1 );
+Plot( EMA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("BB-EMA");
+Tp=(H+L+C)/3;
+Per = Param("EMA Periods", 20, 2, 200, 1);
+stper=Param("StDev Period",20,10,30,1);
+w=Param("Width",2,0.5,4,0.5);
+BBup=EMA(tp,per)+w*StDev(C,stper);
+BBdn=EMA(tp,per)-w*StDev(C,stper);
+BB_Mid=EMA(((BBup+BBdn)/2),5);
+
+Plot (bbup,"BB-UP",ParamColor( "Color", colorBlue ),styleDashed);
+Plot (bbdn,"BB-DN",ParamColor( "Color", colorLightGrey ),styleDashed);
+Plot (bb_mid,"BB_Mid",ParamColor( "Color", colorBlue ),styleLine);
+PlotOHLC(BBup,BBup,BBdn,BBdn,"BB-EMA", ParamColor("color",colorGrey50), styleCloud);
+
+
+_SECTION_END();
+
+
+//TRENDING RIBBON
+// Paste the code below to your price chart somewhere and green ribbon means both
+// both MACD and ADX trending up so if the red ribbon shows up the MACD and the ADX 
+// are both trending down.
+_SECTION_BEGIN("trending ribbon");
+uptrend=PDI()>MDI() AND MACD()>Signal();
+downtrend=MDI()>PDI() AND Signal()>MACD();
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+_SECTION_BEGIN("Price");
+//SetChartOptions(0,chartShowArrows|chartShowDates);
+//_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, 
+//SelectedValue( ROC( C, 1 ) ) ));
+//Plot( C, "Close", ParamColor("Color", colorBlack ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+//=====================================================================================
+
+top1=BBandTop(p,20,1);
+bot1=BBandBot(p,20,1);
+top2=BBandTop(p,20,2);
+bot2=BBandBot(p,20,2);
+stocup=StochK()>StochD();
+MACDup=MACD()>Signal();
+Lim=ADX()<30 AND StochK()<80;
+
+Buy=Cross(C,top1) AND C>=O OR
+    Cross(MACD(),Signal()) AND stocup AND C>top1 AND C>=O AND lim OR
+    Cross(StochK(),StochD()) AND C>top1 AND StochK()<50 AND C>=O AND Lim;
+Sell=Cross(top1,C);
+
+PlotShapes(IIf(Buy,shapeUpArrow,shapeNone),colorBlue,0,Low,Offset=-15);
+PlotShapes(IIf(Sell,shapeDownArrow,shapeNone),colorRed,0,High,Offset=-15);

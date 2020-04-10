@@ -1,0 +1,83 @@
+function NewDataJustArrived() {
+    // function by T. Janeczko
+    // mod. by fxshrat to check for new price data too
+    vname = "lbe" + GetChartID();
+    prev = Nz( StaticVarGet( vname ) );
+    curr = Status( "lastbarend" );    
+    StaticVarSet( vname, curr );  
+    // 
+    lastC = LastValue(C);
+    prevC = Nz( StaticVarGet( vname + "_Close" ) ); 
+    StaticVarSet( vname + "_Close", lastC );
+
+    return curr != prev || lastc != prevC;
+}
+
+/// VWAP-Multi-Storage AFL
+/// by fxshrat
+/// it uses CTRL + mouse button click toi set lines (read instructions in chart title
+/// code updates lines on new incoming price data.
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/10
+/// modified from GUI version
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/4
+
+dt = DateTime();
+sdt = SelectedValue(dt);
+newbar = NewDataJustArrived();
+
+gcmb = GetCursorMouseButtons();
+lmb = gcmb == 9;
+mmb = gcmb == 12;
+CTRL = GetAsyncKeyState(17) < 0;
+
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+CumPV = Cum( PV );
+
+start = dt == sdt;
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+denom = CV - ValueWhen( start, CV );
+vwap = IIf( BarsSince(start) > 0, num / Max(1, denom), mp );
+
+nm = Name();
+vwapstr = nm + "VWAP";
+cntstr = nm + "VWAP_cnt";
+dnstr = nm + "VWAP_DN";
+
+if( CTRL && lmb ) {
+	staticget = Nz( StaticVarGet( cntstr ) );
+	Say( "Store V.W.A.P."+(staticget+1) );	
+	StaticVarSet( cntstr, staticget+1, True );
+	StaticVarSet( vwapstr + staticget, vwap, True );
+	StaticVarSet(dnstr + staticget, sdt, True );	
+}
+
+if( CTRL && mmb ) {
+	Say( "Reset VWAPs" );
+	StaticVarRemove( vwapstr + "*" );
+	StaticVarRemove( dnstr + "*" );
+	StaticVarRemove( cntstr );
+}
+
+// Output
+SetChartOptions( 0, chartShowDates | chartWrapTitle );
+Plot( C, Date() + " - Close", colorYellow, styleBar );
+Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorOrange, styleThick );
+
+for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
+    if( newbar ) {
+		Say( "This is new bar or new data!" );
+		staticsd = StaticVarGet( dnstr + i );
+		staticstart = dt == staticsd;
+		staticnum = CumPV - ValueWhen( staticstart, CumPV );
+		staticdenom = CV - ValueWhen( staticstart, CV );
+		static_vwap = IIf( BarsSince( staticstart ) > 0, staticnum / Max(1, staticdenom), mp );		
+		StaticVarSet( vwapstr + i, static_vwap, True );
+	}
+   
+    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorYellow, styleThick );
+}
+
+if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0)
+	Title = EncodeColor(colorRed) + "1. Hold CTRL key!\n2. Click left mouse button to create lines\n3. Click CTRL + Middle mouse button to delete lines\n{{VALUES}}";

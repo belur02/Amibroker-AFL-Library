@@ -1,0 +1,67 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("3 10 16 Explore Stops & Targets Refined");
+
+
+r1 = Param( "Fast avg", 3, 2, 200, 1 );
+r2 = Param( "Slow avg", 10, 2, 200, 1 );
+r3 = Param( "Signal avg", 16, 2, 200, 1 );
+ml = MACD(r1, r2);
+sl = Signal(r1,r2,r3);
+Buy=((( ml>sl)AND Cross( RSI(14),45)) OR (Cross(ml,sl)AND RSI(14)>45));
+Sell =((Cross(sl,ml) AND 45> RSI(14)) OR ((sl>ml) AND Cross(45, RSI(14))));
+
+BuyStop=EMA(L,3);
+SellStop=EMA(H,3);
+TargetBuy=C+ATR(14)*2;
+TargetSell=C-ATR(14)*2;
+BuyRisk=(C-BuyStop);
+BuyRiskPcnt=(C-BuyStop)*100/C;
+BuyReward=(TargetBuy-C);
+BuyRewardPcnt=(TargetBuy-C)*100/C;
+SellRisk=(SellStop-C);
+SellRiskPcnt=(SellStop-C)*100/C;
+SellReward=(C-TargetSell);
+SellRewardPcnt=(C-TargetSell)*100/C;
+BuyRiskRewardRatio=BuyReward/BuyRisk;
+SellRiskRewardRatio=SellReward/SellRisk;
+PositionSize = 20000/C;
+
+
+Filter=Buy OR Sell;
+AddColumn(IIf( Buy, 66, 83 ), "Signal",formatChar,IIf(Buy,colorGreen,colorRed));
+
+
+AddColumn(C,"Close");
+AddColumn(V,"Volume");
+AddColumn(BuyStop,"BuyStop");
+AddColumn(SellStop,"SellStop");
+AddColumn(TargetBuy,"TargetBuy");
+AddColumn(TargetSell,"TargetSell");
+AddColumn(BuyRisk,"BuyRisk");
+AddColumn(BuyReward,"BuyReward");
+AddColumn(BuyRiskPcnt,"BuyRiskPcnt");
+AddColumn(BuyRewardPcnt,"BuyRewardPcnt");
+AddColumn(SellRisk,"SellRisk");
+AddColumn(SellReward,"SellReward");
+AddColumn(SellRiskPcnt,"SellRiskPcnt");
+AddColumn(SellRewardPcnt,"SellRewardPcnt");
+AddColumn(BuyRiskRewardRatio,"BRRR");
+AddColumn(SellRiskRewardRatio,"SRRR");
+AddColumn(PositionSize,"PS");
+
+
+SetChartOptions( 0, chartShowArrows );
+Buy=((( ml> sl )AND Cross( RSI(14),45)) OR (Cross(ml,sl)AND RSI(14)>45));
+Sell=((Cross(sl,ml) AND 45> RSI(14)) OR ((sl>ml) AND Cross(45, RSI(14))));
+
+
+
+shape = Buy * shapeUpArrow + Sell* shapeDownArrow;
+
+Plot( Close, "Price", colorBlack, styleCandle );
+
+PlotShapes( shape, IIf( Buy, colorGreen, colorRed ), 0, IIf( Buy, Low, High ) );
+
+GraphXSpace = 5;
+
+_SECTION_END();

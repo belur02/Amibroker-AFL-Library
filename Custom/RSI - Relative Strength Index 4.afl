@@ -1,0 +1,29 @@
+/*
+_SECTION_BEGIN("RSI");
+SetChartOptions(0,0,chartGrid30|chartGrid70);
+periods = Param( "Periods", 15, 1, 200, 1 );
+Plot( RSI( periods), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style")  );
+_SECTION_END();
+*/
+
+//www.stockbangladesh.com
+//Mehedi Arafat
+
+_SECTION_BEGIN("RSI");
+SetChartOptions(0,0,ChartGrid30|ChartGrid70,0,100);
+periods = Param( "Periods", 14, 1, 200, 1 );
+z = RSI( periods);
+
+RSILineColor = ParamColor("RSI Line Color",ColorRGB(127,0,83));
+RSIOverboughtColor = ParamColor("RSI Overbought Color",ColorRGB(127,0,83));
+RSIOversoldColor = ParamColor("RSI Oversold Color",ColorRGB(12,0,83));
+
+
+Plot( z, _DEFAULT_NAME(), RSILineColor , styleLine  );
+Plot( 50, _DEFAULT_NAME(), RSILineColor , styleDashed|styleNoTitle  );
+Plot( 70, _DEFAULT_NAME(), RSILineColor , styleDashed|styleNoTitle  );
+Plot( 30, _DEFAULT_NAME(), RSILineColor , styleDashed|styleNoTitle  );
+PlotOHLC(z,z,70,z,"",IIf(z>70,RSIOverboughtColor,RSIOversoldColor),styleCloud|styleClipMinMax,30,70);
+
+
+_SECTION_END();
