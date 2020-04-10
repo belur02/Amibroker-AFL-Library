@@ -1,0 +1,15 @@
+Buy = 	Close > MA(  Close , 50 ) 
+	AND Close > MA(  Close , 150 ) 
+	AND Close > MA(  Close , 200 ) 
+	AND MA(  Close , 50 ) > MA(  Close , 150 ) 
+	AND MA(  Close , 50 ) > MA(  Close , 200 ) 
+	AND Close > 1.3 * LLV(  Close , 252 ) 
+	AND Close < 1.25 * HHV(  Close , 252 );
+
+Sell = 0;
+
+Short = 0;
+
+Cover = 0;
+
+AddColumn(MA( Close, 150 ), "150DMA", format= 1.2, fgcolor = colorDefault, bkcolor = colorDefault, width = -1, barchart = Null);

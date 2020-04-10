@@ -1,0 +1,15 @@
+_SECTION_BEGIN("IBD RS RANKING");
+//IBD RS RANKING
+RSW = 0.4*ROC(C,65)+ 0.3*ROC(C,130) +0.3*ROC(C,260);
+Plot(RSW,"RANKING IBD" ,colorBrightGreen,styleLine) ;
+Plot(EMA(RSW,10),"" ,colorRed,styleLine|styleDashed|styleNoLabel);
+ 
+BuyIBD=RSW>EMA(RSW,10);
+SellIBD= RSW<EMA(RSW,10);
+ 
+Filter = (BuyIBD OR SellIBD) ;
+AddColumn(IIf(BuyIBD,RSW,IIf(SellIBD,RSW,0)) ,"RANKIBD",1.0,colorWhite,IIf(BuyIBD,colorDarkGreen,IIf(SellIBD,colorRed,colorWhite)));
+SetSortColumns(-3);
+AddRankColumn();
+ 
+_SECTION_END();

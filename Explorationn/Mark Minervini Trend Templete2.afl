@@ -1,0 +1,100 @@
+_SECTION_BEGIN("Moving Average Exploration");
+
+
+// Generate IBD Table
+
+
+
+// determine parameters
+SMA200 = MA(C, 200);
+SMA150 = MA(C, 150);
+SMA050 = MA(C,  50);
+High52pct = HHV(C, 253);
+Low52pct = LLV(C, 253);
+SMAV50 = MA(V,50);
+
+// FUNDAMENTALS
+RS = StaticVarGet(Name() + "_RS");
+CR = StaticVarGet(Name() + "_CR");
+SF = GetFnData("SharesFloat");
+RSL = C/Foreign("$SPX", "C");
+EPS = StaticVarGet(Name() + "_EPS");
+LQEPS = StaticVarGet(Name() + "_LQEPS");
+LQsales	= StaticVarGet(Name() + "_LQSales");
+PTM	= StaticVarGet(Name() + "_PTMargin");
+
+//FUNDAMENTALS
+
+// determine trend template status
+
+// Non nego MTP2019 p52
+x1a = C > SMA150 OR IsEmpty(SMA150);
+x1b = C > SMA200 OR IsEmpty(SMA200);
+x2  = SMA150 > SMA200 OR IsEmpty(SMA200);
+x3  = SMA200 > Ref(SMA200, -20) OR IsEmpty(SMA200);
+x4a = SMA050 > SMA150 OR IsEmpty(SMA150);
+x4b = SMA050 > SMA200 OR IsEmpty(SMA200);
+x5  = C > Low52pct*1.25;
+x6  = C > High52pct*0.75;
+x7  = RS > 70;
+
+Filter = x1a AND x1b AND x2 AND x3 AND x4a AND x4b AND x5 AND x6;
+StaticVarSet(Name() + "_Stage2", Filter, True);
+
+// Nego
+y1  = IIf(C > 10, 1, 0);
+y1_color=IIf(y1,colorGreen,colorGold);
+y2  = IIf(RS > 90, 1, 0);
+y2_color=IIf(y2,colorGreen,colorRed);
+y3  = IIf(SF < 50e6, 1, 0);
+y3_color=IIf(y3,colorGreen,colorRed);
+y4  = IIf(RSL > Ref(RSL, -30), 1, 0);
+y5  = IIf(EPS > 85, 1, 0);
+y5_color=IIf(y5,colorGreen,colorRed);
+y6  = IIf(LQEPS > 20, 1, 0);
+y6_color=IIf(y6,colorGreen,colorRed);
+y7  = IIf(LQsales > 10, 1, 0);
+y7_color=IIf(y7,colorGreen,colorRed);
+y8  = IIf(BarCount < 10*253, 1, 0);
+y9  = IIf(PTM > 10, 1, 0);
+y9_color=IIf(y9,colorGreen,colorRed);
+y10 = IIf(CR > 94, 1, 0);
+y10_color=IIf(y10,colorGreen,colorRed);
+
+Score = y1 + y2 + y3 + y4;
+StaticVarSet(Name() + "_score", Score, True);
+
+AddColumn(Score, "Score", 1.2,colorblack);
+AddColumn(C, "Price",1.2,colorblack,y1_color);
+AddColumn(SMA050, "SMA50",1.2,colorblack);
+AddColumn(SMA150, "SMA150",1.2,colorblack);
+AddColumn(SMA200, "SMA200",1.2,colorblack);
+AddColumn((C/Ref(C,-1)-1)*100, "% $ Ch", 1.1);
+AddColumn((V/SMAV50-1)*100, "% Vol ch", 1.0);
+AddColumn(High52pct, "% 52 WkHigh", 1.1);
+AddColumn(SF, "Float",1,colorblack,y3_color);
+AddColumn(CR, "CR", 1,colorBlack,y10_color);
+AddColumn(StaticVarGet(Name() + "_EPS"), "EPS", 1,colorBlack,y5_color); 
+AddColumn(RS, "RS", 1,colorBlack,y2_color);
+
+AddTextColumn(StaticVarGetText(Name() + "_IGRS"), "IndGrp RS", 1);
+AddTextColumn(StaticVarGetText(Name() + "_SMR"), "SMR", 1);
+AddTextColumn(StaticVarGetText(Name() + "_AD"), "A/D", 1);
+AddTextColumn(StaticVarGetText(Name() + "_Spon"), "Spon", 1);
+
+AddColumn(StaticVarGet(Name() + "_PE"), "P/E Ratio", 1);
+AddColumn(StaticVarGet(Name() + "_LQEPS"), "Last Qtr EPS %", 1,colorBlack,y6_color);
+AddColumn(StaticVarGet(Name() + "_CQEPS15"), "Consec Qtr EPS>15%", 1);
+AddColumn(StaticVarGet(Name() + "_CYEPSEst"), "Curr Yr EPS %", 1);
+AddColumn(StaticVarGet(Name() + "_LQSales"), "Last Qtr Sales %", 1,colorBlack,y7_color);
+AddColumn(StaticVarGet(Name() + "_PTMargin"), "Pretax Margin", 1,colorBlack,y9_color);
+AddColumn(StaticVarGet(Name() + "_ROE"), "ROE", 1);
+AddColumn(StaticVarGet(Name() + "_IBD50Rank"),"IBD50 Rank", 			1);
+
+AddTextColumn(StaticVarGetText(Name() 	+ "_inIBD8585"), "IBD8585", 1);
+AddTextColumn(StaticVarGetText(Name() 	+ "_inIBDNA"), "IBD New Am", 1);
+
+SetSortColumns(-3, -11, -10, -13);
+
+ 
+_SECTION_END();

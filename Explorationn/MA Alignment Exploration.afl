@@ -1,0 +1,23 @@
+_SECTION_BEGIN("Moving Average Exploration");
+ 
+MA20=MA(C, 20);
+MA50=MA(C, 50);
+MA100=MA(C,100);
+MA150=MA(C,150);
+MA200=MA(C,200);
+ 
+condition = C>MA20 AND MA20>MA50 AND MA50>MA100 AND MA100>MA200;
+ 
+AddColumn(Close, "Close", 1.2);
+AddColumn(Volume, "Volume", 1.2);
+AddColumn(MA(C, 9), "MA9");
+AddColumn(MA(C, 20), "MA20");
+AddColumn(MA(C, 50), "MA50");
+AddColumn(MA(C, 100), "MA100");
+AddColumn(MA(C, 150), "MA150");
+AddColumn(MA(C, 200), "MA200");
+AddColumn( condition, "Condition", 1.0);
+ 
+Filter = 1;
+ 
+_SECTION_END();

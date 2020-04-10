@@ -1,0 +1,105 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("MACD");
+Title = EncodeColor( colorYellow )  + _DEFAULT_NAME()  + EncodeColor( ColorRGB( 111, 208, 255 ) )  + " (" +  FullName() + ") " + EncodeColor( colorGold ) + Interval( 2 ) +
+                "  " + Date() + " " + "  Open " + O + "  " + "High " +  H + "  " + "Low " + L + "  " + EncodeColor( ColorRGB( 111, 208, 255 ) ) +
+                "Close " + C + " ( " + WriteVal( ( C - Ref( C, -1 ) ) * 100 / Ref( C, -1 ), 1.1 ) + " %)" + EncodeColor( colorGold ) + "  Volume= " + WriteVal( V, 1.0 );
+R = ((HHV(H,60) - C) /(HHV (H,60) -LLV (L,60))) *-100;
+Period = 10;
+EMA1 = EMA(R,Period);
+EMA2 = EMA(EMA1,4);
+se = EMA1 - EMA2;
+ni = EMA1 + se;
+PR = 0-abs(ni);
+ra = MA(PR,5);
+
+na = PR>=ra AND PR>=Ref(PR,-1) ;
+tu = (PR < ra) OR PR>= ra AND PR< Ref(PR,-1) ;
+barcolor = IIf( tu,colorRed, IIf( na, colorBrightGreen, 7));
+
+Graph0 = PR;
+Graph1 = ra;
+Graph0BarColor = ValueWhen( barcolor != 0, barcolor );
+	r1 = Param( "Fast Average", 20, 2, 100, 1 );
+	r2 = Param( "Slow Average", 25, 2, 100, 1 );
+	r3 = Param( "Signal Average", 5, 2, 100, 1 );
+Plot( ml = MACD(r1, r2), StrFormat(_SECTION_NAME()+"(%g,%g)", r1, r2), ParamColor("MACD color", colorRed ), ParamStyle("MACD style") );
+Plot( sl = Signal(r1,r2,r3), "Signal" + _PARAM_VALUES(), ParamColor("Signal color", colorBlue ), ParamStyle("Signal style") );
+Histogram_color = IIf( ml-sl > 0, colorBlue, colorRed);
+Plot( ml-sl, "MACD Histogram", Histogram_color, styleNoTitle | ParamStyle("Histogram style", styleHistogram | styleThick | styleNoLabel, maskHistogram ) );
+
+_SECTION_END();
+ml = MACD(1);
+sl = Signal(2);
+Buy=Cross(ml,sl);
+Sell=Cross(sl,ml);
+Cover=Buy;
+Short=Sell;
+AlertIf( Buy , "SOUND C:\\Windows\\Media\\chimes.wav", "Audio alert", 2 ); 
+AlertIf( Sell , "SOUND C:\\Windows\\Media\\alert.wav", "Audio alert", 2 );
+
+
+n=25; Av=12; Av1=16; Av2=2; stp=2;
+
+if (Name() == "CPTA.MI")// CAPITALIA
+{ n=7; Av=18; Av1=14; Av2=2; }
+else if (Name() == "BANI.MI")// BNL
+{ n=29; Av=30; Av1=10; Av2=2; }
+else if (Name() == "FIBK.MI")// B FIDEURAM
+{ n=22; Av=15; Av1=22; Av2=2; }
+else if (Name() == "FIA.MI")// FIAT
+{ n=2; Av=28; Av1=10; Av2=2; }
+else if (Name() == "MDBI.MI")// MEDIOBANCA
+{ n=21; Av=27; Av1=29; Av2=2; }
+else if (Name() == "MS.MI")// MEDIASET
+{ n=30; Av=20; Av1=24; Av2=2; }
+else if (Name() == "TIM.MI")// TIM
+{ n=6; Av=10; Av1=20; Av2=2; }
+else if (Name() == "TLIT.MI")// TELECOM IT
+{ n=30; Av=25; Av1=29; Av2=2; }
+n = Optimize("Periods",n,2,30,1);
+av = Optimize("Average",av,10,30,1);
+av1 = Optimize("Average1",av1,10,30,1);
+//av2 = Optimize("Average2",av2,2,5,1);
+//stp = Optimize("Stop",stp,4,15,1);
+
+_SECTION_BEGIN("Background Color");
+SetChartOptions( 1, chartShowDates );
+BKswitch = ParamToggle("Background Color","On,Off");
+
+OUTcolor = ParamColor("Outer Panel Color",colorDarkTeal);
+INUPcolor = ParamColor("Inner Panel Upper",colorDarkGreen);
+INDNcolor = ParamColor("Inner Panel Lower",colorWhite);
+TitleColor = ParamColor("Title Color ",colorBlack);
+
+if (NOT BKswitch)
+{
+SetChartBkColor(OUTcolor); // color of outer border
+SetChartBkGradientFill(INUPcolor,INDNcolor,TitleColor); // color of inner panel
+}
+Plot( Flip( Buy, Sell ), "Trade", colorBlack, styleArea | styleOwnScale, 0, 1 );
+PlotShapes( Buy * shapeUpArrow + Sell * shapeDownArrow, IIf( Buy, colorBrightGreen, colorYellow ) );
+ n= Param("WMA", 0, 0, 100);
+Var1=HHV(High,9)-LLV(Low,9);
+Var2=HHV(High,9)-Close;
+Var3=Close-LLV(Low,9);
+Var4=Var2/Var1*100-70;
+Var7=WMA(Var3/Var1*100,3);
+Var8=LLV(Low,34);
+Var9=WMA(Var7,3)-WMA(Var4,9);
+VarA=IIf(Var9>100,Var9-100,0);
+VAR1a=(HHV(High,9)-Close)/(HHV(High,9)-LLV(Low,9))*100-70;
+VAR2a=WMA(VAR1a,9)+100;
+VAR3a=(Close-LLV(Low,9))/(HHV(High,9)-LLV(Low,9))*100;
+VAR4a=WMA(VAR3a,3);
+VAR5a=WMA(VAR4a,3)+100;
+VAR6a=VAR5a-VAR2a;
+
+S = IIf(VAR6a>n,VAR6a-n,Var6a);
+
+barcolor=IIf(Ref(S,-1)<S, colorBrightGreen, colorRed);
+cx = Param( "cxposn", 0, 0, 1250, 1 );
+cy = Param( "cyposn", 42, 0, 500, 1 );
+GfxSelectFont( "Candara", 18, 98, False );
+GfxSetBkColor( colorBlack );
+GfxSetTextColor( colorWhite );
+GfxTextOut( "L.T.P.  " + C + " ", cx, cy );

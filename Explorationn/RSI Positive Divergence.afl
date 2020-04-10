@@ -1,0 +1,23 @@
+x0 = LLV(RSI(14),30);
+x1 = Ref(x0,-3) <33;
+x2 = MA(RSI(14),5)<40;
+x3 = MA(RSI(14),5)>35;
+x4 = MA(C,5);
+x5 = ValueWhen(Cross(40,RSI(14)),C,1);
+x6 = ((x4-x5)/x5*100)<0 ;
+a0 = x1 AND x2 AND x3 AND x6;
+ 
+y1 = Ref(x0,-3)<33;
+y2 = MA(RSI(14),5)<45;
+y3 =  MA(RSI(14),5)>35;
+y4 = MA(C,5);
+y5 = ValueWhen(Cross(40,RSI(14)),C,1);
+y6 = ((y4-y5)/y5*100) <-5;
+a1 = y1 AND y2 AND y3 AND y6;
+ 
+b1 = a0 + a1 >0;
+Plot(RSI(14),"RSI14",colorBlue,styleLine);
+PlotGrid(30,colorLightGrey,7,1);
+PlotGrid(70,colorLightGrey,7,1);
+Buy = b1;
+PlotShapes(Buy*shapeUpArrow,colorGreen);

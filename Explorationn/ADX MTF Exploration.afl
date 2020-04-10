@@ -1,0 +1,322 @@
+// Downloaded From https://www.WiseStockTrader.com
+/////////// Current TF
+
+_SECTION_BEGIN("ADX Trend Indicator Signal");
+// ADX Trend Indicator Signal
+// PARAMETERS
+	ADX_Parm	=	Param( "ADX Period", 10, 5, 50,1);
+// FORMULA
+	ADXwk		=	ADX(ADX_Parm) < 25;
+	ADXst		=	ADX(ADX_Parm) > 25 AND ADX(ADX_Parm) < 50 ;
+	ADXvs		=	ADX(ADX_Parm) > 50 AND ADX(ADX_Parm) < 75 ;
+	ADXex		=	ADX(ADX_Parm) > 75;
+
+	ADXchoppy         =	ADX(ADX_Parm) < PDI(ADX_Parm) AND ADX(ADX_Parm) < MDI(ADX_Parm);
+// VARIABLES
+	ADXc_Status	=	WriteIf(ADXwk,"Weak",
+						WriteIf(ADXst,"Good",
+						WriteIf(ADXvs,"Strong",
+						WriteIf(ADXex,"EXCELENT",
+						WriteIf(ADXchoppy,"Choppy","Neutral")))));
+	ADXc_Color		=	IIf(ADXwk,colorRed,
+						IIf(ADXst,colorDarkGreen,
+						IIf(ADXvs,colorBrightGreen,
+						IIf(ADXex,colorLime,
+						colorLightGrey))));
+
+//						IIf(ADXchoppy,colorGold,colorLightGrey)))));
+
+	Color2		=	IIf(ADXchoppy,colorGold,colorBlack);
+
+
+Plot(ADX(ADX_Parm),"ADX"+ADX_Parm,ADXc_Color,styleLine);
+emaADX=EMA(ADX(ADX_Parm),9);
+Plot(emaAdX,"ema ADX",colorWhite,styleLine);
+
+Plot(25,"",color2,styleLine);
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Current TF ADX Over xxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+
+TimeFrameSet( inHourly ); // switch Time Frame
+	ADX_Parmh	=	10;
+	ADXwkh		=	ADX(ADX_Parmh) < 25;
+	ADXsth		=	ADX(ADX_Parmh) > 25 AND ADX(ADX_Parmh) < 50 ;
+	ADXvsh		=	ADX(ADX_Parmh) > 50 AND ADX(ADX_Parmh) < 75 ;
+	ADXexh		=	ADX(ADX_Parmh) > 75;
+
+	ADXchoppyh         =	ADX(ADX_Parmh) < PDI(ADX_Parmh) AND ADX(ADX_Parmh) < MDI(ADX_Parmh);
+// VARIABLES
+	ADXc_Statush	=	WriteIf(ADXwkh,"Weak",
+						WriteIf(ADXsth,"Good",
+						WriteIf(ADXvsh,"Strong",
+						WriteIf(ADXexh,"EXCELENT",
+						WriteIf(ADXchoppyh,"Choppy","Neutral")))));
+	ADXc_Colorh		=	IIf(ADXwkh,colorRed,
+						IIf(ADXsth,colorDarkGreen,
+						IIf(ADXvsh,colorBrightGreen,
+						IIf(ADXexh,colorLime,
+						colorLightGrey))));
+
+//						IIf(ADXchoppy,colorGold,colorLightGrey)))));
+
+	Color2h		=	IIf(ADXchoppyh,colorGold,colorBlack);
+
+myArrayh=ADX(ADX_Parmh);
+
+TimeFrameRestore(); // restore time frame to original
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxx Daily xxxxxxxxxxxxxxxxxx///////////
+TimeFrameSet( inDaily ); // switch Time Frame
+	ADX_Parmd	=	10;
+	ADXwkd		=	ADX(ADX_Parmd) < 25;
+	ADXstd		=	ADX(ADX_Parmd) > 25 AND ADX(ADX_Parmd) < 50 ;
+	ADXvsd		=	ADX(ADX_Parmd) > 50 AND ADX(ADX_Parmd) < 75 ;
+	ADXexd		=	ADX(ADX_Parmd) > 75;
+
+	ADXchoppyd         =	ADX(ADX_Parmd) < PDI(ADX_Parmd) AND ADX(ADX_Parmd) < MDI(ADX_Parmd);
+// VARIABLES
+	ADXc_Statusd	=	WriteIf(ADXwkd,"Weak",
+						WriteIf(ADXstd,"Good",
+						WriteIf(ADXvsd,"Strong",
+						WriteIf(ADXexd,"EXCELENT",
+						WriteIf(ADXchoppyd,"Choppy","Neutral")))));
+	ADXc_Colord		=	IIf(ADXwkd,colorRed,
+						IIf(ADXstd,colorDarkGreen,
+						IIf(ADXvsd,colorBrightGreen,
+						IIf(ADXexd,colorLime,
+						colorLightGrey))));
+
+//						IIf(ADXchoppy,colorGold,colorLightGrey)))));
+
+	Color2d		=	IIf(ADXchoppyd,colorGold,colorBlack);
+
+myArrayd=ADX(ADX_Parmd);
+
+TimeFrameRestore(); // restore time frame to original
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Daily over xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxx Wekly xxxxxxxxxxxxxxxxxx///////////
+TimeFrameSet( inWeekly ); // switch Time Frame
+	ADX_Parmw	=	10;
+	ADXwkw		=	ADX(ADX_Parmw) < 25;
+	ADXstw		=	ADX(ADX_Parmw) > 25 AND ADX(ADX_Parmw) < 50 ;
+	ADXvsw		=	ADX(ADX_Parmw) > 50 AND ADX(ADX_Parmw) < 75 ;
+	ADXexw		=	ADX(ADX_Parmw) > 75;
+
+	ADXchoppyw         =	ADX(ADX_Parmw) < PDI(ADX_Parmw) AND ADX(ADX_Parmw) < MDI(ADX_Parmw);
+// VARIABLES
+	ADXc_Statusw	=	WriteIf(ADXwkw,"Weak",
+						WriteIf(ADXstw,"Good",
+						WriteIf(ADXvsw,"Strong",
+						WriteIf(ADXexw,"EXCELENT",
+						WriteIf(ADXchoppyw,"Choppy","Neutral")))));
+	ADXc_Colorw 	=	IIf(ADXwkw,colorRed,
+						IIf(ADXstw,colorDarkGreen,
+						IIf(ADXvsw,colorBrightGreen,
+						IIf(ADXexw,colorLime,
+						colorLightGrey))));
+
+//						IIf(ADXchoppy,colorGold,colorLightGrey)))));
+
+	Color2w		=	IIf(ADXchoppyw,colorGold,colorBlack);
+
+myArrayw=ADX(ADX_Parmw);
+
+TimeFrameRestore(); // restore time frame to original
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Weekly over xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxx Monthly xxxxxxxxxxxxxxxxxx///////////
+TimeFrameSet( inMonthly ); // switch Time Frame
+	ADX_Parmm	=	10;
+	ADXwkm		=	ADX(ADX_Parmm) < 25;
+	ADXstm		=	ADX(ADX_Parmm) > 25 AND ADX(ADX_Parmm) < 50 ;
+	ADXvsm		=	ADX(ADX_Parmm) > 50 AND ADX(ADX_Parmm) < 75 ;
+	ADXexm		=	ADX(ADX_Parmm) > 75;
+
+	ADXchoppym         =	ADX(ADX_Parmm) < PDI(ADX_Parmm) AND ADX(ADX_Parmm) < MDI(ADX_Parmm);
+// VARIABLES
+	ADXc_Statusm	=	WriteIf(ADXwkm,"Weak",
+						WriteIf(ADXstm,"Good",
+						WriteIf(ADXvsm,"Strong",
+						WriteIf(ADXexm,"EXCELENT",
+						WriteIf(ADXchoppym,"Choppy","Neutral")))));
+	ADXc_Colorm 	=	IIf(ADXwkm,colorRed,
+						IIf(ADXstm,colorDarkGreen,
+						IIf(ADXvsm,colorBrightGreen,
+						IIf(ADXexm,colorLime,
+						colorLightGrey))));
+
+//						IIf(ADXchoppy,colorGold,colorLightGrey)))));
+
+	Color2m		=	IIf(ADXchoppym,colorGold,colorBlack);
+
+myArraym=ADX(ADX_Parmm);
+
+TimeFrameRestore(); // restore time frame to original
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Monthly over xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxx Quarterly xxxxxxxxxxxxxxxxxx///////////
+TimeFrameSet( inQuarterly ); // switch Time Frame
+	ADX_Parmq	=	10;
+	ADXwkq		=	ADX(ADX_Parmq) < 25;
+	ADXstq		=	ADX(ADX_Parmq) > 25 AND ADX(ADX_Parmq) < 50 ;
+	ADXvsq		=	ADX(ADX_Parmq) > 50 AND ADX(ADX_Parmq) < 75 ;
+	ADXexq		=	ADX(ADX_Parmq) > 75;
+
+	ADXchoppyq         =	ADX(ADX_Parmq) < PDI(ADX_Parmq) AND ADX(ADX_Parmq) < MDI(ADX_Parmq);
+// VARIABLES
+	ADXc_Statusq	=	WriteIf(ADXwkq,"Weak",
+						WriteIf(ADXstq,"Good",
+						WriteIf(ADXvsq,"Strong",
+						WriteIf(ADXexq,"EXCELENT",
+						WriteIf(ADXchoppyq,"Choppy","Neutral")))));
+	ADXc_Colorq 	=	IIf(ADXwkq,colorRed,
+						IIf(ADXstq,colorDarkGreen,
+						IIf(ADXvsq,colorBrightGreen,
+						IIf(ADXexq,colorLime,
+						colorLightGrey))));
+
+
+	Color2q		=	IIf(ADXchoppyq,colorGold,colorBlack);
+
+myArrayq=ADX(ADX_Parmq);
+
+TimeFrameRestore(); // restore time frame to original
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Quarterly over xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+
+//xxxxxxxxxxxxxxxxxxxxxxxxxxx Yearly xxxxxxxxxxxxxxxxxx///////////
+TimeFrameSet( inYearly ); // switch Time Frame
+	ADX_Parmy	=	10;
+	ADXwky		=	ADX(ADX_Parmy) < 25;
+	ADXsty		=	ADX(ADX_Parmy) > 25 AND ADX(ADX_Parmy) < 50 ;
+	ADXvsy		=	ADX(ADX_Parmy) > 50 AND ADX(ADX_Parmy) < 75 ;
+	ADXexy		=	ADX(ADX_Parmy) > 75;
+
+	ADXchoppyy         =	ADX(ADX_Parmy) < PDI(ADX_Parmy) AND ADX(ADX_Parmy) < MDI(ADX_Parmy);
+// VARIABLES
+	ADXc_Statusy	=	WriteIf(ADXwky,"Weak",
+						WriteIf(ADXsty,"Good",
+						WriteIf(ADXvsy,"Strong",
+						WriteIf(ADXexy,"EXCELENT",
+						WriteIf(ADXchoppyy,"Choppy","Neutral")))));
+	ADXc_Colory 	=	IIf(ADXwky,colorRed,
+						IIf(ADXsty,colorDarkGreen,
+						IIf(ADXvsy,colorBrightGreen,
+						IIf(ADXexy,colorLime,
+						colorLightGrey))));
+
+
+	Color2y		=	IIf(ADXchoppyy,colorGold,colorBlack);
+
+myArrayy=ADX(ADX_Parmy);
+
+TimeFrameRestore(); // restore time frame to original
+//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Quarterly over xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~`Variable Expand ~~~~~~~~~~~~~~~~~~~~~~~~~~`//
+
+MyArrayh = TimeFrameExpand(MyArrayh, inHourly);
+MyArrayd = TimeFrameExpand(MyArrayd, inDaily);
+MyArrayw = TimeFrameExpand(MyArrayw, inWeekly);
+MyArraym = TimeFrameExpand(MyArraym, inMonthly);
+MyArrayq = TimeFrameExpand(MyArrayq, inQuarterly);
+MyArrayy = TimeFrameExpand(MyArrayy, inYearly);
+
+
+// EXPLORER
+Filter = 1;
+AddColumn(myArrayh,"Hourly" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statush,"Hrly",1,colorWhite,ADXc_Colorh);
+
+AddColumn(myArrayd,"Daily" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statusd,"Daily",1,colorWhite,ADXc_Colord);
+
+
+AddColumn(myArrayw,"Weekly" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statusw,"Weekly",1,colorWhite,ADXc_Colorw);
+
+
+AddColumn(myArraym,"Motnhly" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statusm,"Monthly",1,colorWhite,ADXc_Colorm);
+
+
+AddColumn(myArrayq,"Qtrly" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statusq,"Qtly",1,colorWhite,ADXc_Colorq);
+
+
+AddColumn(myArrayy,"Yearly" , 1.2 , colorDefault , colorDefault , 65);
+AddTextColumn(ADXc_Statusy,"Yearly",1,colorWhite,ADXc_Colory);
+
+
+_SECTION_END();
+
+
+///////////// Title //////////////////
+Change=C-Ref(C,-1);
+ROCVal = ROC(C,1);
+Title =  "ADX: " + NumToStr(ADX(ADX_Parm),1.2) + ",  Status:" + ADXc_Status
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
++ " Hrly :" +EncodeColor(colorBlack) 
++  NumToStr(ADX(ADX_Parmh),1.2)+";"+ ADXc_Statush
+
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
+
++ " Dly :" +EncodeColor(colorBlack) 
++  NumToStr(ADX(ADX_Parmd),1.2)+";"+ ADXc_Statusd
+
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
+
++ " Wkly :" +EncodeColor(colorBlack)  
++  NumToStr(ADX(ADX_Parmw),1.2)+";"+ ADXc_Statusw
+
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
++ " Mthly :" +EncodeColor(colorBlack)  
+
++  NumToStr(ADX(ADX_Parmm),1.2)+";"+ ADXc_Statusm
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
+
+
++ " Qtrly :" +EncodeColor(colorBlack) 
++  NumToStr(ADX(ADX_Parmq),1.2)+";"+ ADXc_Statusq
+
++EncodeColor(colorWhite) +" | "
++EncodeColor(colorBlue) 
+
+
++ " Yrly :"  +EncodeColor(colorBlack) 
++  NumToStr(ADX(ADX_Parmy),1.2)+";"+ ADXc_Statusy;
+
+/*
+ + ", L:" +L+ ", C:"+ C +"  ("+NumToStr(Change,1.2)+" )" +"  ("+NumToStr(ROCVal,1.2)+" %%)")
++ WriteIf(IDNR7, EncodeColor(colorBrightGreen) + WriteIf(idm7 > 1, StrLeft(NumToStr(idm7), 4), "") + " IDNR7 ", "")
++ WriteIf(IDNR4, EncodeColor(colorLightOrange) + WriteIf(idm4 > 1, StrLeft(NumToStr(idm4), 4), "") + " IDNR4 ", "") 
++ WriteIf(NR7 AND NOT ID, EncodeColor(colorBrightGreen) + WriteIf(m7 > 1, StrLeft(NumToStr(m7), 4), "") + " NR7 ", "")
++ WriteIf(NR4 AND NOT ID, EncodeColor(colorLightOrange) + WriteIf(m4 > 1, StrLeft(NumToStr(m4), 4), "") + " NR4 ", "")
++ WriteIf(ID AND NOT NR7 AND NOT NR4, EncodeColor(colorTurquoise) + WriteIf(idm > 1, StrLeft(NumToStr(idm), 4), "") + " Inside Day ", "")
++ ", Range=" + Prec(R + 0.00001, 2) + "," +EncodeColor(colorBlack) +"  Vol : "+NumToStr(V,1.2) + "," 
+ +EncodeColor(colorYellow) 
++ "  LSMA 25: " +NumToStr(LSMA25,1.2) 
++"\n"+EncodeColor(41)+"HrlyTrend: " +WriteIf(hup,EncodeColor(colorBrightGreen)+"Up ", WriteIf(hdN,EncodeColor(colorRed)+"Down", WriteIf(hflat,EncodeColor(colorWhite)+"Flat ","")))
+
++"\n"+EncodeColor(41)+"DailyTrend: " +WriteIf(dup,EncodeColor(colorBrightGreen)+"Up ", WriteIf(ddN,EncodeColor(colorRed)+"Down", WriteIf(dflat,EncodeColor(colorWhite)+"Flat ","")))
++EncodeColor(colorWhite) 
+
++"\n"+EncodeColor(41)+"WeeklyTrend: " +WriteIf(wup,EncodeColor(colorBrightGreen)+"Up ", WriteIf(wdN,EncodeColor(colorRed)+"Down", WriteIf(wflat,EncodeColor(colorWhite)+"Flat ","")))
++EncodeColor(colorWhite) 
+
++"\n"+EncodeColor(41)+"MonthlyTrend: " +WriteIf(mup,EncodeColor(colorBrightGreen)+"Up ", WriteIf(mdN,EncodeColor(colorRed)+"Down", WriteIf(mflat,EncodeColor(colorWhite)+"Flat ","")))
++EncodeColor(colorWhite)
+ +EncodeColor(colorBlue) 

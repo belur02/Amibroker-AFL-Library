@@ -1,0 +1,16 @@
+_SECTION_BEGIN("High Beta Scanner");
+
+ticker=ParamStr( "Ticker", "NIFTY-I" );
+P=Foreign(ticker,"C",1);
+Periods=Param("period",21,1,50,1);
+
+Beta=(( Periods * Sum(ROC( C,1) * ROC(P,1),Periods )) - (Sum(ROC(C,1),Periods) *
+Sum(ROC( P,1),Periods))) / ((Periods * Sum((ROC(P,1)^2 ),Periods)) -
+(Sum(ROC(P,1 ),Periods)^2 ));
+
+Plot(beta,"Beta",colorRed,styleLine);
+
+Filter =beta>1.5;
+AddColumn(beta,"BETA",1.2);
+
+_SECTION_END();

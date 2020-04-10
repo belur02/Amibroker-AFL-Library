@@ -1,0 +1,780 @@
+// Downloaded From https://www.WiseStockTrader.com
+/*                     HARMONIC PATTERN DETECTION                        
+
+
+Automatic Detection of Harmonic Patterns - Gartley, Bat, Butterfly and Crab. 
+
+Zig Zag is not used in this AFL. It is based on fractals
+
+
+*/
+
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorWhite ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Gartley");
+
+GBmin = Param("Swing B Min.",0.61,0.3,1,0.01);
+GBmax = Param("Swing B Max.",0.63,0.4,1,0.01);
+GCmin = Param("Swing C Min.",0.38,0.3,1.27,0.01);
+GCmax = Param("Swing C Max.",0.9,0.4,1.27,0.01);
+GDmin = Param("Swing D Min.(XA)",0.77,0.3,1,0.01);
+GDmax = Param("Swing D Max.(XA)",0.8,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Bat");
+
+BatBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+BatBmax = Param("Swing B Max.",0.55,0.4,1,0.01);
+BatCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BatCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BatDmin = Param("Swing D Min.(XA)",0.88,0.3,1,0.01);
+BatDmax = Param("Swing D Max.(XA)",0.9,0.4,1.0,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Butterfly");
+
+BtBmin = Param("Swing B Min.",0.77,0.3,1,0.01);
+BtBmax = Param("Swing B Max.",0.8,0.4,1,0.01);
+BtCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+BtCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+BtDmin = Param("Swing D Min.(XA)",1.2,1,1.8,0.01);
+BtDmax = Param("Swing D Max.(XA)",1.75,1,1.8,0.01);						// Max XA of Butterfly = (1.0 - 1.618)
+
+_SECTION_END();
+
+_SECTION_BEGIN("Crab");
+
+CBmin = Param("Swing B Min.",0.38,0.3,1,0.01);
+CBmax = Param("Swing B Max.",0.62,0.4,1,0.01);
+CCmin = Param("Swing C Min.",0.38,0.3,1.62,0.01);
+CCmax = Param("Swing C Max.",1.27,0.4,1.62,0.01);
+CDmin = Param("Swing D Min.(XA)",1.61,1,1.8,0.01);
+CDmax = Param("Swing D Max.(XA)",1.63,1,2,0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("AB=CD");
+
+abcd_Cmin = Param("Swing C Min.",0.6,		0.3	,	1,		0.01);
+abcd_Cmax = Param("Swing C Max.",0.8,		0.8	,	1,		0.01);
+abcd_Dmin = Param("Swing D Min.",1.2,		1,		2.7,	0.01);
+abcd_Dmax = Param("Swing D Max.",2.6,		1,		4,		0.01);
+
+_SECTION_END();
+
+_SECTION_BEGIN("Patterns");
+	
+//strength = Param("Strength",5,2,15,1);									// Best use: 3, 4, 5
+strength = Param("BARS of each LINE",5,2,15,1);							// So luong bar cho moi duong XA, AB, BC, 
+bu = ParamToggle("Bullish Pattern","Off|On",1);							// So bar/lines se quyet dinh. mo^ hinh` duoc ve the' nao`
+be = ParamToggle("Bearish Pattern","Off|On",1);
+
+bi = Cum(1)-1;
+
+function GetTop(bars) 														// Lay' gia' tri cao nhat' = di?nh
+	{
+		Top = H == HHV(H,2*bars) AND Ref(HHV(H,bars),bars) < H;
+		Top = Top AND LastValue(bi)-ValueWhen(Top,bi) > bars;
+		return Top;
+	}
+
+function GetValley(bars)													// La'y gia tri thap' nhat' = day'
+	{
+		Valley = L == LLV(L,2*bars) AND Ref(LLV(L,bars),bars) > L;
+		Valley = Valley AND LastValue(bi)-ValueWhen(Valley,bi) > bars;
+		return Valley;
+	}
+
+
+// Build fractals array
+
+P1 = GetTop(strength);										// so' bar cho 1 duong` XA, AB, BC, CD
+V1 = GetValley(Strength);
+
+P1 = IIf(P1,IIf(ValueWhen(P1,bi,2) < ValueWhen(V1,bi),P1,IIf(ValueWhen(P1,H,2) > H,False,P1)),P1);
+P1 = IIf(P1 AND ValueWhen(P1,bi,0) > bi,IIf(ValueWhen(P1,bi,0) < ValueWhen(V1,bi,0),IIf(ValueWhen(P1,H,0) >= H,False,P1),P1),P1);
+V1 = IIf(V1,IIf(ValueWhen(V1,bi,2) < ValueWhen(P1,bi),V1,IIf(ValueWhen(V1,L,2)<L,False,V1)),V1);
+V1 = IIf(V1 AND ValueWhen(V1,bi,0) > bi ,IIf(ValueWhen(V1,bi,0) < ValueWhen(P1,bi,0),IIf(ValueWhen(V1,L,0) <= L, False,V1),V1),V1); 
+
+
+P1H1 = ValueWhen(P1,H);
+P1Bar1 = ValueWhen(P1,bi);
+P1H2 = ValueWhen(P1,H,2);
+P1Bar2 = ValueWhen(P1,bi,2);
+V1L1 = ValueWhen(V1,L);
+V1Bar1 = ValueWhen(V1,bi);
+V1L2 = ValueWhen(V1,L,2);
+V1Bar2 = ValueWhen(V1,bi,2);
+
+
+//============================================
+//				BULLISH PATTERNS
+//============================================
+/*
+	Mo hinh Bullish:
+	A	=	P1H2
+	B	=	V1L1
+	C	=	P1H1
+	X	=	V1L2
+
+*/
+
+PTvalid = (P1Bar1 > V1Bar1 AND V1Bar1 > P1Bar2 AND P1bar2 > V1Bar2) AND P1; // Peaks and troughs are in order
+
+myAX			=	P1H2-V1L2;
+myAB			=	P1H2-V1L1;
+myBC			=	P1H1-V1L1;
+
+myAB_AX		=	myAB/ myAX;
+myBC_AB		=	myBC/ myAB;	
+
+BullGartley4 		= PTvalid 	AND 	(	myAB_AX > GBmin	) 		AND (	myAB_AX < GBmax	)
+								AND  	(	myBC_AB > GCMin 	) 		AND (	myBC_AB < GCMax	); 
+
+BullBat4 			= PTvalid 	AND 	(	myAB_AX > BatBmin ) 		AND (	myAB_AX < BatBmax	)
+								AND 	(	myBC_AB > BatCMin ) 		AND (	myBC_AB < BatCMax	); 
+
+BullButterfly4 	= PTvalid 	AND 	(	myAB_AX > BtBmin ) 		AND (	myAB_AX < BtBMax	)
+								AND  	(	myBC_AB > BtCmin ) 		AND (	myBC_AB < BtCmin 	);
+
+BullCrab4 			= PTvalid 	AND 	(	myAB_AX > CBmin )	  		AND (	myAB_AX < CBmax 	)
+								AND  	(	myBC_AB > CCmin ) 		AND (	myBC_AB < CCmax	);
+
+BullABCD4			= PTvalid AND 	(	myBC_AB > abcd_Cmin) 	AND (	myBC_AB < abcd_Cmax	);
+
+strPattern = "";
+
+//==================================================
+//				 BULLISH ABCD
+// 	Bullish pattern found. D retracement level is not evaluated
+//==================================================
+	dHigh		=		HighestSince(BullABCD4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullABCD4,L);
+	
+	myC			=		ValueWhen(BullABCD4,P1H1);
+	myB			=		ValueWhen(BullABCD4,V1L1);
+	myA			=		ValueWhen(BullABCD4,P1H2);
+	myX			=		ValueWhen(BullABCD4,V1L2);
+	myCB		=		myC - myB;
+
+	my_d_min	=		myCB	*	abcd_DMin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myCB	*	abcd_DMax ;
+	my_Cd_min	=		myC - my_d_min;					   // Khoang dich chuyen cua duong Ad con.
+	my_Cd_max	=		myC - my_d_max;
+
+BullABCD	 	= 		IIf(		( dLow  <	my_Cd_min	)	AND		( dLow	> my_Cd_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+
+BullABCD		=		BullABCD	AND (dLow		<	myB);
+
+
+//==================================================
+// 				BULLISH GARTLEY
+//==================================================
+	dHigh		=		HighestSince(BullGartley4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullGartley4,L);
+
+	myC			=		ValueWhen(BullGartley4,P1H1);
+	myB			=		ValueWhen(BullGartley4,V1L1);
+	myA			=		ValueWhen(BullGartley4,P1H2);
+	myX			=		ValueWhen(BullGartley4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	GDmin;							// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	GDMax;
+	my_Ad_min	=		myA - my_d_min;							// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullGartley 	= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullGartley 	=		BullGartley 	AND (dLow		<	myB);						// diem D thap' hon B
+strPattern 	=		WriteIf(BullGartley,"BULLISH GARTLEY",strPattern);
+
+
+
+//==================================================
+// 				BULLISH BAT
+//==================================================
+	dHigh		=		HighestSince(BullBat4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullBat4,L);	
+
+	myC			=		ValueWhen(BullBat4,P1H1);
+	myB			=		ValueWhen(BullBat4,V1L1);
+	myA			=		ValueWhen(BullBat4,P1H2);
+	myX			=		ValueWhen(BullBat4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	BatDmin;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BatDmax ;
+	my_Ad_min	=		myA - my_d_min;							// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullBat 		= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullBat 		=		BullBat 	AND (dLow		<	myB);			// diem d thap hon diem B
+strPattern 	=		WriteIf(BullBat,"BULLISH BAT",strPattern);
+
+
+//==================================================
+// 				BULLISH CRAB - CUA
+//==================================================
+	dHigh		=		HighestSince(BullCrab4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullCrab4,L);
+
+	myC			=		ValueWhen(BullCrab4,P1H1);
+	myB			=		ValueWhen(BullCrab4,V1L1);
+	myA			=		ValueWhen(BullCrab4,P1H2);
+	myX			=		ValueWhen(BullCrab4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	CDmin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	CDmax ;
+	my_Ad_min	=		myA - my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullCrab 		= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+								AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+							);
+BullCrab 		=		BullCrab 	AND (dLow		<	myX);					// diem D thap' hon X
+strPattern 	=		WriteIf(BullCrab ,"BULLISH CRAB",strPattern);
+
+
+//==================================================
+// 				BULLISH  BUTTTERFLY
+//==================================================
+	dHigh		=		HighestSince(BullButterfly4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BullButterfly4,L);
+
+	myC			=		ValueWhen(BullButterfly4,P1H1);
+	myB			=		ValueWhen(BullButterfly4,V1L1);
+	myA			=		ValueWhen(BullButterfly4,P1H2);
+	myX			=		ValueWhen(BullButterfly4,V1L2);
+	myAX		=		myA - myX;
+
+	my_d_min	=		myAX	*	BtDmin ;								// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BtDmax ;
+	my_Ad_min	=		myA - my_d_min;									// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA - my_d_max;
+
+BullButterfly 	= 		IIf(		( dLow  <	my_Ad_min	)	AND		( dLow	> my_Ad_max )	
+									AND	( dHigh	<=	myC		)	AND		( dLow	==	L), 
+								True, False
+								);
+BullButterfly 	=		BullButterfly 	AND (dLow		<	myX);					// diem D thap' hon X
+strPattern 		=		WriteIf(BullButterfly ,"BULLISH BUTTERFLY",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH ABCB 
+//==========================================================
+BullHar4 	=  BullABCD4;
+BullHar 	=  BullABCD;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+BCdAB = (C1-B)/(A-B);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+		ColorX = colorGreen;
+	// Ve cac duong AB, BC, CD
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Ve cac gia tri Fibo
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX );
+
+	//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+		xlech		=	0;
+		ylech 		= 	2;
+		PlotText("A",LastValue(Abar)	+ 	xlech,	LastValue(A)	+	ylech,	ColorX );
+		PlotText("B",LastValue(Bbar)	+ 	xlech,	LastValue(B)	-	ylech,	ColorX );
+		PlotText("C",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	+	ylech,	ColorX );
+		PlotText("D",LastValue(Dbar)	+ 	xlech,	LastValue(D)	-	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="")  
+		{
+			myStr			=	"Pattern: BULLISH AB=CD";
+			toadoX			=	LastValue(Abar);
+			toadoY			=	LastValue(D);
+
+			PlotText(myStr,toadoX,toadoY,ColorX );
+		}
+
+}			//	end of Ve duong` bullish abcd
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BULLISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+
+BullHar4 = BullGartley4 OR BullButterfly4 OR BullBat4 OR BullCrab4 ;
+BullHar = BullGartley OR BullButterfly OR BullBat OR BullCrab;
+
+Point4 = IIf(BullHar,ValueWhen(BullHar4,bi),Null);
+BullHar = IIf(BullHar, IIf(Point4 == ValueWhen(BullHar,point4,0) AND ValueWhen(BullHar,bi,0) > bi ,False,BullHar),BullHar);
+
+X = ValueWhen(BullHar4,V1L2);
+Xbar = ValueWhen(BullHar4,V1Bar2);
+A = ValueWhen(BullHar4,P1H2);
+Abar = ValueWhen(BullHar4,P1bar2);
+B = ValueWhen(BullHar4,V1L1);
+Bbar = ValueWhen(BullHar4,V1bar1);
+C1 = ValueWhen(BullHar4,P1H1);
+C1bar = ValueWhen(BullHar4,P1bar1);
+D = ValueWhen(BullHar,L);
+Dbar = ValueWhen(BullHar,bi);
+
+ABdXA = (A-B)/(A-X);
+BCdAB = (C1-B)/(A-B);
+ADdXA = (A-D)/(A-X);
+BCdCD = (C1-D)/(C1-B);
+
+PlotPattern = Dbar > C1bar;
+
+if(LastValue(PlotPattern) AND bu)
+{
+			ColorX	= colorBlue;
+		// Ve cac duong XA, AB, BC, CD
+			Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX,styleThick);
+			Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+			Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX,styleDashed);
+
+		// Ve cac gia tri Fibo
+			PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX);
+			PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX);
+			PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX);
+			PlotText(NumToStr(LastValue(BCdCD),1.2),(LastValue(Bbar)+LastValue(Dbar))/2,(LastValue(B)+LastValue(D))/2,ColorX);
+
+		//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+			xlech		=	0;
+			ylech 		= 	2;
+			PlotText("X",LastValue(Xbar)	+ 	xlech,	LastValue(X)	-	ylech,	ColorX);
+			PlotText("A",LastValue(Abar)	+ 	xlech,	LastValue(A)	+	ylech,	ColorX);
+			PlotText("B",LastValue(Bbar)	+ 	xlech,	LastValue(B)	-	ylech,	ColorX);
+			PlotText("C",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	+	ylech,	ColorX);
+			PlotText("D",LastValue(Dbar)	+ 	xlech,	LastValue(D)	-	ylech,	ColorX);
+
+		//--------- Viet thuyet minh mo hinh: by binhnd--------------
+			if (strPattern!="")  
+			{
+				strPattern 	= 	"Pattern: " + strPattern;
+				toadoX			=	(LastValue(Dbar)+LastValue(Xbar))/2;
+				toadoY			=	(LastValue(D)+LastValue(X))/2;
+
+				PlotText(strPattern,toadoX,toadoY-2,ColorX);
+			}
+
+}			// end of Ve duong cho cac mo hinh Crab, Butterfly, Bat
+
+
+//=============================================================
+//				BEARISH PATTERNS
+//=============================================================
+
+PTvalid = (V1Bar1 > P1Bar1 AND P1Bar1 > V1Bar2 AND V1Bar2 > P1Bar2) AND V1;
+
+/*=====================
+		X 	= 	P1H2					 Trong mo hinh` bear: Die^m X cao hon diem A. MyAX = X-> A
+		A	=	V1L2
+		B	=	P1H1
+		C	=	V1L1
+
+=======================*/
+myAX			=	P1H2-V1L2;				
+myAB			=	P1H1-V1L2;
+myBC			=	P1H1-V1L1;
+
+myAB_AX		=	myAB/ myAX;
+myBC_AB		=	myBC/ myAB;	
+
+BearGartley4 		= PTvalid 	AND 	(	myAB_AX > GBmin	) 		AND (	myAB_AX < GBmax	)
+								AND  	(	myBC_AB > GCMin 	) 		AND (	myBC_AB < GCMax	); 
+
+BearBat4 			= PTvalid 	AND 	(	myAB_AX > BatBmin ) 		AND (	myAB_AX < BatBmax	)
+								AND 	(	myBC_AB > BatCMin ) 		AND (	myBC_AB < BatCMax	); 
+
+BearButterfly4 	= PTvalid 	AND 	(	myAB_AX > BtBmin ) 		AND (	myAB_AX < BtBMax	)
+								AND  	(	myBC_AB > BtCmin ) 		AND (	myBC_AB < BtCmin 	);
+
+BearCrab4 			= PTvalid 	AND 	(	myAB_AX > CBmin )	  		AND (	myAB_AX < CBmax 	)
+								AND  	(	myBC_AB > CCmin ) 		AND (	myBC_AB < CCmax	);
+
+BearABCD4			= PTvalid AND 	(	myBC_AB > abcd_Cmin) 	AND (	myBC_AB < abcd_Cmax	);
+
+strPattern = "";
+
+
+
+//==========================================================
+//				 BEARISH ABCD
+// 	Bearish pattern found. D retracement level is not evaluated
+//==========================================================
+	dHigh		=		HighestSince(BearABCD4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearABCD4,L);
+	
+	myA			=		ValueWhen(BearABCD4,V1L2);
+	myB			=		ValueWhen(BearABCD4,P1H1);
+	myC			=		ValueWhen(BearABCD4,V1L1);
+	myCB		=		myB - myC;
+
+	my_d_min	=		myCB	*	abcd_DMin ;					// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myCB	*	abcd_DMax ;
+	my_Cd_min	=		myC + my_d_min;					   // Khoang dich chuyen cua duong Ad con.
+	my_Cd_max	=		myC + my_d_max;
+
+BearABCD	 	= 		IIf(		( dHigh  	>	my_Cd_min	)	AND		( dHigh	< my_Cd_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+
+BearABCD		=		BearABCD	AND (dHigh		>	myB);
+
+//=============================================================
+//				BEARISH GARTLEY
+//=============================================================
+	dHigh		=		HighestSince(BearGartley4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearGartley4,L);
+
+	myX			=		ValueWhen(BearGartley4,P1H2);
+	myA			=		ValueWhen(BearGartley4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearGartley4,P1H1);
+	myC			=		ValueWhen(BearGartley4,V1L1);
+
+
+	my_d_min	=		myAX	*	GDmin;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	GDMax;
+	my_Ad_min	=		myA 	+ 	my_d_min;					// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearGartley 	= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearGartley 	=		BearGartley 	AND (dHigh		>	myB);						// diem D cao hon B
+strPattern 	=		WriteIf(BearGartley ,"BEARISH GARTLEY",strPattern);
+
+//=============================================================
+//				BEARISH BAT
+//=============================================================
+	dHigh		=		HighestSince(BearBat4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearBat4,L);
+
+	myX			=		ValueWhen(BearBat4,P1H2);
+	myA			=		ValueWhen(BearBat4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearBat4,P1H1);
+	myC			=		ValueWhen(BearBat4,V1L1);
+
+
+	my_d_min	=		myAX	*	BatDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BatDMax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;					// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearBat 		= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearBat 		=		BearBat 	AND (dHigh		>	myB);						// diem D cao hon B
+strPattern 	=		WriteIf(BearBat ,"BEARISH BAT",strPattern);
+
+
+//=============================================================
+//				BEARISH BUTTERFLY
+//=============================================================
+	dHigh		=		HighestSince(BearButterfly4,H);		// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearButterfly4,L);
+
+	myX			=		ValueWhen(BearButterfly4,P1H2);
+	myA			=		ValueWhen(BearButterfly4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearButterfly4,P1H1);
+	myC			=		ValueWhen(BearButterfly4,V1L1);
+
+
+	my_d_min	=		myAX	*	BtDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	BtDmax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearButterfly = 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearButterfly	=		BearButterfly 	AND (dHigh		>	myX);						// diem D cao hon X
+strPattern		=		WriteIf(BearButterfly ,"BEARISH BUTTERFLY",strPattern);
+
+
+
+//=============================================================
+//				BEARISH CRAB
+//=============================================================
+	dHigh		=		HighestSince(BearCrab4,H);				// Tinh' gia' tri min, max cua duong Ad. Duong Ad la duong con cua AD
+	dLow 		= 		LowestSince(BearCrab4,L);
+
+	myX			=		ValueWhen(BearCrab4,P1H2);
+	myA			=		ValueWhen(BearCrab4,V1L2);
+	myAX		=		myX - myA;
+
+	myB			=		ValueWhen(BearCrab4,P1H1);
+	myC			=		ValueWhen(BearCrab4,V1L1);
+
+
+	my_d_min	=		myAX	*	CDmin ;						// Tinh' gia' tri cua duong Ad con. Khi gia' giam? tu` tre^n xuong' thi` max -> min
+	my_d_max	=		myAX	*	CDmax ;
+	my_Ad_min	=		myA 	+ 	my_d_min;						// Khoang dich chuyen cua duong Ad con.
+	my_Ad_max	=		myA 	+ 	my_d_max;
+
+BearCrab 		= 		IIf(		( dHigh	>	my_Ad_min	)	AND		( dHigh	< my_Ad_max )	
+								AND	( dLow		>=	myC			)	AND		( dHigh	==	H), 
+								True, False
+							);
+BearCrab 		=		BearCrab 	AND (dHigh		>	myX);						// diem D cao hon X
+strPattern 	=		WriteIf(BearCrab ,"BEARISH CRAB",strPattern);
+
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH ABCD
+//==========================================================
+
+
+BearHar4 = BearABCD4;
+BearHar = BearABCD;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+BCdAB = (B-C1)/(B-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+		ColorX = colorYellow;
+	// Ve duong AB, BC
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Viet cac gia tri Fibo tren duong AB, BC
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+
+	//---------- Viet cac diem A, B, C, D: by binhnd---------------------
+		xlech		=	-1;
+		ylech 		= 	1;
+		PlotText("A",LastValue(Abar)	+ 	xlech,	LastValue(A)	-	ylech,	ColorX );
+		PlotText("B",LastValue(Bbar)	+ 	xlech,	LastValue(B)	+	ylech,	ColorX );
+		PlotText("C",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	-	ylech,	ColorX );
+		PlotText("D",LastValue(Dbar)	+ 	xlech,	LastValue(D)	+	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="") 
+			{
+				myStr			=	"Pattern: BEARISH AB=CD";
+				toadoaX		=	LastValue(Abar);
+				toadoY			=	LastValue(D);
+
+				PlotText(myStr,toadoaX,toadoY+1,ColorX );
+			}
+	
+}			// end of VE DUONG CHO MO HINH BEARISH ABCD
+
+
+//==========================================================
+//   VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+//==========================================================
+
+BearHar4 = BearGartley4 OR BearButterfly4 OR BearBat4 OR BearCrab4 ;
+BearHar = BearGartley OR BearButterfly OR BearBat OR BearCrab ;
+
+Point4 = IIf(BearHar,ValueWhen(BearHar4,bi),Null);
+BearHar = IIf(BearHar, IIf(Point4 == ValueWhen(BearHar,point4,0) AND ValueWhen(BearHar,bi,0) > bi ,False,BearHar),BearHar);
+
+X = ValueWhen(BearHar4,P1H2);
+Xbar = ValueWhen(BearHar4,P1Bar2);
+A = ValueWhen(BearHar4,V1L2);
+Abar = ValueWhen( BearHar4,V1bar2);
+B = ValueWhen(BearHar4,P1H1);
+Bbar = ValueWhen(BearHar4,P1bar1);
+C1 = ValueWhen(BearHar4,V1L1);
+C1bar = ValueWhen(BearHar4,V1bar1);
+D = ValueWhen(BearHar,H);
+Dbar = ValueWhen(BearHar,bi);
+
+ABdXA = (B-A)/(X-A);
+BCdAB = (B-C1)/(B-A);
+ADdXA = (D-A)/(X-A);
+BCdCD = (D-C1)/(B-C1);
+
+PlotPattern = Dbar > C1bar;
+
+//--------- Ve duong ------------------
+if(LastValue(Plotpattern) AND be)
+{
+		ColorX = colorRed;
+	// Ve duong XA, AB, BC
+		Plot( LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(Bbar),LastValue(B)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(C1bar),LastValue(C1),LastValue(Dbar),LastValue(D)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Bbar),LastValue(B)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Abar),LastValue(A)),"",ColorX ,styleThick);
+		Plot(LineArray(LastValue(Abar),LastValue(A),LastValue(C1bar),LastValue(C1)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Bbar),LastValue(B),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+		Plot(LineArray(LastValue(Xbar),LastValue(X),LastValue(Dbar),LastValue(D)),"",ColorX ,styleDashed);
+
+	// Viet cac gia tri Fibo tren duong XA, AB, BC
+		PlotText(NumToStr(LastValue(ABdXA),1.2),(LastValue(Bbar)+LastValue(Xbar))/2,(LastValue(B)+LastValue(X))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdAB),1.2),(LastValue(C1bar)+LastValue(Abar))/2,(LastValue(C1)+LastValue(A))/2,ColorX );
+		PlotText(NumToStr(LastValue(BCdCD),1.2) ,(LastValue(Dbar)+LastValue(Bbar))/2,(LastValue(D)+LastValue(B))/2,ColorX );
+		PlotText(NumToStr(LastValue(ADdXA),1.2) ,(LastValue(Dbar)+LastValue(Xbar))/2,(LastValue(D)+LastValue(X))/2,ColorX );
+
+	//---------- Viet cac diem X, A, B, C, D: by binhnd---------------------
+		xlech		=	-1;
+		ylech 		= 	1;
+		PlotText("X",LastValue(Xbar)	+ 	xlech,	LastValue(X)	+	ylech,	ColorX );
+		PlotText("A",LastValue(Abar)	+ 	xlech,	LastValue(A)	-	ylech,	ColorX );
+		PlotText("B",LastValue(Bbar)	+ 	xlech,	LastValue(B)	+	ylech,	ColorX );
+		PlotText("C",LastValue(C1bar)	+ 	xlech,	LastValue(C1)	-	ylech,	ColorX );
+		PlotText("D",LastValue(Dbar)	+ 	xlech,	LastValue(D)	+	ylech,	ColorX );
+
+	//--------- Viet thuyet minh mo hinh: by binhnd--------------
+		if (strPattern!="") 
+			{
+				strPattern 	= 	"Pattern: " + strPattern;
+				toadoaX		=	(LastValue(Dbar)+LastValue(Xbar))/2;
+				toadoY			=	(LastValue(D)+LastValue(X))/2;
+
+				PlotText(strPattern,toadoaX,toadoY+1,ColorX );
+			}
+	
+}			// end of VE DUONG CHO MO HINH BEARISH BAT, GARTLEY, BUTTERFLY, CRAB
+
+
+
+
+//=================================
+// Show diem ho^~ tro. va` khang' cu. ko?
+//=================================
+
+plotFractals = ParamToggle("Plot Fractals","Off|On",1);				
+if(PlotFractals)
+{
+	PlotShapes(shapeSmallCircle*P1,colorRed,0,H,10);
+	PlotShapes(shapeSmallCircle*V1,colorBlue,0,L,-10);
+}
+
+
+
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BULL
+//==============================================
+dkBull = False;
+dkBear = False;
+
+/*
+ListBull 		= 	ParamList("Type of Bullish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 6);
+	if 	(	ListBull == "None"		)		dkBull = 	True;
+	if (	ListBull =="AB=CD"		) 		dkBull	=	BullABCD ;
+	if (	ListBull =="Gartley"		) 		dkBull	=	BullGartley ;
+	if (	ListBull =="Butterfly"	) 		dkBull	=	BullButterfly ;
+	if (	ListBull =="Bat"			) 		dkBull	=	BullBat ;
+	if (	ListBull =="Crab"			) 		dkBull	=	BullCrab ;
+	if (	ListBull =="All Patterns") 		dkBull	=	(BullABCD) OR (BullGartley) OR (BullButterfly ) OR (BullBat ) OR (BullCrab);
+
+//==============================================
+// DAT DIEU KIEN cho TIM KIEM BEAR
+//==============================================
+ListBear 		= 	ParamList("Type of Bearish", "None|AB=CD|Gartley|Butterfly|Bat|Crab|All Patterns", 0);
+	if 	(	ListBear == "None"		)		dkBear = 	True;
+	if (	ListBear =="AB=CD"		) 		dkBear	=	BearABCD ;
+	if (	ListBear =="Gartley"		) 		dkBear	=	BearGartley ;
+	if (	ListBear =="Butterfly"	) 		dkBear	=	BearButterfly ;
+	if (	ListBear =="Bat"			) 		dkBear	=	BearBat ;
+	if (	ListBear =="Crab"			) 		dkBear =	BearCrab ;
+	if (	ListBear =="All Patterns") 		dkBear =	(BearABCD ) OR (BearGartley ) OR (BearButterfly ) OR (BearBat ) OR (BearCrab );
+*/
+
+
+
+AddColumn(BullABCD,"BlABCD",True);
+AddColumn(BullGartley,"BlGartley",True);
+AddColumn(BullBat,"BLBat",True);
+AddColumn(BullCrab,"BlCrab",True);
+AddColumn(BullButterfly,"BlButrfly",True);
+
+AddColumn(BearABCD,"BrABCD",True);
+AddColumn(BearGartley,"BrGartley",True);
+AddColumn(BearBat,"BrBat",True);
+AddColumn(BearCrab,"BrCrab",True);
+AddColumn(BearButterfly,"BrButrfly",True);
+
+
+
+
+
+dkBull	=	 (BullGartley) OR (BullButterfly ) OR (BullBat ) OR (BullCrab);
+dkBear =	 (BearGartley ) OR (BearButterfly ) OR (BearBat ) OR (BearCrab );
+AddColumn(V,"Volume",1.0);
+Filter = (dkBull) OR (dkBear);

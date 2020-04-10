@@ -1,0 +1,99 @@
+// Downloaded From www.WiseStockTrader.com
+ SetChartBkColor( ParamColor("Chart Color", colorBlack));
+
+
+
+_SECTION_BEGIN("BACKGROUD LTRS");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+GfxSetOverlayMode(1);
+
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ParamColor("Text Color", ColorHSB( 42, 42, 42 ) ));
+GfxSetBkMode(0); // transparent
+
+
+
+GfxSelectFont("Tahoma", Status("pxheight")/12);
+GfxTextOut( "PRASAD ANALYTICS ©", Status("pxwidth")/2, Status("pxheight")/14);
+
+GfxSelectFont("Tahoma", Status("pxheight")/9 );
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/4.1 );
+
+
+GfxSelectFont("Arial Narrow", Status("pxheight")/28 );
+GfxTextOut( "prasad9rao@gmail.com", Status("pxwidth")/2, Status("pxheight")/1.5);
+
+GfxSelectFont("arial narrow", Status("pxheight")/27 );
+GfxTextOut( "Dedicated to MY FATHER : BALKRISHNA RAO", Status("pxwidth")/2, Status("pxheight")/1.15);
+_SECTION_END();
+
+
+
+k = (GetPerformanceCounter()/100)%256; 
+printf("GetPerformance Counter %g",k);
+
+GfxSelectFont("Arial Narrow", 10,700 ); 
+GfxSetBkMode(1); 
+GfxSetTextColor(colorYellow); 
+//GfxTextOut("Dedicated to the loving memory of MY FATHER on his 75th Birth  Anniversay - LATE BALKRISHNA RAMCHANDRA RAO 13.10.1935",100+k ,26); 
+
+RequestTimedRefresh(1); 
+_SECTION_END();
+
+
+ 
+
+
+
+VOLDAYS2 = Param("II DAYS",10,1,50,1);
+
+ 
+PER_II = Sum((2*Close-High-Low)/(High-Low)*Volume,VOLDAYS2)/Sum(Volume,VOLDAYS2);
+
+
+mycolorII =IIf  (PER_II<0,ColorRGB(255,232,200) , IIf( PER_II>0,ColorRGB(255,156,0),ColorRGB(125,84,11)));
+
+
+ Plot(EMA(PER_II,8),"AD%",colorRed ,styleLine);
+ Plot(EMA(PER_II,5),"AD%",colorLime ,styleLine);
+
+
+
+
+Plot(PER_II,"II%",mycolorII ,styleHistogram);
+
+
+
+
+
+
+
+/****************************************************
+                   CHART TITLES
+****************************************************/
+
+
+GfxSetTextAlign( TA_left = 0);
+GfxSelectFont("Tahoma", 11, 700 ); 
+GfxSetTextColor(ColorRGB(209,191,255)); 
+GfxTextOut("PRASAD ANALYTICS - % Inraday Intensity",07, 0); 
+
+
+
+
+
+GfxSetTextAlign( TA_LEFT = 0 );
+GfxSelectFont("Tahoma", 11, 700 ); 
+GfxSetTextColor(ColorRGB(255,180,61)); 
+GfxTextOut(Name()+ "   " + Date(),07,28); 
+
+GfxSetTextColor(ColorRGB(109,101,255)); 
+GfxTextOut("II[ "+VOLDAYS2+" ]"+" = "+NumToStr(PER_II,1.2),07, 14); 
+ 
+
+ 
+
+/**************** AD***************************/
+
+
+Title = " "; 

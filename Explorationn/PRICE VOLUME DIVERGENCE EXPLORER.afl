@@ -1,0 +1,46 @@
+_SECTION_BEGIN("ROC-Close");
+safeguard="This is developed by StockBangladesh Research and Development department if you need any asistance please contact us at amibroker@stockbangladesh.com";
+
+pre=StrMid( safeguard,21, 15 );
+
+stockbangladesh_periods = Param("Periods", 3, 1, 200, 1 );
+stockbangladesh_ROCclose=ROC( C, stockbangladesh_periods);
+Plot( ROC( C, StockBangladesh_periods), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style")  );
+pre= StrMid( safeguard, 33, 15 );
+
+StockBangladesh_PriceUp = LinRegSlope( StockBangladesh_ROCclose, StockBangladesh_periods) > 0 ; 
+
+printf("PriceUp =%f\n", StockBangladesh_PriceUp);
+
+
+
+_SECTION_END();
+
+_SECTION_BEGIN("ROC-Volume");
+StockBangladesh_periods = Param("Periods", 3, 1, 200, 1 );
+Plot( ROC( V, StockBangladesh_periods), _DEFAULT_NAME(), ParamColor( "Color", colorGreen ), ParamStyle("Style")  );
+
+StockBangladesh_ROCvolume=ROC( V, StockBangladesh_periods);
+StockBangladesh_VolumeUp = LinRegSlope( StockBangladesh_ROCvolume, StockBangladesh_periods) > 0 ; 
+
+printf("VolumeUp =%f\n", StockBangladesh_VolumeUp);
+
+
+StockBangladesh_BullishDiv = NOT StockBangladesh_PriceUP AND StockBangladesh_ROCvolume;
+StockBangladesh_BearishDiv = StockBangladesh_PriceUP AND NOT StockBangladesh_VolumeUp;
+Filter = StockBangladesh_BullishDiv OR StockBangladesh_BearishDiv;
+pre="StockBangladesh";
+AddColumn( StockBangladesh_BullishDiv, "Bullish Divergence", 1.0, 
+       colorDefault, IIf(StockBangladesh_BullishDiv, colorGreen, colorDefault ) ); 
+AddColumn( StockBangladesh_BearishDiv , "Bearish Divergence", 1.0, 
+       colorDefault, IIf(StockBangladesh_BearishDiv , colorRed, colorDefault) );
+
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/5 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorRGB( 200, 200, 200 ) );
+GfxSetBkMode(1); // transparent
+GfxTextOut( pre, Status("pxwidth")/2, Status("pxheight")/12 );
+
+
+_SECTION_END();

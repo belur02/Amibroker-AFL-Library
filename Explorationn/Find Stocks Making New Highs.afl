@@ -1,0 +1,24 @@
+Gialonnhat7to15 = HHV(Ref(C, -1), 50);
+Gialonnhat15 = HHV (Ref (C, -1),  50);
+ 
+DK1 = Gialonnhat7to15 >= Gialonnhat15;
+ 
+DK2 = C > Gialonnhat7to15;
+ 
+Khoiluonglonnhat15 = HHV (Ref (V, -1), 50);
+ 
+DK3 = V > Khoiluonglonnhat15;
+ 
+Giabenhat15 = LLV (Ref (C, -1), 50);
+ 
+DK4 = (Giabenhat15 <= C*0.95) AND (GiaBeNhat15 >= C*0.9);
+ 
+GiaBeNhatThang = LLV (Ref (C,-15), 50);
+ 
+DK5 = (GiaBeNhatThang <= C*0.9) AND (GiaBenhatThang >= C*0.8);
+ 
+DK6 = V > 100000;
+ 
+Buy = DK1 AND DK2 AND DK3 AND DK4 AND DK5 AND DK6;
+ 
+Filter = Buy;

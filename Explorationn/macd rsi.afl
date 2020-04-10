@@ -1,0 +1,8 @@
+_SECTION_BEGIN("macd buy filter");
+ 
+Filter =1;
+ 
+AddColumn( MACD(), "MACD", 1.4 , IIf( MACD(12,26)<0 AND Cross(MACD(12,26),Signal(12,26,9)), colorGreen, IIf( MACD(12,26)>0,colorRed,Null) ) );
+AddColumn(RSI(),"RSI",1.4,IIf( RSI(14)<30 AND Cross(RSI(14),20),colorGreen, IIf( RSI(14)>30,colorRed,Null) ) );
+ 
+_SECTION_END();

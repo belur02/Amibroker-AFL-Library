@@ -1,0 +1,53 @@
+Length = 14;
+Price = EMA(Close, Length);
+  
+// Keltner 
+kLength = Length;
+kN = 1.5;
+kATR = ATR(kLength);
+kUpper = Price + kN * kATR;
+kLower = Price - kN * kATR;
+  
+// Bollinger
+bbLength = Length;
+bbN = 2;
+bbStDevValues = StDev(Close, bbLength);
+bbUpper = Price + bbN * bbStDevValues;
+bbLower = Price - bbN * bbStDevValues;
+  
+IsBBSqueeze = bbUpper <= kUpper AND bbLower >= kLower;
+ 
+Proportion = (kUpper - kLower) / (bbUpper - bbLower);
+BBBreakout = Cross(1,Proportion); 
+Periods = Param("BBPeriods", 14, 2, 300, 1 );
+Width = Param("Width", 2, 0, 10, 0.05 );
+Color = ParamColor("Color", colorCycle );
+Style = ParamStyle("Style");
+bbtop=BBandTop( C, Periods, Width );
+bbbot=BBandBot( C, Periods, Width );
+Plot(bbtop, "", Color, Style ); 
+Plot(bbbot , "", Color, Style );
+ 
+sqeezcolor=ColorRGB(194,220,218);
+ 
+PlotOHLC( bbtop,bbtop, bbbot,bbbot, "",IIf(IsBBSqueeze,colorYellow,colorWhite), styleCloud|styleNoRescale,  Null, Null, Null, -1 );
+Plot(Close,"Close",colorGreen,styleCandle); 
+ 
+Filter = BBBreakout;
+ 
+AddColumn(BBBreakout, "BB Breakout", 1, colorWhite, IIf(BBBreakout==1, colorRed, colorWhite));
+//set default sorting to Date/time in descending order in results window
+SetSortColumns(-2);
+
+Band= (BBandTop( C, 20, 2 ) - BBandBot( C, 20, 2)) / MA(Close, 20 ) * 100;
+B= ((Close - BBandBot( Close, 20, 2 )) / (BBandTop( Close, 20, 2 ) - BBandBot(Close, 20, 2 ))) * 100;
+ 
+Buy = band < 15 AND b > 95 AND MFI(10) > 60;
+Sell = Cross(Close,SAR(0.01,0.2));
+Short = band < 15 AND b < 5 AND MFI(10) < 40;
+Cover = Cross(SAR(0.01,0.2), Close);
+ 
+Filter = (band < 15 AND b > 95 AND MFI(10) > 60)  OR (band < 15 AND b < 5 AND MFI(10) < 40);
+ 
+NumColumns = 1;
+Column0 = Close;

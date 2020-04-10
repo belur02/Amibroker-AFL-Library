@@ -1,0 +1,3 @@
+rsi13 = RSI(13);
+ma26  = MA( rsi13, 26);      // Replace Close with rsi13
+Buy   = Cross( ma26, rsi13 );
