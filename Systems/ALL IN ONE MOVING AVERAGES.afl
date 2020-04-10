@@ -1,0 +1,703 @@
+// Downloaded From https://www.WiseStockTrader.com
+//============== MA ==============
+pxHeight = Status( "pxchartheight") ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 200;
+x = 5;
+x2 = 410;
+y = pxHeight;
+GfxSelectPen( colorWhite, 1); // broader color
+GfxSetBkColor(colorBlack );
+GfxSelectSolidBrush( colorBlack ); 
+GfxSetBkMode( 1);
+GfxRoundRect( x, y -65, x2, y+5 , 10,10) ;
+GfxSelectFont( "Verdana", 10, 1800);
+GfxSetTextColor( colorWhite ); 
+GfxTextOut( ( "Simple Moving Averages"),13,y-60);
+GfxSelectFont("Verdana", 8,1800); 
+GfxSetTextColor( colorWhite ); 
+
+
+DT5   =    5; // DTL =  5 Day Moving Trend
+DT10  =   10; // DTM = 10 Day Moving Trend
+DT20  =   20; // DTS = 20 Day Moving Trend
+DT50  =   50; // DTL =  50 Day Moving Trend
+DT100 =  100; // DTM = 100 Day Moving Trend
+DT200 =  200; // DTS = 200 Day Moving Trend
+MT5   = LinRegSlope( MA(C, DT5  ), 2 );  //5 Day Moving Average
+MT10  = LinRegSlope( MA(C, DT10 ), 2 );  //10 Day Moving Average
+MT20  = LinRegSlope( MA(C, DT20 ), 2 );  //20 Day Moving Average
+MT50  = LinRegSlope( MA(C, DT50 ), 2 );  //50 Day Moving Average
+MT100 = LinRegSlope( MA(C, DT100), 2 );  //100 Day Moving Average
+MT200 = LinRegSlope( MA(C, DT200), 2 );  //200 Day Moving Average
+
+MTT5   = IIf(LinRegSlope( MA(C,   DT5  ), 2 )>0,True , False);  //5 Day Moving Average
+MTT10   = IIf(LinRegSlope( MA(C,  DT10  ), 2 )>0,True , False);
+MTT20   = IIf(LinRegSlope( MA(C,  DT20  ), 2 )>0,True , False);
+MTT50   = IIf(LinRegSlope( MA(C,  DT50  ), 2 )>0,True , False);
+MTT100   = IIf(LinRegSlope( MA(C, DT100 ), 2 )>0,True , False);
+MTT200   = IIf(LinRegSlope( MA(C, DT200 ), 2 )>0,True , False);
+
+
+//============== EMA==============
+pxHeight = Status( "pxchartheight") ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 200;
+x = 1260;
+x2 = 1680;
+y = pxHeight;
+GfxSelectPen( colorWhite, 1); // broader color
+GfxSetBkColor(colorBlack );
+GfxSelectSolidBrush( colorBlack ); 
+GfxSetBkMode( 1);
+GfxRoundRect( x, y -65, x2, y+5 , 10,10) ;
+GfxSelectFont( "Verdana", 10, 1800);
+GfxSetTextColor( colorWhite ); 
+GfxTextOut( ( "Exponential Moving Average (EMA) "),1265,y-60);
+GfxSelectFont("Verdana", 8,1800); 
+GfxSetTextColor( colorWhite ); 
+
+
+DT5   =    5; // DTL =  5 Day Moving Trend
+DT10  =   10; // DTM = 10 Day Moving Trend
+DT20  =   20; // DTS = 20 Day Moving Trend
+DT50  =   50; // DTL =  50 Day Moving Trend
+DT100 =  100; // DTM = 100 Day Moving Trend
+DT200 =  200; // DTS = 200 Day Moving Trend
+MT5   = LinRegSlope( EMA(C, DT5  ), 2 );  //5 Day Moving Average
+MT10  = LinRegSlope( EMA(C, DT10 ), 2 );  //10 Day Moving Average
+MT20  = LinRegSlope( EMA(C, DT20 ), 2 );  //20 Day Moving Average
+MT50  = LinRegSlope( EMA(C, DT50 ), 2 );  //50 Day Moving Average
+MT100 = LinRegSlope( EMA(C, DT100), 2 );  //100 Day Moving Average
+MT200 = LinRegSlope( EMA(C, DT200), 2 );  //200 Day Moving Average
+
+MTT5   = IIf(LinRegSlope(  EMA(C,   DT5  ), 2 )>0,True , False);  //5 Day Moving Average
+MTT10   = IIf(LinRegSlope( EMA(C,  DT10  ), 2 )>0,True , False);
+MTT20   = IIf(LinRegSlope( EMA(C,  DT20  ), 2 )>0,True , False);
+MTT50   = IIf(LinRegSlope( EMA(C,  DT50  ), 2 )>0,True , False);
+MTT100   = IIf(LinRegSlope( EMA(C, DT100 ), 2 )>0,True , False);
+MTT200   = IIf(LinRegSlope( EMA(C, DT200 ), 2 )>0,True , False);
+
+//============== DEMA==============
+pxHeight = Status( "pxchartheight") ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 200;
+x = 420;
+x2 = 840;
+y = pxHeight;
+GfxSelectPen( colorWhite, 1); // broader color
+GfxSetBkColor(colorBlack );
+GfxSelectSolidBrush( colorBlack ); 
+GfxSetBkMode( 1);
+GfxRoundRect( x, y -65, x2, y+5 , 10,10) ;
+GfxSelectFont( "Verdana", 10, 1800);
+GfxSetTextColor( colorWhite ); 
+GfxTextOut( ( "Double Exponential (DEMA) "),425,y-60);
+GfxSelectFont("Verdana", 8,1800); 
+GfxSetTextColor( colorWhite ); 
+
+
+DT5   =    5; // DTL =  5 Day Moving Trend
+DT10  =   10; // DTM = 10 Day Moving Trend
+DT20  =   20; // DTS = 20 Day Moving Trend
+DT50  =   50; // DTL =  50 Day Moving Trend
+DT100 =  100; // DTM = 100 Day Moving Trend
+DT200 =  200; // DTS = 200 Day Moving Trend
+MT5   = LinRegSlope( DEMA(C, DT5  ), 2 );  //5 Day Moving Average
+MT10  = LinRegSlope( DEMA(C, DT10 ), 2 );  //10 Day Moving Average
+MT20  = LinRegSlope( DEMA(C, DT20 ), 2 );  //20 Day Moving Average
+MT50  = LinRegSlope( DEMA(C, DT50 ), 2 );  //50 Day Moving Average
+MT100 = LinRegSlope( DEMA(C, DT100), 2 );  //100 Day Moving Average
+MT200 = LinRegSlope( DEMA(C, DT200), 2 );  //200 Day Moving Average
+
+MTT5   = IIf(LinRegSlope( DEMA(C,   DT5  ), 2 )>0,True , False);  //5 Day Moving Average
+MTT10   = IIf(LinRegSlope( DEMA(C,  DT10  ), 2 )>0,True , False);
+MTT20   = IIf(LinRegSlope( DEMA(C,  DT20  ), 2 )>0,True , False);
+MTT50   = IIf(LinRegSlope( DEMA(C,  DT50  ), 2 )>0,True , False);
+MTT100   = IIf(LinRegSlope( DEMA(C, DT100 ), 2 )>0,True , False);
+MTT200   = IIf(LinRegSlope( DEMA(C, DT200 ), 2 )>0,True , False);
+
+
+//============== TEMA ==============
+pxHeight = Status( "pxchartheight") ;
+xx = Status( "pxchartwidth");
+Left = 1100;
+width = 200;
+x = 850;
+x2 = 1255;
+y = pxHeight;
+GfxSelectPen( colorWhite, 1); // broader color
+GfxSetBkColor(colorBlack );
+GfxSelectSolidBrush( colorBlack ); 
+GfxSetBkMode( 1);
+GfxRoundRect( x, y -65, x2, y+5 , 10,10) ;
+GfxSelectFont( "Verdana", 10, 1800);
+GfxSetTextColor( colorWhite ); 
+GfxTextOut( ( "Triple Exponential (Tema)"),855,y-60);
+GfxSelectFont("Verdana", 8,1800); 
+GfxSetTextColor( colorWhite ); 
+
+
+DT5   =    5; // DTL =  5 Day Moving Trend
+DT10  =   10; // DTM = 10 Day Moving Trend
+DT20  =   20; // DTS = 20 Day Moving Trend
+DT50  =   50; // DTL =  50 Day Moving Trend
+DT100 =  100; // DTM = 100 Day Moving Trend
+DT200 =  200; // DTS = 200 Day Moving Trend
+MT5   = LinRegSlope( TEMA(C, DT5  ), 2 );  //5 Day Moving Average
+MT10  = LinRegSlope( TEMA(C, DT10 ), 2 );  //10 Day Moving Average
+MT20  = LinRegSlope( TEMA(C, DT20 ), 2 );  //20 Day Moving Average
+MT50  = LinRegSlope( TEMA(C, DT50 ), 2 );  //50 Day Moving Average
+MT100 = LinRegSlope( TEMA(C, DT100), 2 );  //100 Day Moving Average
+MT200 = LinRegSlope( TEMA(C, DT200), 2 );  //200 Day Moving Average
+
+MTT5   = IIf(LinRegSlope( TEMA(C,   DT5  ), 2 )>0,True , False);  //5 Day Moving Average
+MTT10   = IIf(LinRegSlope( TEMA(C,  DT10  ), 2 )>0,True , False);
+MTT20   = IIf(LinRegSlope( TEMA(C,  DT20  ), 2 )>0,True , False);
+MTT50   = IIf(LinRegSlope( TEMA(C,  DT50  ), 2 )>0,True , False);
+MTT100   = IIf(LinRegSlope( TEMA(C, DT100 ), 2 )>0,True , False);
+MTT200   = IIf(LinRegSlope( TEMA(C, DT200 ), 2 )>0,True , False);
+
+
+///////5 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("5 Days  " ),13,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT5 > 0 AND MT5 < 0.3,     "WEAK UP TREND" , " ")), 65, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT5 >= 0.3 AND MT5 < 0.6,  "MEDIUM UP TREND" , " ")), 65, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT5 >= 0.6,              "BUY BUY BUY" , " ")),65, y-40); 
+
+///////5 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT5<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 65, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT5<= -0.3 AND MT5 > -0.6, "MEDIUM DOWN TREND" , " ")),65, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT5 <= -0.6,                 "SELL SELL SELL" , " ")), 65, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT5 > 0 AND MT5 < 0.3 AND NOT MT5 >= 0.3 AND MT5 < 0.6 AND NOT MT5 >= 0.6 AND NOT MT5<0 AND MT5> -0.3 AND NOT MT5 <= -0.3 AND MT5> -0.6 AND NOT MT5 <= -0.6 , "  SIDEWAYS" , "")), 65, y-40);
+
+///////10 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("10 Days  " ),215,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT10 > 0 AND MT10 < 0.3,     "WEAK UP TREND" , " ")), 275, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT10 >= 0.3 AND MT10 < 0.6,  "MEDIUM UP TREND" , " ")), 275, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT10 >= 0.6,              "BUY BUY BUY" , " ")),275,y-40); 
+
+///////10 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT10<0 AND MT10> -0.3,        "WEAK DOWN TREND" , " ")),275, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT10<= -0.3 AND MT10 > -0.6, "MEDIUM DOWN TREND" , " ")), 275, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT10 <= -0.6,                 "SELL SELL SELL" , " ")), 275, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT10 > 0 AND MT10 < 0.3 AND NOT MT10 >= 0.3 AND MT10 < 0.6 AND NOT MT10 >= 0.6 AND NOT MT10<0 AND MT10> -0.3 AND NOT MT10 <= -0.3 AND MT10> -0.6 AND NOT MT10 <= -0.6 , "  SIDEWAYS" , "")), 275, y-40);
+
+
+
+///////20 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("20 Days  " ),13,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT20 > 0 AND MT20 < 0.3,     "WEAK UP TREND" , " ")), 65, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT20 >= 0.3 AND MT20 < 0.6,  "MEDIUM UP TREND" , " ")), 65, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT20 >= 0.6,              "BUY BUY BUY" , " ")),65, y-25); 
+
+///////20 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT20<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 65, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT20<= -0.3 AND MT20 > -0.6, "MEDIUM DOWN TREND" , " ")),65, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT20 <= -0.6,                 "SELL SELL SELL" , " ")), 65, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "   "  + WriteIf(NOT MT20 > 0 AND MT20 < 0.3 AND NOT MT20 >= 0.3 AND MT20 < 0.6 AND NOT MT20 >= 0.6 AND NOT MT20<0 AND MT20> -0.3 AND NOT MT20 <= -0.3 AND MT20> -0.6 AND NOT MT20 <= -0.6 , "  SIDEWAYS" , "")), 65, y-25);
+
+///////50 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("50 Days  " ),215,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT50 > 0 AND MT50 < 0.3,     "WEAK UP TREND" , " ")), 275, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT50 >= 0.3 AND MT50 < 0.6,  "MEDIUM UP TREND" , " ")), 275, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT50 >= 0.6,              "BUY BUY BUY" , " ")),275,y-25); 
+
+///////50 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT50<0 AND MT50> -0.3,        "WEAK DOWN TREND" , " ")), 275, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT50<= -0.3 AND MT50 > -0.6, "MEDIUM DOWN TREND" , " ")), 275, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT50 <= -0.6,                 "SELL SELL SELL" , " ")), 275, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT50 > 0 AND MT50 < 0.3 AND NOT MT50 >= 0.3 AND MT50 < 0.6 AND NOT MT50 >= 0.6 AND NOT MT50<0 AND MT50> -0.3 AND NOT MT50 <= -0.3 AND MT50> -0.6 AND NOT MT50 <= -0.6 , "  SIDEWAYS" , "")), 275, y-25);
+
+
+///////100 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("100 Days  " ),13,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT100 > 0 AND MT100 < 0.3,     "WEAK UP TREND" , " ")), 65, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT100 >= 0.3 AND MT100 < 0.6,  "MEDIUM UP TREND" , " ")), 65, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT100 >= 0.6,              "BUY BUY BUY" , " ")),65, y-10); 
+
+///////100 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT100<0 AND MT100> -0.3,        "WEAK DOWN TREND" , " ")), 65, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT100<= -0.3 AND MT100 > -0.6, "MEDIUM DOWN TREND" , " ")),65, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT100 <= -0.6,                 "SELL SELL SELL" , " ")), 65, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT100 > 0 AND MT100 < 0.3 AND NOT MT100 >= 0.3 AND MT100 < 0.6 AND NOT MT100 >= 0.6 AND NOT MT100<0 AND MT100> -0.3 AND NOT MT100 <= -0.3 AND MT100> -0.6 AND NOT MT100 <= -0.6 , "  SIDEWAYS" , "")),65, y-10);
+
+///////200 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("200 Days  " ),215,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT200 > 0 AND MT200 < 0.3,     "WEAK UP TREND" , " ")), 275, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT200 >= 0.3 AND MT200 < 0.6,  "MEDIUM UP TREND" , " ")), 275, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT200 >= 0.6,              "BUY BUY BUY" , " ")),275,y-10); 
+
+///////200 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT200<0 AND MT200> -0.3,        "WEAK DOWN TREND" , " ")), 275, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT200<= -0.3 AND MT200 > -0.6, "MEDIUM DOWN TREND" , " ")), 275, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT200 <= -0.6,                 "SELL SELL SELL" , " ")), 275, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT200 > 0 AND MT200 < 0.3 AND NOT MT200 >= 0.3 AND MT200 < 0.6 AND NOT MT200 >= 0.6 AND NOT MT200<0 AND MT200> -0.3 AND NOT MT200 <= -0.3 AND MT200> -0.6 AND NOT MT200 <= -0.6 , "  SIDEWAYS" , "")), 275, y-10);
+
+
+///////5 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("5 Days  " ),425,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT5 > 0 AND MT5 < 0.3,     "WEAK UP TREND" , " ")), 490, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT5 >= 0.3 AND MT5 < 0.6,  "MEDIUM UP TREND" , " ")), 490, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT5 >= 0.6,              "BUY BUY BUY" , " ")),490, y-40); 
+
+///////5 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT5<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 490, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT5<= -0.3 AND MT5 > -0.6, "MEDIUM DOWN TREND" , " ")),490, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT5 <= -0.6,                 "SELL SELL SELL" , " ")), 490, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT5 > 0 AND MT5 < 0.3 AND NOT MT5 >= 0.3 AND MT5 < 0.6 AND NOT MT5 >= 0.6 AND NOT MT5<0 AND MT5> -0.3 AND NOT MT5 <= -0.3 AND MT5> -0.6 AND NOT MT5 <= -0.6 , "  SIDEWAYS" , "")), 490, y-40);
+
+///////10 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("10 Days  " ),627,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT10 > 0 AND MT10 < 0.3,     "WEAK UP TREND" , " ")), 700, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT10 >= 0.3 AND MT10 < 0.6,  "MEDIUM UP TREND" , " ")), 700, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT10 >= 0.6,              "BUY BUY BUY" , " ")),700,y-40); 
+
+///////10 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT10<0 AND MT10> -0.3,        "WEAK DOWN TREND" , " ")), 700, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT10<= -0.3 AND MT10 > -0.6, "MEDIUM DOWN TREND" , " ")), 700, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT10 <= -0.6,                 "SELL SELL SELL" , " ")), 700, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT10 > 0 AND MT10 < 0.3 AND NOT MT10 >= 0.3 AND MT10 < 0.6 AND NOT MT10 >= 0.6 AND NOT MT10<0 AND MT10> -0.3 AND NOT MT10 <= -0.3 AND MT10> -0.6 AND NOT MT10 <= -0.6 , "  SIDEWAYS" , "")), 700, y-40);
+
+
+
+///////20 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("20 Days  " ),425,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT20 > 0 AND MT20 < 0.3,     "WEAK UP TREND" , " ")), 490, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT20 >= 0.3 AND MT20 < 0.6,  "MEDIUM UP TREND" , " ")), 490, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT20 >= 0.6,              "BUY BUY BUY" , " ")),490, y-25); 
+
+///////20 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT20<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 490, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT20<= -0.3 AND MT20 > -0.6, "MEDIUM DOWN TREND" , " ")),490, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT20 <= -0.6,                 "SELL SELL SELL" , " ")), 490, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "   "  + WriteIf(NOT MT20 > 0 AND MT20 < 0.3 AND NOT MT20 >= 0.3 AND MT20 < 0.6 AND NOT MT20 >= 0.6 AND NOT MT20<0 AND MT20> -0.3 AND NOT MT20 <= -0.3 AND MT20> -0.6 AND NOT MT20 <= -0.6 , "  SIDEWAYS" , "")), 490, y-25);
+
+///////50 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("50 Days  " ),627,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT50 > 0 AND MT50 < 0.3,     "WEAK UP TREND" , " ")), 700, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT50 >= 0.3 AND MT50 < 0.6,  "MEDIUM UP TREND" , " ")), 700, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT50 >= 0.6,              "BUY BUY BUY" , " ")),700,y-25); 
+
+///////50 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT50<0 AND MT50> -0.3,        "WEAK DOWN TREND" , " ")), 700, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT50<= -0.3 AND MT50 > -0.6, "MEDIUM DOWN TREND" , " ")), 700, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT50 <= -0.6,                 "SELL SELL SELL" , " ")), 700, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT50 > 0 AND MT50 < 0.3 AND NOT MT50 >= 0.3 AND MT50 < 0.6 AND NOT MT50 >= 0.6 AND NOT MT50<0 AND MT50> -0.3 AND NOT MT50 <= -0.3 AND MT50> -0.6 AND NOT MT50 <= -0.6 , "  SIDEWAYS" , "")), 700, y-25);
+
+
+///////100 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("100 Days  " ),425,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT100 > 0 AND MT100 < 0.3,     "WEAK UP TREND" , " ")), 490, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT100 >= 0.3 AND MT100 < 0.6,  "MEDIUM UP TREND" , " ")), 490, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT100 >= 0.6,              "BUY BUY BUY" , " ")),490, y-10); 
+
+///////100 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT100<0 AND MT100> -0.3,        "WEAK DOWN TREND" , " ")), 490, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT100<= -0.3 AND MT100 > -0.6, "MEDIUM DOWN TREND" , " ")),490, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT100 <= -0.6,                 "SELL SELL SELL" , " ")), 490, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT100 > 0 AND MT100 < 0.3 AND NOT MT100 >= 0.3 AND MT100 < 0.6 AND NOT MT100 >= 0.6 AND NOT MT100<0 AND MT100> -0.3 AND NOT MT100 <= -0.3 AND MT100> -0.6 AND NOT MT100 <= -0.6 , "  SIDEWAYS" , "")),490, y-10);
+
+///////200 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("200 Days  " ),627,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT200 > 0 AND MT200 < 0.3,     "WEAK UP TREND" , " ")), 700, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT200 >= 0.3 AND MT200 < 0.6,  "MEDIUM UP TREND" , " ")), 700, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT200 >= 0.6,              "BUY BUY BUY" , " ")),700,y-10); 
+
+///////200 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT200<0 AND MT200> -0.3,        "WEAK DOWN TREND" , " ")), 700, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT200<= -0.3 AND MT200 > -0.6, "MEDIUM DOWN TREND" , " ")), 700, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT200 <= -0.6,                 "SELL SELL SELL" , " ")), 700, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT200 > 0 AND MT200 < 0.3 AND NOT MT200 >= 0.3 AND MT200 < 0.6 AND NOT MT200 >= 0.6 AND NOT MT200<0 AND MT200> -0.3 AND NOT MT200 <= -0.3 AND MT200> -0.6 AND NOT MT200 <= -0.6 , "  SIDEWAYS" , "")), 700, y-10);
+
+
+///////5 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("5 Days  " ),855,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT5 > 0 AND MT5 < 0.3,     "WEAK UP TREND" , " ")), 910, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT5 >= 0.3 AND MT5 < 0.6,  "MEDIUM UP TREND" , " ")), 910, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT5 >= 0.6,              "BUY BUY BUY" , " ")),910, y-40); 
+
+///////5 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT5<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 910, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT5<= -0.3 AND MT5 > -0.6, "MEDIUM DOWN TREND" , " ")),910, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT5 <= -0.6,                 "SELL SELL SELL" , " ")), 910, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT5 > 0 AND MT5 < 0.3 AND NOT MT5 >= 0.3 AND MT5 < 0.6 AND NOT MT5 >= 0.6 AND NOT MT5<0 AND MT5> -0.3 AND NOT MT5 <= -0.3 AND MT5> -0.6 AND NOT MT5 <= -0.6 , "  SIDEWAYS" , "")), 910, y-40);
+
+///////10 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("10 Days  " ),1055,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT10 > 0 AND MT10 < 0.3,     "WEAK UP TREND" , " ")), 1120, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT10 >= 0.3 AND MT10 < 0.6,  "MEDIUM UP TREND" , " ")), 1120, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT10 >= 0.6,              "BUY BUY BUY" , " ")),1120,y-40); 
+
+///////10 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT10<0 AND MT10> -0.3,        "WEAK DOWN TREND" , " ")), 1120, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT10<= -0.3 AND MT10 > -0.6, "MEDIUM DOWN TREND" , " ")), 1120, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT10 <= -0.6,                 "SELL SELL SELL" , " ")), 1120, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT10 > 0 AND MT10 < 0.3 AND NOT MT10 >= 0.3 AND MT10 < 0.6 AND NOT MT10 >= 0.6 AND NOT MT10<0 AND MT10> -0.3 AND NOT MT10 <= -0.3 AND MT10> -0.6 AND NOT MT10 <= -0.6 , "  SIDEWAYS" , "")), 1120, y-40);
+
+///////20 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("20 Days  " ),855,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT20 > 0 AND MT20 < 0.3,     "WEAK UP TREND" , " ")), 910, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT20 >= 0.3 AND MT20 < 0.6,  "MEDIUM UP TREND" , " ")), 910, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT20 >= 0.6,              "BUY BUY BUY" , " ")),910, y-25); 
+
+///////20 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT20<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 910, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT20<= -0.3 AND MT20 > -0.6, "MEDIUM DOWN TREND" , " ")),910, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT20 <= -0.6,                 "SELL SELL SELL" , " ")), 910, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "   "  + WriteIf(NOT MT20 > 0 AND MT20 < 0.3 AND NOT MT20 >= 0.3 AND MT20 < 0.6 AND NOT MT20 >= 0.6 AND NOT MT20<0 AND MT20> -0.3 AND NOT MT20 <= -0.3 AND MT20> -0.6 AND NOT MT20 <= -0.6 , "  SIDEWAYS" , "")), 910, y-25);
+
+///////50 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("50 Days  " ),1055,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT50 > 0 AND MT50 < 0.3,     "WEAK UP TREND" , " ")), 1120, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT50 >= 0.3 AND MT50 < 0.6,  "MEDIUM UP TREND" , " ")), 1120, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT50 >= 0.6,              "BUY BUY BUY" , " ")),1120,y-25); 
+
+///////50 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT50<0 AND MT50> -0.3,        "WEAK DOWN TREND" , " ")), 1120, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT50<= -0.3 AND MT50 > -0.6, "MEDIUM DOWN TREND" , " ")), 1120, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT50 <= -0.6,                 "SELL SELL SELL" , " ")), 1120, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT50 > 0 AND MT50 < 0.3 AND NOT MT50 >= 0.3 AND MT50 < 0.6 AND NOT MT50 >= 0.6 AND NOT MT50<0 AND MT50> -0.3 AND NOT MT50 <= -0.3 AND MT50> -0.6 AND NOT MT50 <= -0.6 , "  SIDEWAYS" , "")), 1120, y-25);
+
+
+///////100 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("100 Days  " ),855,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT100 > 0 AND MT100 < 0.3,     "WEAK UP TREND" , " ")), 910, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT100 >= 0.3 AND MT100 < 0.6,  "MEDIUM UP TREND" , " ")), 910, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT100 >= 0.6,              "BUY BUY BUY" , " ")),910, y-10); 
+
+///////100 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT100<0 AND MT100> -0.3,        "WEAK DOWN TREND" , " ")), 910, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT100<= -0.3 AND MT100 > -0.6, "MEDIUM DOWN TREND" , " ")),910, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT100 <= -0.6,                 "SELL SELL SELL" , " ")), 910, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT100 > 0 AND MT100 < 0.3 AND NOT MT100 >= 0.3 AND MT100 < 0.6 AND NOT MT100 >= 0.6 AND NOT MT100<0 AND MT100> -0.3 AND NOT MT100 <= -0.3 AND MT100> -0.6 AND NOT MT100 <= -0.6 , "  SIDEWAYS" , "")),910, y-10);
+
+///////200 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("200 Days  " ),1055,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT200 > 0 AND MT200 < 0.3,     "WEAK UP TREND" , " ")), 1120, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT200 >= 0.3 AND MT200 < 0.6,  "MEDIUM UP TREND" , " ")), 1120, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT200 >= 0.6,              "BUY BUY BUY" , " ")),1120,y-10); 
+
+///////200 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT200<0 AND MT200> -0.3,        "WEAK DOWN TREND" , " ")), 1120, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT200<= -0.3 AND MT200 > -0.6, "MEDIUM DOWN TREND" , " ")), 1120, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT200 <= -0.6,                 "SELL SELL SELL" , " ")), 1120, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT200 > 0 AND MT200 < 0.3 AND NOT MT200 >= 0.3 AND MT200 < 0.6 AND NOT MT200 >= 0.6 AND NOT MT200<0 AND MT200> -0.3 AND NOT MT200 <= -0.3 AND MT200> -0.6 AND NOT MT200 <= -0.6 , "  SIDEWAYS" , "")), 1120, y-10);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////EMA//////////////////////////////////////////
+
+///////5 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("5 Days  " ),1265,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT5 > 0 AND MT5 < 0.3,     "WEAK UP TREND" , " ")), 1317, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT5 >= 0.3 AND MT5 < 0.6,  "MEDIUM UP TREND" , " ")), 1317, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT5 >= 0.6,              "BUY BUY BUY" , " ")),1317, y-40); 
+
+///////5 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT5<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 1317, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT5<= -0.3 AND MT5 > -0.6, "MEDIUM DOWN TREND" , " ")),1317, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT5 <= -0.6,                 "SELL SELL SELL" , " ")), 1317, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT5 > 0 AND MT5 < 0.3 AND NOT MT5 >= 0.3 AND MT5 < 0.6 AND NOT MT5 >= 0.6 AND NOT MT5<0 AND MT5> -0.3 AND NOT MT5 <= -0.3 AND MT5> -0.6 AND NOT MT5 <= -0.6 , "  SIDEWAYS" , "")), 1317, y-40);
+
+///////10 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("10 Days  " ),1467,y-40);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT10 > 0 AND MT10 < 0.3,     "WEAK UP TREND" , " ")), 1519, y-40); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT10 >= 0.3 AND MT10 < 0.6,  "MEDIUM UP TREND" , " ")), 1519, y-40); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT10 >= 0.6,              "BUY BUY BUY" , " ")),1519,y-40); 
+
+///////10 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT10<0 AND MT10> -0.3,        "WEAK DOWN TREND" , " ")),1519, y-40); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT10<= -0.3 AND MT10 > -0.6, "MEDIUM DOWN TREND" , " ")), 1519, y-40); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT10 <= -0.6,                 "SELL SELL SELL" , " ")), 1519, y-40);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT10 > 0 AND MT10 < 0.3 AND NOT MT10 >= 0.3 AND MT10 < 0.6 AND NOT MT10 >= 0.6 AND NOT MT10<0 AND MT10> -0.3 AND NOT MT10 <= -0.3 AND MT10> -0.6 AND NOT MT10 <= -0.6 , "  SIDEWAYS" , "")), 1519, y-40);
+
+
+///////20 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("20 Days  " ),1265,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT20 > 0 AND MT20 < 0.3,     "WEAK UP TREND" , " ")), 1317, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT20 >= 0.3 AND MT20 < 0.6,  "MEDIUM UP TREND" , " ")), 1317, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT20 >= 0.6,              "BUY BUY BUY" , " ")),1317, y-25); 
+
+///////20 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT20<0 AND MT20> -0.3,        "WEAK DOWN TREND" , " ")), 1317, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT20<= -0.3 AND MT20 > -0.6, "MEDIUM DOWN TREND" , " ")),1317, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT20 <= -0.6,                 "SELL SELL SELL" , " ")), 1317, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "   "  + WriteIf(NOT MT20 > 0 AND MT20 < 0.3 AND NOT MT20 >= 0.3 AND MT20 < 0.6 AND NOT MT20 >= 0.6 AND NOT MT20<0 AND MT20> -0.3 AND NOT MT20 <= -0.3 AND MT20> -0.6 AND NOT MT20 <= -0.6 , "  SIDEWAYS" , "")), 1317, y-25);
+
+///////50 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("50 Days  " ),1467,y-25);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT50 > 0 AND MT50 < 0.3,     "WEAK UP TREND" , " ")), 1519, y-25); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT50 >= 0.3 AND MT50 < 0.6,  "MEDIUM UP TREND" , " ")), 1519, y-25); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT50 >= 0.6,              "BUY BUY BUY" , " ")),1519,y-25); 
+
+///////50 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT50<0 AND MT50> -0.3,        "WEAK DOWN TREND" , " ")), 1519, y-25); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT50<= -0.3 AND MT50 > -0.6, "MEDIUM DOWN TREND" , " ")), 1519, y-25); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT50 <= -0.6,                 "SELL SELL SELL" , " ")), 1519, y-25);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT50 > 0 AND MT50 < 0.3 AND NOT MT50 >= 0.3 AND MT50 < 0.6 AND NOT MT50 >= 0.6 AND NOT MT50<0 AND MT50> -0.3 AND NOT MT50 <= -0.3 AND MT50> -0.6 AND NOT MT50 <= -0.6 , "  SIDEWAYS" , "")), 1519, y-25);
+
+
+///////100 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("100 Days  " ),1265,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT100 > 0 AND MT100 < 0.3,     "WEAK UP TREND" , " ")), 1317, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT100 >= 0.3 AND MT100 < 0.6,  "MEDIUM UP TREND" , " ")), 1317, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT100 >= 0.6,              "BUY BUY BUY" , " ")),1317, y-10); 
+
+///////100 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT100<0 AND MT100> -0.3,        "WEAK DOWN TREND" , " ")), 1317, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT100<= -0.3 AND MT100 > -0.6, "MEDIUM DOWN TREND" , " ")),1317, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT100 <= -0.6,                 "SELL SELL SELL" , " ")), 1317, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT100 > 0 AND MT100 < 0.3 AND NOT MT100 >= 0.3 AND MT100 < 0.6 AND NOT MT100 >= 0.6 AND NOT MT100<0 AND MT100> -0.3 AND NOT MT100 <= -0.3 AND MT100> -0.6 AND NOT MT100 <= -0.6 , "  SIDEWAYS" , "")),1317, y-10);
+
+///////200 Days UP Trend ////
+
+GfxSetTextColor( colorYellow); 
+GfxTextOut(("200 Days  " ),1467,y-10);
+GfxSetTextColor( colorLime);
+GfxTextOut(( "  "  + WriteIf (MT200 > 0 AND MT200 < 0.3,     "WEAK UP TREND" , " ")), 1519, y-10); 
+GfxSetTextColor( colorBrightGreen);
+GfxTextOut(( "  "  + WriteIf (MT200 >= 0.3 AND MT200 < 0.6,  "MEDIUM UP TREND" , " ")), 1519, y-10); 
+GfxSetTextColor( colorGreen);
+GfxTextOut(( "  "  + WriteIf  (MT200 >= 0.6,              "BUY BUY BUY" , " ")),1519,y-10); 
+
+///////200 Days Down Trend////
+
+GfxSetTextColor( colorOrange);
+GfxTextOut(( "  "  + WriteIf (MT200<0 AND MT200> -0.3,        "WEAK DOWN TREND" , " ")), 1519, y-10); 
+GfxSetTextColor( colorPink);
+GfxTextOut(( "  "  + WriteIf (MT200<= -0.3 AND MT200 > -0.6, "MEDIUM DOWN TREND" , " ")), 1519, y-10); 
+GfxSetTextColor( colorRed); 
+GfxTextOut(( "  "  + WriteIf(MT200 <= -0.6,                 "SELL SELL SELL" , " ")), 1519, y-10);
+GfxSetTextColor( colorWhite);
+GfxTextOut(( "  "  + WriteIf(NOT MT200 > 0 AND MT200 < 0.3 AND NOT MT200 >= 0.3 AND MT200 < 0.6 AND NOT MT200 >= 0.6 AND NOT MT200<0 AND MT200> -0.3 AND NOT MT200 <= -0.3 AND MT200> -0.6 AND NOT MT200 <= -0.6 , "  SIDEWAYS" , "")), 1519, y-10);
