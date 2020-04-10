@@ -1,0 +1,57 @@
+// Relative Strength ranking of stocks
+wlnum = GetOption( "FilterIncludeWatchlist" );
+List = CategoryGetSymbols( categoryWatchlist, wlnum ) ;
+ListQty = StrCount(List, ",") + 1; 
+
+// Determine the quantity of stocks to rank
+StaticVarSet("UniListTotal", ListQty, True);
+ 
+if( Status( "stocknum" ) == 0 )
+{
+	// Clear the static vars from last run
+	StaticVarRemove( "RS_*" );
+	StaticVarRemove("RSraw_*");
+	StaticVarRemove("RankRSraw*_"); 
+
+	// Generate the raw RS score for every stock and store in a static var
+	for (n = 0; (Symbol = StrExtract(List, n)) != "";  n++) 
+	{ 
+		SetForeign (Symbol,0); 
+		RSraw = 0;
+		
+		// relative strength IBD style
+		ThreeMthRS  = 0.4*(C/Ref(C,-63));
+		SixMthRS    = 0.2*(C/Ref(C,-126));
+		NineMthRS   = 0.2*(C/Ref(C,-189));
+		TwelveMthRS = 0.2*(C/Ref(C,-250));
+		RSraw = ThreeMthRS + SixMthRS + NineMthRS + TwelveMthRS; 
+		
+		RestorePriceArrays(); 
+		StaticVarSet("RSraw_"  +  Symbol, RSraw); 
+	} 
+
+	// rank the stocks using this extremely useful function!
+	StaticVarGenerateRanks("Rank", "RSraw_", 0, 1224); 
+
+	// Convert the static var ranks generated into a percentile score.
+	for (n = 0; (Symbol = StrExtract(List, n))  != "";  n++) 
+	{
+		Rank  = StaticVarGet ("RankRSraw_" +  Symbol); 
+		RSpctile = 100 - 100*Rank/ListQty;
+		StaticVarSet("RS_" + Symbol, RSpctile, True);
+	}
+}
+
+Rank  = StaticVarGet ("RS_" +  Name()); 		
+// exploration code for verification
+Filter=1;
+//AddColumn( Close, "Close" );
+rank = PercentRank( Close, 50 );
+Color = ColorHSB( rank * 64/100, 255, 255 );
+AddColumn( rank, "50d RS", 1.0, colorDefault, Color, -1, rank );
+
+//Avoid penny stock, and has at least two years worth of data and vol at least 10k;
+//Filter = (Rank >= 95)  AND (C > 50) AND (V > 1000) AND (BarCount >= 50);
+
+if( Status( "Action" ) == actionExplore ) SetSortColumns(-4,1);
+ 

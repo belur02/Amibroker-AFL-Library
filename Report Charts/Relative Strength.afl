@@ -1,0 +1,25 @@
+_SECTION_BEGIN("RS-NIFTY");
+base = ParamStr("NIFTY-I", GetBaseIndex() );
+Plot( RelStrength(base), _SECTION_NAME() + "(" + base + ")", ParamColor( "color", colorCycle ), ParamStyle("Style")  );
+//AddColumn(RelStrength(base), _SECTION_NAME() + "(" + base + ")", 1.2, colorDefault, colorDefault  );
+_SECTION_END();
+
+_SECTION_BEGIN("RS-RANK");
+base = Paramstr("NIFTY-I", GetBaseIndex() );
+rsrank = PercentRank( RelStrength(base), 15);
+rsColor = ColorHSB( rsrank * 64/100, 255, 255 );
+//AddColumn( RelStrength(base), _SECTION_NAME() + "(" + StrReplace(base,"-I", " ") + ")", 1.0, colorDefault, RSColor, -1, rsrank );
+AddColumn( rsrank, _SECTION_NAME() + "(" + StrReplace(base,"-I", " ") + ")", 1.0, colorDefault, rsColor, -1, rsrank );
+_SECTION_END();
+
+
+/*
+_SECTION_BEGIN("RS");
+base = Paramstr("NIFTY-I", GetBaseIndex() );
+//AddColumn( RelStrength(base), _SECTION_NAME() + "(" + base + ")", 1.0  );
+rsrank = PercentRank( RelStrength(base), 15);
+rsColor = ColorHSB( rsrank * 64/100, 255, 255 );
+AddColumn( RelStrength(base), _SECTION_NAME() + "(" + StrReplace(base,"-I", " ") + ") Rank", 1.0, colorDefault, rSColor, -1, rsrank );
+AddColumn( rsrank, _SECTION_NAME() + "(" + StrReplace(base,"-I", " ") + ") Rank", 1.0, colorDefault, rsColor, -1, rsrank );
+_SECTION_END();
+*/
