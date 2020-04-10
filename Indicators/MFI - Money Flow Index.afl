@@ -1,0 +1,24 @@
+//periods = Param( "Periods", 14, 2, 200, 1 );
+//Plot( MFI(periods), _DEFAULT_NAME(), ParamColor("Color", colorCycle ), ParamStyle("Style") );
+
+// MFI with Color and Clip Area
+// NHT
+// Date: 10/Mar/2018
+ 
+SetChartOptions(0,0,ChartGrid50,0,100);
+ 
+periods = Param("Periods", 14, 1, 200, 1);
+Levelup = Param("Level up",80,1,100,1);
+Leveldown = Param("Level down",20,1,100,1);
+ 
+z = MFI(periods);
+ 
+LineColor = ParamColor("Line Color", colorLightBlue );
+LineStyle = ParamStyle("Line Style", styleLine);
+LevelupColor = ParamColor("Overbought Color",colorRed);
+LeveldownColor = ParamColor("Oversold Color",colorGreen);
+ 
+Plot(z, "MFI (" + periods + ")", LineColor , LineStyle);
+Plot(Levelup,"Over Bought ",LevelupColor,styleDashed);
+Plot(Leveldown,"Over Sold",LeveldownColor,styleDashed);
+PlotOHLC(z,z,50,z,"",IIf(z>50, LevelupColor, LeveldownColor), styleCloud | styleNoLabel | styleClipMinMax, Leveldown, Levelup);

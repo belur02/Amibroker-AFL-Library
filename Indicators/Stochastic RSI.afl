@@ -1,0 +1,25 @@
+// Attempt at StochasticRSI v1.1
+// will use the "Slow Stochastic" calculations, i.e. smoothing
+// both the original and then the smoothed Stochastic yet again
+
+RSIperiods = Param( "RSIperiods", 14, 1, 100, 1 );
+Stochperiods = Param( "Stochperiods", 14, 1, 100, 1 );
+
+Kperiods = Param( "Kperiods", 3, 1, 50, 1 );
+Dperiods = Param( "Dperiods", 3, 1, 50, 1 );
+OBthreshold = Param( "OBthreshold", 80, 55, 100, 5 );
+OSthreshold = Param( "OSthreshold", 20, 0, 50, 5 );
+
+TheRSI = RSI( RSIperiods );
+llRSI = LLV( TheRSI, Stochperiods );
+hhRSI = HHV( TheRSI, Stochperiods );
+
+StochasticRSI = 100 * ( ( TheRSI - llRSI ) / ( hhRSI - llRSI + 0.00001 ) );
+
+StocK_rsi = MA( StochasticRSI, Kperiods );
+StocD_rsi = MA( StocK_rsi, Dperiods );
+
+Plot( StocK_rsi, "StochK(" + Kperiods + ") of RSI(" + RSIperiods + ")", colorRed, styleLine | styleLine );
+Plot( StocD_rsi, "StochD(" + Dperiods + ") of RSI(" + RSIperiods + ")", colorBlue, styleLine | styleLine );
+PlotGrid( OBthreshold, colorRed, 1 );
+PlotGrid( OSthreshold, colorGreen, 1 );

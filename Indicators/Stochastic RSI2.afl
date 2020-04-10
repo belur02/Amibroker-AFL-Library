@@ -1,0 +1,25 @@
+_SECTION_BEGIN("STOCHRSI");
+// REM RSI indicator
+ 
+rise=Max(0,Close-Ref(Close,-1));
+fall=Max(0,Ref(Close,-1)-Close);
+mmrise=Wilders(rise,21);
+mmfall=Wilders(fall,21);
+RS=mmrise/mmfall;
+mioRSI=100-100/(1+RS);
+ 
+//  REM Stocastic indicator
+ 
+upper=HHV(High,21);
+lower=LLV(Low,21);
+oscillator=(Close-lower)/(upper-lower)*100;
+lineaK=MA(oscillator, 21);
+ 
+// REM StochRSI
+ 
+stkrsi=((mioRSI*lineaK)/100)*1.43;
+ 
+// return oscilla AS "StochRSI"
+ 
+Plot(stkrsi,"StochRSI",colorBlue,styleLine);
+_SECTION_END();
