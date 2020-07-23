@@ -23,3 +23,8 @@ Plot( StocK_rsi, "StochK(" + Kperiods + ") of RSI(" + RSIperiods + ")", colorRed
 Plot( StocD_rsi, "StochD(" + Dperiods + ") of RSI(" + RSIperiods + ")", colorBlue, styleLine | styleLine );
 PlotGrid( OBthreshold, colorRed, 1 );
 PlotGrid( OSthreshold, colorGreen, 1 );
+
+Buy = Cross( StocK_rsi, StocD_rsi); 
+Sell = Cross( StocD_rsi, StocK_rsi ); 
+Cover = Cross( StocK_rsi, StocD_rsi); 
+Short = Cross( StocD_rsi, StocK_rsi ); 

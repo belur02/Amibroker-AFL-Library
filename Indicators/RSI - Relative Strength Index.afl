@@ -25,7 +25,8 @@ if( Status("action") == actionCommentary )
 
 Buy = Cross( vrsi, 30 );
 Sell = Cross( 70, vrsi );
-
+Cover = Cross( vrsi, 30 );
+Short = Cross( 70, vrsi );
 printf( "The current value for the RSI" + periods + " is " + WriteVal( vrsi ) );
 
 printf("\n\nThe RSI, written by J. Welles Wilder in 1978, can be used in several different ways to analyze a chart.\n");
