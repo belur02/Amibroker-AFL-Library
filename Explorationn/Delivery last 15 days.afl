@@ -2,6 +2,7 @@ _SECTION_BEGIN("DEL%");
 Filter=1;
 //Filter=C>50 AND Volume>10000 AND ROC(C,1)>1 AND OpenInt/V*100 >60 ;
 
+/*
 V2DAY = Ref( V, -1 ) + Ref( V, -2 );
 V3DAY = V2DAY + Ref( V, -3 );
 V5DAY = V3DAY + Ref( V, -4 ) + Ref( V, -5 );
@@ -14,22 +15,52 @@ OI5DAY = OI3DAY + Ref( OI, -4 ) + Ref( OI, -5 );
 OI10DAY = OI5DAY + Ref( OI, -6 ) + Ref( OI, -7 ) + Ref( OI, -8 ) + Ref( OI, -9 ) + Ref( OI, -10 );
 OI15DAY = OI10DAY + Ref( OI, -11 ) + Ref( OI, -12 ) + Ref( OI, -13 ) + Ref( OI, -14 ) + Ref( OI, -15 );
 
+DEL1DAY = OpenInt/V*100;
+DEL2DAY = (OI2DAY/V2DAY)*100;
+DEL3DAY = (OI3DAY/V3DAY)*100;
+DEL5DAY = (OI5DAY/V5DAY)*100;
+DEL10DAY = (OI10DAY/V10DAY)*100;
+DEL15DAY = (OI15DAY/V15DAY)*100;
+*/
+
+//Fetch data from equity towards FNO
+OI1DAY=Symbol2oin_Vege=Foreign(StrReplace(Name(), "-I", "" ),"I");
+V1DAY=Symbol2v_Vege=Foreign(StrReplace(Name(), "-I", "" ),"V");
+DEL1DAY=Symbol2del_Vege=Symbol2oin_Vege/Symbol2v_Vege*100;
+V2DAY = Ref( Symbol2v_Vege, -1 ) + Ref( Symbol2v_Vege, -2 );
+V3DAY = V2DAY + Ref( Symbol2v_Vege, -3 );
+V5DAY = V3DAY + Ref( Symbol2v_Vege, -4 ) + Ref( Symbol2v_Vege, -5 );
+V10DAY = V5DAY + Ref( Symbol2v_Vege, -6 ) + Ref( Symbol2v_Vege, -7 ) + Ref( Symbol2v_Vege, -8 ) + Ref( Symbol2v_Vege, -9 ) + Ref( Symbol2v_Vege, -10 );
+V15DAY = V10DAY + Ref( Symbol2v_Vege, -11 ) + Ref( Symbol2v_Vege, -12 ) + Ref( Symbol2v_Vege, -13 ) + Ref( Symbol2v_Vege, -14 ) + Ref( Symbol2v_Vege, -15 );
+
+
+ 
+OI2DAY = Ref( Symbol2oin_Vege, -1 ) + Ref( Symbol2oin_Vege, -2 ) ;
+OI3DAY = OI2DAY + Ref( Symbol2oin_Vege, -3 );
+OI5DAY = OI3DAY + Ref( Symbol2oin_Vege, -4 ) + Ref( Symbol2oin_Vege, -5 );
+OI10DAY = OI5DAY + Ref( Symbol2oin_Vege, -6 ) + Ref( Symbol2oin_Vege, -7 ) + Ref( Symbol2oin_Vege, -8 ) + Ref( Symbol2oin_Vege, -9 ) + Ref( Symbol2oin_Vege, -10 );
+OI15DAY = OI10DAY + Ref( Symbol2oin_Vege, -11 ) + Ref( Symbol2oin_Vege, -12 ) + Ref( Symbol2oin_Vege, -13 ) + Ref( Symbol2oin_Vege, -14 ) + Ref( Symbol2oin_Vege, -15 );
+
+DEL1DAY = Symbol2del_Vege;
 DEL2DAY = (OI2DAY/V2DAY)*100;
 DEL3DAY = (OI3DAY/V3DAY)*100;
 DEL5DAY = (OI5DAY/V5DAY)*100;
 DEL10DAY = (OI10DAY/V10DAY)*100;
 DEL15DAY = (OI15DAY/V15DAY)*100;
 
+DEL1 = Symbol2del_Vege>DEL2DAY>DEL3DAY;
+DEL2 = Symbol2del_Vege<DEL2DAY<DEL3DAY;
 _SECTION_BEGIN("OI%");
 oicrank = PercentRank( ROC(OpenInt,1), 10 );
 oiccolor = ColorHSB( oicrank * 95/100, 255, 255 );
-AddColumn(ROC(OpenInt,1), " % OI change", 1.2, IIf(ROC(OpenInt,1)>90,colorBlack,colorRed), oiccolor, -1, oicrank);
+//AddColumn(ROC(OpenInt,1), " % OI change", 1.2, IIf(ROC(OpenInt,1)>90,colorBlack,colorRed), oiccolor, -1, oicrank);
 _SECTION_END();
 
-_SECTION_BEGIN("DEL-1");
+_SECTION_BEGIN("D1");
 delrank = PercentRank( OpenInt/V*100, 10 );
 delcolor = ColorHSB( delrank * 95/100, 255, 255 );
-AddColumn(OpenInt/V*100, " DEL-1 ", 1.0, colorDefault, IIf(OpenInt/V*100>((Ref( OI, -1 ) + Ref( OI, -2 ))/(Ref( V, -1 ) + Ref( V, -2 )))*100,colorGreen,colorRed));
+AddColumn(Symbol2del_Vege, " D1 ", 1.0, colorDefault, IIf(DEL1DAY>DEL2DAY,colorGreen,colorDefault), 30);
+//AddColumn(OpenInt/V*100, " DEL-1 ", 1.0, colorDefault, IIf(OpenInt/V*100>((Ref( OI, -1 ) + Ref( OI, -2 ))/(Ref( V, -1 ) + Ref( V, -2 )))*100,colorGreen,colorDefault));
 _SECTION_END();
 
 
@@ -76,9 +107,30 @@ AddColumn(DEL5DAY, "DEL-5", 1.2, colorDefault, colorDefault);
 AddColumn(DEL10DAY, "DEL-10", 1.2, colorDefault, colorDefault);
 AddColumn(DEL15DAY, "DEL-15", 1.2, colorDefault, colorDefault);
 */
-AddColumn(DEL2DAY, "DEL-2", 1.2, colorDefault, IIf(DEL2DAY>DEL3DAY, colorGreen, colorDefault));
-AddColumn(DEL3DAY, "DEL-3", 1.2, colorDefault, IIf(DEL3DAY>DEL5DAY, colorGreen, colorDefault));
-AddColumn(DEL5DAY, "DEL-5", 1.2, colorDefault, IIf(DEL5DAY>DEL10DAY, colorGreen, colorDefault));
-AddColumn(DEL10DAY, "DEL-10", 1.2, colorDefault, IIf(DEL10DAY>DEL15DAY, colorGreen, colorDefault));
-AddColumn(DEL15DAY, "DEL-15", 1.2, colorDefault, IIf(Ref( OI, -15 )>Ref( OI, -16 ), colorGreen, colorDefault));
+AddColumn(DEL2DAY, "D2", 1.0, colorDefault, IIf(DEL2DAY>DEL3DAY AND DEL1DAY>DEL2DAY, colorGreen, colorDefault), 30);
+AddColumn(DEL3DAY, "D3", 1.0, colorDefault, IIf(DEL3DAY>DEL5DAY AND DEL1DAY>DEL2DAY, colorGreen, colorDefault), 30);
+AddColumn(DEL5DAY, "D5", 1.0, colorDefault, IIf(DEL5DAY>DEL10DAY AND DEL1DAY>DEL2DAY, colorGreen, colorDefault), 30);
+AddColumn(DEL10DAY, "D10", 1.0, colorDefault, IIf(DEL10DAY>DEL15DAY, colorGreen, colorDefault), 30);
+AddColumn(DEL15DAY, "D15", 1.0, colorDefault, IIf(Ref( OI, -15 )>Ref( OI, -16 )>Ref( OI, -17 ), colorGreen, colorDefault),30);
+
+_SECTION_BEGIN("Vol%");
+volcrank = PercentRank( ROC(OpenInt,1), 10 );
+volccolor = ColorHSB( volcrank * 95/100, 255, 255 );
+AddColumn(ROC(V,1), "Vol%", 1.0, IIf(ROC(V,1)>90,colorBlack,colorRed), colorDefault, 40, volcrank);
+_SECTION_END();
+
+_SECTION_BEGIN("10V");
+dmavolrank = PercentRank( MA(V, 10), 10 );
+dmavolcolor = ColorHSB( dmavolrank * 95/100, 255, 255 );
+//AddColumn(MA(V, 10), "10d VOL", 1.0, IIf(V>MA(V, 10),colorBlack,colorRed), dmavolcolor, -1, dmavolrank);
+AddColumn(MA(V/100000, 10), _SECTION_NAME(), 1.2, colorDefault, IIf(V<MA(V, 10),colorRed, colorDefault), 40, dmavolrank);
+
+
+AddColumn(Symbol2v_Vege/100000, "V1", 1.2, colorDefault, IIf(V1DAY>(V2DAY/2), colorGreen, colorDefault), 30); 
+AddColumn(V2DAY/200000, "V2", 1.2, colorDefault, IIf((V2DAY/2)>(V3DAY/3), colorGreen, colorDefault), 30);
+AddColumn(V3DAY/300000, "V3", 1.2, colorDefault, IIf((V3DAY/3)>(V5DAY/5), colorGreen, colorDefault), 30);
+AddColumn(V5DAY/500000, "V5", 1.2, colorDefault, IIf((V5DAY/5)>(V10DAY/10), colorGreen, colorDefault), 30);
+AddColumn(V10DAY/1000000, "V10", 1.2, colorDefault, IIf((V10DAY/10)>(V15DAY/15), colorGreen, colorDefault), 30);
+AddColumn(V15DAY/1500000, "V15", 1.2, colorDefault, IIf(Ref( OI, -15 )>Ref( OI, -16 )>Ref( OI, -17 ), colorGreen, colorDefault),30);
+
 _SECTION_END();

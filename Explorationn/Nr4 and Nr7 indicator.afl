@@ -1,0 +1,56 @@
+_SECTION_BEGIN("");
+SetChartOptions(0,chartShowArrows|chartShowDates);SetChartBkGradientFill( colorwhite ,colorPink);
+_N(Title = Date()+EncodeColor(colorBlack)+ "   Edited and Coded by K.Riyashree"+ "    Website: www.aflcode.in"+ EncodeColor(colorBlue)+"  Free Code"
++"   Afl Name :    NR4 RANGE IDENTIFICATION" + EncodeColor(colorGreen)+   "   Open:"+ Open+" ,"+"High:"+High+" ,"+"Low:"+Low+" , "+"Close:"+Close  );
+ Plot(C,"",colorDefault,styleCandle);
+
+//NR4 RANGE IDENTIFICATION
+
+range = H-L;
+Condition = rangeNR4 = IIf(Condition,True, False);
+
+NR4marker = shapeDigit4;
+NR4color = colorPink;
+
+dist = L*0.98;
+
+PlotShapes(IIf(NR4, NR4Marker, shapeNone), NR4Color, 0, dist);
+
+Buy = Ref(Condition,-1) AND C>Ref(H,-1);
+Sell = Ref(Condition,-1) AND C
+PlotShapes( Buy * shapeUpArrow, colorBrightGreen, 0, Low, -40 );
+
+PlotShapes( Sell * shapeDownArrow, colorPink, 0, High, -40 );
+
+
+//=================================================================================
+//NR7 IDENTIFICATION
+
+range = H-L;
+Condition = rangeNR7 = IIf(Condition,True, False);
+
+NR7marker = shapeDigit7;
+NR7color = colorOrange;
+
+dist = L*0.995;
+PlotShapes(IIf(NR7, NR7Marker, shapeNone), NR7Color, 0, dist);
+
+Buy = Ref(Condition,-1) AND C>Ref(H,-1);
+Sell = Ref(Condition,-1) AND C
+PlotShapes( Buy * shapeUpArrow, colorGreen, 0, Low, -20 );
+
+PlotShapes( Sell * shapeDownArrow, colorRed, 0, High, -20 );
+
+//================================================================================
+//Explorer
+_SECTION_BEGIN("Explorer");
+
+Filter = 1;
+AddColumn(C,"Close",1.1,IIf(C>Ref(C,-1),colorGreen,colorRed));
+NRSTATUS =
+WriteIf(NR7,"NR7",
+WriteIf(NR4,"NR4"," "));
+//NRCOLOR = IIf( NR4 OR NR7, colorLime, colorGold);
+AddTextColumn(NRstatus, "NR B/O", 1,colorDarkRed, colorDefault);
+_SECTION_END();
+//===============================================================================

@@ -2,21 +2,28 @@ _SECTION_BEGIN("DEL%");
 Filter=1;
 //Filter=C>50 AND Volume>10000 AND ROC(C,1)>1 AND OpenInt/V*100 >60 ;
 
-_SECTION_BEGIN("Total OI - 3 Symbols ");
-Symbol1OI_Vege=Foreign(Name(),"I");  // first symbol 
-Symbol2OI_Vege=Foreign(StrReplace(Name(), "-I", "-II" ),"I");  // second symbol OI
-Symbol3OI_Vege=Foreign(StrReplace(Name(), "-I", "-III" ),"I");   /// Third Symbol OI 
+_SECTION_BEGIN("Total COI - 3 Symbols ");
+Symbol1OI_Vege=Foreign(Name() + "-I","I");  // first symbol 
+Symbol2OI_Vege=Foreign(Name() + "-II","I");  // second symbol OI
+Symbol3OI_Vege=Foreign(Name() + "-III","I");   /// Third Symbol OI 
 CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
 _SECTION_END();
 
-COI=CombinedOI_Vege;
+_SECTION_BEGIN("Total COIVOL - 3 Symbols ");
+Symbol1COIVOL_Vege=Foreign(Name() +"I","V");  // first symbol 
+Symbol2COIVOL_Vege=Foreign(Name() +"II","V");  // second symbol OI
+Symbol3COIVOL_Vege=Foreign(Name() +"III","V");   /// Third Symbol OI 
+CombinedCOIVOL_Vege=Symbol1COIVOL_Vege+Symbol2COIVOL_Vege+Symbol3COIVOL_Vege;     //   3 symbols OI together 
+_SECTION_END();
 
-V2DAY = Ref( V, -1 ) + Ref( V, -2 );
-V3DAY = V2DAY + Ref( V, -3 );
-V5DAY = V3DAY + Ref( V, -4 ) + Ref( V, -5 );
-V10DAY = V5DAY + Ref( V, -6 ) + Ref( V, -7 ) + Ref( V, -8 ) + Ref( V, -9 ) + Ref( V, -10 );
-V15DAY = V10DAY + Ref( V, -11 ) + Ref( V, -12 ) + Ref( V, -13 ) + Ref( V, -14 ) + Ref( V, -15 );
- 
+COIVOL=CombinedCOIVOL_Vege*RoundLotSize;
+COIVOL2DAY = Ref( COIVOL, -1 ) + Ref( COIVOL, -2 );
+COIVOL3DAY = COIVOL2DAY + Ref( COIVOL, -3 );
+COIVOL5DAY = COIVOL3DAY + Ref( COIVOL, -4 ) + Ref( COIVOL, -5 );
+COIVOL10DAY = COIVOL5DAY + Ref( COIVOL, -6 ) + Ref(COIVOL, -7 ) + Ref( COIVOL, -8 ) + Ref( COIVOL, -9 ) + Ref( COIVOL, -10 );
+COIVOL15DAY = COIVOL10DAY + Ref( COIVOL, -11 ) + Ref( COIVOL, -12 ) + Ref( COIVOL, -13 ) + Ref( COIVOL, -14 ) + Ref( COIVOL, -15 );
+COI=CombinedOI_Vege; 
 COI2DAY = Ref( COI, -1 ) + Ref( COI, -2 ) ;
 COI3DAY = COI2DAY + Ref( COI, -3 );
 COI5DAY = COI3DAY + Ref( COI, -4 ) + Ref( COI, -5 );
@@ -25,23 +32,23 @@ COI15DAY = COI10DAY + Ref( COI, -11 ) + Ref( COI, -12 ) + Ref( COI, -13 ) + Ref(
 
 
 
-_SECTION_BEGIN("COI%");
-oicrank = PercentRank( ROC(COI,1), 10 );
-oiccolor = ColorHSB( oicrank * 95/100, 255, 255 );
-AddColumn(ROC(COI,1), " % OI change", 1.2, IIf(ROC(COI,1)>=0,colorBlack,colorRed), oiccolor, -1, oicrank);
-_SECTION_END();
+
+
+
 
 _SECTION_BEGIN("COI-1");
 delrank = PercentRank( OpenInt/V*100, 10 );
 delcolor = ColorHSB( delrank * 95/100, 255, 255 );
-AddColumn(COI, " COI-1 ", 1.0, colorDefault, IIf(COI>COI2DAY/2,colorGreen,colorRed));
+AddColumn(COI/100000, " OI ", 1.0, colorDefault, IIf(COI>COI2DAY/2, colorGreen, colorDefault),30);
 _SECTION_END();
 
-AddColumn(COI2DAY/2, "COI-2", 1.2, colorDefault, IIf(COI2DAY/2>COI3DAY/3,colorGreen,colorRed));
-AddColumn(COI3DAY/3, "COI-3", 1.2, colorDefault, IIf(COI3DAY/3>COI5DAY/5,colorGreen,colorRed));
-AddColumn(COI5DAY/5, "COI-5", 1.2, colorDefault, IIf(COI5DAY/5>COI10DAY/10,colorGreen,colorRed));
-AddColumn(COI10DAY/10, "COI-10", 1.2, colorDefault, IIf(COI10DAY/10>COI15DAY/15,colorGreen,colorRed));
-AddColumn(COI15DAY/15, "COI-15", 1.2, colorDefault, IIf(COI15DAY/15>COI2DAY,colorGreen,colorRed));
+
+
+AddColumn((COI2DAY/2)/100000, "OI2", 1.0, colorDefault, IIf(COI2DAY/2>COI3DAY/3, colorGreen, colorDefault),30);
+AddColumn((COI3DAY/3)/100000, "OI3", 1.0, colorDefault, IIf(COI3DAY/3>COI5DAY/5, colorGreen, colorDefault),30);
+AddColumn((COI5DAY/5)/100000, "OI5", 1.0, colorDefault, IIf(COI5DAY/5>COI10DAY/10, colorGreen, colorDefault),30);
+AddColumn((COI10DAY/10)/100000, "OI10", 1.0, colorDefault, IIf(COI10DAY/10>COI15DAY/15, colorGreen, colorDefault),30);
+AddColumn((COI15DAY/15)/100000, "OI15", 1.0, colorDefault, IIf(COI15DAY/15>COI2DAY/2, colorGreen, colorDefault),30);
 /*
 AddColumn( Ref( V, -1 ), "VOL -1" );
 AddColumn( Ref( V, -2 ), "VOL -2" );

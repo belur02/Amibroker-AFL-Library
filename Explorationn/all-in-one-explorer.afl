@@ -8,8 +8,10 @@ Low52 = LLV(Low,250);
 //Bollinger Band
 BB1=C>BBandTop(C,20,2) AND Ref(C,-1)<Ref(BBandTop(C,20,2),-1);
 BB2=C<BBandBot(C,20,2) AND Ref(C,-1)>Ref(BBandBot(C,20,2),-1);
-BBStatus=WriteIf(BB1,"Above Top",WriteIf(BB2,"Below Bottom",WriteIf(IsNull(MA(C,20)),"N/A","Neutral")));
-BBColor=IIf(BB1,colorRed,IIf(BB2,colorGreen,colorLightGrey));
+BB3=BBandBot(C,20,2)>Ref(BBandBot(C,20,2), -1);
+BB4=BBandTop(C,20,2)<Ref(BBandTop(C,20,2), -1);
+BBStatus=WriteIf(BB1,"Above Top",WriteIf(BB2,"Below Bottom",WriteIf(BB3,"improving",WriteIf(BB4,"declining",WriteIf(IsNull(MA(C,20)),"N/A","Neutral")))));
+BBColor=IIf(BB1,colorRed,IIf(BB2,colorGreen,IIf(BB3,colorGreen,IIf(BB4,colorRed,colorLightGrey))));
 IIf(BB2,i+1,i);
 
 //Moving Average (Short, Mid & Long Term)
@@ -56,14 +58,71 @@ R2=RSI(14)<70 AND Ref(RSI(14),-1)>70 AND Ref(RSI(14),-2)>70;
 IIf(R1,i+1,i);
 RSIStatus=WriteIf(R1,"Improving",WriteIf(R2,"Decli ning",WriteIf(IsNull(RSI(14)),"N/A","Neutral")));
 RSIColor=IIf(R1,colorGreen,IIf(R2,colorRed,colorLightGrey));
+AddColumn(RSI(14),"RSI",1,IIf(R1, colorGreen, colorRed),colorDefault, -1);
+AddTextColumn(RSIStatus,"RSI(14)",1,IIf(R1, colorDefault, IIf(R2, colorRed,colorWhite)), colorDefault);
 //www.pipschart.com
+
+/*
 //MFI
 M1=MFI(14)>80;
 M2=MFI(14)<20;
 IIf(M2,i+1,i);
 MFIStatus=WriteIf(M1,"Overbought",WriteIf(M2,"Over sold",WriteIf(IsNull(MFI(14)),"N/A","Neutral")));
 MFIColor=IIf(M1,colorRed,IIf(M2,colorGreen,colorLightGrey));
+*/
 
+//MFI
+M1=MFI(14)>30 AND Ref(MFI(14),-1)<MFI(14) AND Ref(MFI(14),-2)<MFI(14);
+M2=MFI(14)<70 AND Ref(MFI(14),-1)>MFI(14) AND Ref(MFI(14),-2)>Ref(MFI(14),-1);
+IIf(M1,i+1,i);
+MFIStatus=WriteIf(M1,"Improving",WriteIf(M2,"Declining",WriteIf(IsNull(MFI(14)),"N/A","Neutral")));
+MFIrank =MFI(14);
+MFIColor = ColorHSB( MFIrank * 64/100, 255, 255 );
+
+AddTextColumn(MFIStatus, "MFI(14)", 1, IIf(M1, colorDefault, IIf(M2, colorRed,colorWhite)), MFIColor);
+
+//ADX
+B1=ADX(14)>20;	//trend is strong
+B2=ADX(14)<20;	//trend is weak
+B3=PDI(14)> Ref(PDI(14), -1) OR PDI(14)> Ref(PDI(14), -2) OR PDI(14)> Ref(PDI(14), -3);	//TREND IMPROVING
+B4=PDI(14)< Ref(PDI(14), -1);	//TREND DECLINING
+B5=B1 AND B3;	//+VE TREND
+B6=B1 AND B4;	//-VE TREND SHORT-TERM
+IIf(B2,i+1,i);
+//ADXStatus=WriteIf(B1,"Trendy","Neutral");
+ADXStatus=WriteIf(B5,"Positive", WriteIf(B6,"Negative","Neutral"));
+ADXColor=IIf(B5,colorGreen,IIf(B6,colorLightOrange,colorDefault));
+AddtextColumn(ADXStatus, "ADX", 1, IIf(B5, colorWhite, colorRed), ADXColor, width=60);
+
+// StochasticRSI v1.1
+// will use the "Slow Stochastic" calculations, i.e. smoothing
+// both the original and then the smoothed Stochastic yet again
+
+RSIperiods = Param( "RSIperiods", 14, 1, 100, 1 );
+Stochperiods = Param( "Stochperiods", 14, 1, 100, 1 );
+
+Kperiods = Param( "Kperiods", 3, 1, 50, 1 );
+Dperiods = Param( "Dperiods", 3, 1, 50, 1 );
+OBthreshold = Param( "OBthreshold", 80, 55, 100, 5 );
+OSthreshold = Param( "OSthreshold", 20, 0, 50, 5 );
+
+TheRSI = RSI( RSIperiods );
+llRSI = LLV( TheRSI, Stochperiods );
+hhRSI = HHV( TheRSI, Stochperiods );
+
+StochasticRSI = 100 * ( ( TheRSI - llRSI ) / ( hhRSI - llRSI + 0.00001 ) );
+
+StocK_rsi = MA( StochasticRSI, Kperiods );
+StocD_rsi = MA( StocK_rsi, Dperiods );
+
+Plot( StocK_rsi, "StochK(" + Kperiods + ") of RSI(" + RSIperiods + ")", colorRed, styleLine | styleLine );
+Plot( StocD_rsi, "StochD(" + Dperiods + ") of RSI(" + RSIperiods + ")", colorBlue, styleLine | styleLine );
+//AddColumn(Stock_rsi, "StocRSI", 1.2, IIf(StocK_rsi<OSthreshold AND StocK_rsi>StocD_rsi, colorGreen, colorRed), colorDefault, width = 40);
+//start here
+i=0;
+//52 Week High Low
+High52 = HHV(High,250);
+Low52 = LLV(Low,250);
 
  TrendScore =
  IIf(BB2,1,0)+

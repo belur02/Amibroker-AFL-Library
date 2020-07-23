@@ -41,3 +41,20 @@ for( b = Max( LinLen, Firstvisiblebar ); b <= Lastvisiblebar AND b < BarCount; b
         PlotText( "\n" + NumToStr( GapLineLo[b], 1.2 ), b, GapLineLo[b], 4 );
     }
 }
+
+//Finding GapUp and Gap Down opening
+ 
+SO = ParamToggle("Option","Gap Up|Gap Down",1);
+ 
+if(SO == 0)
+//Gap Up
+Filter = (Open > Ref( High, -1 )) AND (Close > Open);
+else
+// Gap down
+Filter = (Open < Ref( Low, -1 )) AND (High < Ref( Low, -1)) AND (Close < Open);
+ 
+AddColumn( Close, "Close" );
+AddColumn( Open, "Open" );
+AddColumn( High, "High" );
+AddColumn( Low, "Low" );
+AddColumn( Volume, "Volume" );

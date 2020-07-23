@@ -6,7 +6,7 @@ Sha2 = EncodeColor(colorRed) + "52-Week-Low = " + Lclose + "\n";
 _N(Title = StrFormat("{{NAME}} ({{INTERVAL}}), {{DATE}} ; {{OHLCX}}, V=%1.0f\n {{VALUES}}\n\n", V) + Sha1 + Sha2);
  
  
-_SECTION_END();
+
  
 HI = Close > Ref(HHV(High,260),-1);
 LW = Close < Ref(LLV(Low,260),-1);
@@ -19,13 +19,14 @@ Filter = 1;
 //AddColumn(Close,"Close");
 //AddColumn(Low52,"52 Week Low");
 //AddColumn(High52,"52 Week High");
-AddColumn((Close-Low52)/Close*100, "% 52L", 1.2, colorDefault, IIf((Close-Low52)/Close*100<5, colorRed, IIf((Close-Low52)/Close*100>25, colorGreen, colorDefault )));
 wlrank = PercentRank((Close-Low52)/Close*100, 10); 
 wlcolor = ColorHSB( wlrank * 84/100, 255, 255 );
-AddColumn(Low52, " 52WL ", 1.2, IIf((Close-Low52)/Close*100>10,colorGreen,colorRed), wlcolor, -1, wlrank);
-
-AddColumn((High52-Close)/Close*100, "% 52H", 1.2, colorDefault, IIf((High52-Close)/Close*100<30, colorGreen, IIf((High52-Close)/Close*100>200, colorRed, colorDefault)));
+//AddColumn(Low52, " 52WL ", 1.2, IIf((Close-Low52)/Close*100>10,colorGreen,colorRed), wlcolor, -1, wlrank);
+AddColumn((Close-Low52)/Close*100, "52L", 1.0, colorDefault, IIf((Close-Low52)/Close*100<30, colorRed, IIf((Close-Low52)/Close*100>35, colorGreen, colorDefault )));
+AddColumn((High52-Close)/Close*100, "52H", 1.0, colorDefault, IIf((High52-Close)/Close*100<25, colorGreen, IIf((High52-Close)/Close*100>100, colorRed, colorDefault)));
 
 whrank = PercentRank((High52-Close)/Close*100, 10); 
 whcolor = ColorHSB( whrank * 84/100, 255, 255 );
-AddColumn(High52, " 52WH ", 1.2, IIf((High52-Close)/Close*100<100,colorGreen,colorRed), whcolor, -1, whrank);
+//AddColumn(High52, " 52WH ", 1.2, IIf((High52-Close)/Close*100<100,colorGreen,colorRed), whcolor, -1, whrank);
+
+_SECTION_END();

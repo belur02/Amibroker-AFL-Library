@@ -1,0 +1,3 @@
+Buy = Cross( Close, Study("RE", 1087) );
+
+Sell = Cross(Study("SU", 1087), Close);

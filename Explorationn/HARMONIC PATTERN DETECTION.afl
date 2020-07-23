@@ -1,0 +1,506 @@
+// Downloaded From https://www.WiseStockTrader.com
+/*                     HARMONIC PATTERN DETECTION
+
+Automatic Detection of Harmonic Patterns - Gartley, Bat, Butterfly and Crab.
+
+Zig Zag is not used in this AFL. It is based on fractals
+
+Contact - joy.edakad@gmail.com
+
+Modernized by E.M.Pottasch (Dec 2016).
+- All calculations by the original author left as they were.
+- Improved visualisation of the patterns.
+- Adjusted names of variables, constants and arrays, adapted
+	using code from David Keleher.
+
+The code I used is the original code from:
+http://www.inditraders.com/amibroker/1934-afl-harmonic-patterns.html
+file: Harmonic1.1.afl (2009)  */
+
+Version( 6.0 );
+GfxSetCoordsMode( 1 );
+GfxSetOverlayMode( 1 );
+
+BullBat4 = BullButterfly4 = BullCrab4 = BullGartley4 = 0;
+BullBat = BullButterfly = BullCrab = BullGartley = 0;
+BearBat4 = BearButterfly4 = BearCrab4 = BearGartley4 = 0;
+BearBat = BearButterfly = BearCrab = BearGartley = 0;
+
+bi = BarIndex();
+fvb = FirstVisibleValue( bi );
+lvb = LastVisibleValue( bi );
+
+GraphXSpace = 0;
+SetChartBkColor( colorBlack );
+SetChartOptions( 1, chartShowDates, chartGridMiddle, 0, 0, 0 );
+SetBarFillColor( IIf( C > O, ColorRGB( 0, 75, 0 ), IIf( C <= O, ColorRGB( 75, 0, 0 ), colorLightGrey ) ) );
+Plot( C, "", IIf( C > O, ColorRGB( 0, 255, 0 ), IIf( C <= O, ColorRGB( 255, 0, 0 ), colorLightGrey ) ), 64, Null, Null, 0, 0, 1 );
+
+_SECTION_BEGIN( "Patterns" );
+rightstrength = Param( "Right Strength", 5, 2, 50, 1 );
+leftstrength = Param( "Left Strength", 10, 2, 50, 1 );
+plotFractals = ParamToggle( "Show Fractal Pivots", "Off|On", 0 );
+plotLabels = ParamToggle( "Show Fractal Labels", "Off|On", 0 );
+bu = ParamToggle( "Show Bullish Pattern", "Off|On", 1 );
+be = ParamToggle( "Show Bearish Pattern", "Off|On", 1 );
+nBull = Param( "Max Number of Bullish Patterns", 10, 0, 100, 1 );
+nBear = Param( "Max Number of Bearish Patterns", 10, 0, 100, 1 );
+dBat = ParamToggle( "Draw Bat", "Off|On", 1 );
+dBut = ParamToggle( "Draw Buterfly", "Off|On", 1 );
+dCrab = ParamToggle( "Draw Crab", "Off|On", 1 );
+dGart = ParamToggle( "Draw Gartley", "Off|On", 1 );
+showPatternDevelopmentPoints = ParamToggle( "Show Points of Pattern Development", "Off|On", 0 );
+showPatternLabels = ParamToggle( "Show Pattern Labels", "Off|On", 0 );
+_SECTION_END();
+
+_SECTION_BEGIN( "Gartley" );
+GBmin = Param( "Swing B Min.", 0.55, 0.3, 1, 0.01 );
+GBmax = Param( "Swing B Max.", 0.72, 0.4, 1, 0.01 );
+GCmin = Param( "Swing C Min.", 0.38, 0.3, 1.27, 0.01 );
+GCmax = Param( "Swing C Max.", 1.0, 0.4, 1.27, 0.01 );
+GDmin = Param( "Swing D Min.(XA)", 0.55, 0.3, 1, 0.01 );
+GDmax = Param( "Swing D Max.(XA)", 1.0, 0.4, 1.0, 0.01 );
+_SECTION_END();
+
+_SECTION_BEGIN( "Bat" );
+BatBmin = Param( "Swing B Min.", 0.38, 0.3, 1, 0.01 );
+BatBmax = Param( "Swing B Max.", 0.55, 0.4, 1, 0.01 );
+BatCmin = Param( "Swing C Min.", 0.38, 0.3, 1.62, 0.01 );
+BatCmax = Param( "Swing C Max.", 1.27, 0.4, 1.62, 0.01 );
+BatDmin = Param( "Swing D Min.(XA)", 0.5, 0.3, 1, 0.01 );
+BatDmax = Param( "Swing D Max.(XA)", 1.0, 0.4, 1.0, 0.01 );
+_SECTION_END();
+
+_SECTION_BEGIN( "Butterfly" );
+BtBmin = Param( "Swing B Min.", 0.55, 0.3, 1, 0.01 );
+BtBmax = Param( "Swing B Max.", 0.9, 0.4, 1, 0.01 );
+BtCmin = Param( "Swing C Min.", 0.38, 0.3, 1.62, 0.01 );
+BtCmax = Param( "Swing C Max.", 1.27, 0.4, 1.62, 0.01 );
+BtDmin = Param( "Swing D Min.(XA)", 1, 1, 1.8, 0.01 );
+BtDmax = Param( "Swing D Max.(XA)", 1.38, 1, 1.8, 0.01 );
+_SECTION_END();
+
+_SECTION_BEGIN( "Crab" );
+CBmin = Param( "Swing B Min.", 0.38, 0.3, 1, 0.01 );
+CBmax = Param( "Swing B Max.", 0.65, 0.4, 1, 0.01 );
+CCmin = Param( "Swing C Min.", 0.38, 0.3, 1.62, 0.01 );
+CCmax = Param( "Swing C Max.", 1.270, 0.4, 1.62, 0.01 );
+CDmin = Param( "Swing D Min.(XA)", 1.25, 1, 1.8, 0.01 );
+CDmax = Param( "Swing D Max.(XA)", 1.8, 1, 2, 0.01 );
+_SECTION_END();
+
+function GetTop()
+{
+    Top = H == HHV( H, leftstrength ) AND Ref( HHV( H, rightstrength ), rightstrength ) < H;
+    Top = Top AND LastValue( bi ) - ValueWhen( Top, bi ) > rightstrength;
+    return Top;
+}
+
+function GetValley()
+{
+    Valley = L == LLV( L, leftstrength ) AND Ref( LLV( L, rightstrength ), rightstrength ) > L;
+    Valley = Valley AND LastValue( bi ) - ValueWhen( Valley, bi ) > rightstrength;
+    return Valley;
+}
+
+pk = GetTop();
+tr = GetValley();
+
+pk = IIf( pk, IIf( ValueWhen( pk, bi, 2 ) < ValueWhen( tr, bi ), pk, IIf( ValueWhen( pk, H, 2 ) > H, False, pk ) ), pk );
+pk = IIf( pk AND ValueWhen( pk, bi, 0 ) > bi, IIf( ValueWhen( pk, bi, 0 ) < ValueWhen( tr, bi, 0 ), IIf( ValueWhen( pk, H, 0 ) >= H, False, pk ), pk ), pk );
+tr = IIf( tr, IIf( ValueWhen( tr, bi, 2 ) < ValueWhen( pk, bi ), tr, IIf( ValueWhen( tr, L, 2 ) < L, False, tr ) ), tr );
+tr = IIf( tr AND ValueWhen( tr, bi, 0 ) > bi , IIf( ValueWhen( tr, bi, 0 ) < ValueWhen( pk, bi, 0 ), IIf( ValueWhen( tr, L, 0 ) <= L, False, tr ), tr ), tr );
+
+for( i = 0; i < 3; i++ )
+{
+    VarSet( "px" + i, ValueWhen( pk, bi, i ) );
+    VarSet( "tx" + i, ValueWhen( tr, bi, i ) );
+    VarSet( "ph" + i, ValueWhen( pk, H, i ) );
+    VarSet( "tl" + i, ValueWhen( tr, L, i ) );
+}
+
+ll = tr AND tl1 < tl2;
+hl = tr AND tl1 > tl2;
+hh = pk AND ph1 > ph2;
+lh = pk AND ph1 < ph2;
+dt = pk AND ph1 == ph2;
+db = tr AND tl1 == tl2;
+
+if( PlotFractals )
+{
+    PlotShapes( shapeSmallCircle * pk, colorRed, 0, H, 10 );
+    PlotShapes( shapeSmallCircle * tr, colorBlue, O, L, -10 );
+}
+
+// +++ Bullish Patterns
+PTvalid = ( px1 > tx1 AND tx1 > px2 AND px2 > tx2 ) AND pk;
+
+if( dGart AND bu )
+{
+    BullGartley4 = PTvalid AND( ph2 - tl1 ) / ( ph2 - tl2 ) > GBmin AND( ph2 - tl1 ) / ( ph2 - tl2 ) < GBmax
+                   AND( ph1 - tl1 ) / ( ph2 - tl1 ) > GCMin AND( ph1 - tl1 ) / ( ph2 - tl1 ) < GCMax;
+    BullGartley = IIf( LowestSince( BullGartley4, L ) < ValueWhen( BullGartley4, ph2 ) - ( ValueWhen( BullGartley4, ph2 ) - ValueWhen( BullGartley4, tl2 ) ) * GDmin AND
+                       LowestSince( bullGartley4, L ) > ValueWhen( BullGartley4, ph2 ) - ( ValueWhen( BullGartley4, ph2 ) - ValueWhen( BullGartley4, tl2 ) ) * GDmax AND
+                       HighestSince( BullGartley4, H ) <= ValueWhen( BullGartley4, ph1 ) AND
+                       LowestSince( bullGartley4, L ) == L, True, False );
+    BullGartley = BullGartley AND LowestSince( BullGartley4, L ) < ValueWhen( BullGartley4, tl1 );
+}
+
+if( dBat AND bu )
+{
+    BullBat4 = PTvalid AND( ph2 - tl1 ) / ( ph2 - tl2 ) > BatBmin AND( ph2 - tl1 ) / ( ph2 - tl2 ) < BatBmax
+               AND( ph1 - tl1 ) / ( ph2 - tl1 ) > BatCMin AND( ph1 - tl1 ) / ( ph2 - tl1 ) < BatCMax;
+    BullBat = IIf( LowestSince( BullBat4, L ) < ValueWhen( BullBat4, ph2 ) - ( ValueWhen( BullBat4, ph2 ) - ValueWhen( BullBat4, tl2 ) ) * BatDmin AND
+                   LowestSince( BullBat4, L ) > ValueWhen( BullBat4, ph2 ) - ( ValueWhen( BullBat4, ph2 ) - ValueWhen( BullBat4, tl2 ) ) * BatDmax AND
+                   HighestSince( BullBat4, H ) <= ValueWhen( BullBat4, ph1 ) AND
+                   LowestSince( BullBat4, L ) == L, True, False );
+    BullBat = BullBat AND LowestSince( BullCrab4, L ) < ValueWhen( BullCrab4, tl1 );
+}
+
+if( dBut AND bu )
+{
+    BullButterfly4 = PTvalid AND( ph2 - tl1 ) / ( ph2 - tl2 ) > BtBmin AND( ph2 - tl1 ) / ( ph2 - tl2 ) < BtBMax
+                     AND( ph1 - tl1 ) / ( ph2 - tl1 ) > BtCmin AND( ph1 - tl1 ) / ( ph2 - tl1 ) < BtCmax;
+    BullButterfly = IIf( LowestSince( BullButterfly4, L ) < ValueWhen( BullButterfly4, ph2 ) - ( ValueWhen( BullButterfly4, ph2 ) - ValueWhen( BullButterfly4, tl2 ) ) * BtDMin AND
+                         LowestSince( BullButterfly4, L ) > ValueWhen( BullButterfly4, ph2 ) - ( ValueWhen( BullButterfly4, ph2 ) - ValueWhen( BullButterfly4, tl2 ) ) * BtDmax AND
+                         HighestSince( BullButterfly4, H ) <= ValueWhen( BullButterfly4, ph1 ) AND
+                         LowestSince( bullButterfly4, L ) == L, True, False );
+    BullButterfly = BullButterfly AND LowestSince( BullButterfly4, L ) < ValueWhen( BullButterfly4, tl2 );
+}
+
+if( dCrab AND bu )
+{
+    BullCrab4 = PTvalid AND( ph2 - tl1 ) / ( ph2 - tl2 ) > CBmin AND( ph2 - tl1 ) / ( ph2 - tl2 ) < CBmax
+                AND( ph1 - tl1 ) / ( ph2 - tl1 ) > CCmin AND( ph1 - tl1 ) / ( ph2 - tl1 ) < CCmax;
+    BullCrab = IIf( LowestSince( BullCrab4, L ) < ValueWhen( BullCrab4, ph2 ) - ( ValueWhen( BullCrab4, ph2 ) - ValueWhen( BullCrab4, tl2 ) ) * CDmin AND
+                    LowestSince( BullCrab4, L ) > ValueWhen( BullCrab4, ph2 ) - ( ValueWhen( BullCrab4, ph2 ) - ValueWhen( BullCrab4, tl2 ) ) * CDmax AND
+                    HighestSince( BullCrab4, H ) <= ValueWhen( BullCrab4, ph1 ) AND
+                    LowestSince( bullGartley4, L ) == L, True, False );
+    BullCrab = BullCrab AND LowestSince( BullCrab4, L ) < ValueWhen( BullCrab4, tl2 );
+}
+
+BullHar4 = BullGartley4 OR BullButterfly4 OR BullBat4 OR BullCrab4 ;
+BullHar = BullGartley OR BullButterfly OR BullBat OR BullCrab ;
+
+buXy = ValueWhen( BullHar4, tl2 );
+buXx = ValueWhen( BullHar4, tx2 );
+buAy = ValueWhen( BullHar4, ph2 );
+buAx = ValueWhen( BullHar4, px2 );
+buBy = ValueWhen( BullHar4, tl1 );
+buBx = ValueWhen( BullHar4, tx1 );
+buCy = ValueWhen( BullHar4, ph1 );
+buCx = ValueWhen( BullHar4, px1 );
+buDy = ValueWhen( BullHar, L );
+buDx = ValueWhen( BullHar, bi );
+
+buABdXA = ( buAy - buBy ) / ( buAy - buXy );
+buBCdAB = ( buCy - buBy ) / ( buAy - buBy );
+buADdXA = ( buAy - buDy ) / ( buAy - buXy );
+buBCdCD = ( buCy - buDy ) / ( buCy - buBy );
+
+function drawBullishPattern( i, patternName )
+{
+    GfxSelectSolidBrush( ColorRGB( 0, 0, 50 ) );
+    GfxSetBkColor( colorBlack );
+    GfxSelectPen( ColorRGB( 0, 0, 255 ), 2, 0 );
+    GfxMoveTo( buXx[i], buXy[i] );
+    GfxLineTo( buAx[i], buAy[i] );
+    GfxMoveTo( buAx[i], buAy[i] );
+    GfxLineTo( buBx[i], buBy[i] );
+    GfxMoveTo( buBx[i], buBy[i] );
+    GfxLineTo( buCx[i], buCy[i] );
+    GfxMoveTo( buCx[i], buCy[i] );
+    GfxLineTo( buDx[i], buDy[i] );
+    GfxMoveTo( buXx[i], buXy[i] );
+    GfxLineTo( buAx[i], buAy[i] );
+
+    GfxSelectPen( ColorRGB( 0, 0, 255 ), 1, 2 );
+    GfxMoveTo( buXx[i], buXy[i] );
+    GfxLineTo( buBx[i], buBy[i] );
+    GfxMoveTo( buAx[i], buAy[i] );
+    GfxLineTo( buCx[i], buCy[i] );
+    GfxMoveTo( buBx[i], buBy[i] );
+    GfxLineTo( buDx[i], buDy[i] );
+    GfxMoveTo( buXx[i], buXy[i] );
+    GfxLineTo( buDx[i], buDy[i] );
+
+    GfxPolygon( buXx[i], buXy[i], buAx[i], buAy[i], buBx[i], buBy[i], buCx[i], buCy[i], buDx[i], buDy[i], buBx[i], buBy[i], buXx[i], buXy[i] );
+
+    GfxSetTextColor( ColorRGB( 0, 0, 0 ) );
+    GfxSelectFont( "Helvetica", 10, 700 );
+    GfxSetBkColor( ColorRGB( 0, 0, 255 ) );
+    GfxSetTextAlign( 0 | 8 );
+    GfxTextOut( patternName, buCx[i] + 3, buCy[i] );
+
+    GfxSetTextAlign( 0 | 0 );
+    GfxSetTextColor( ColorRGB( 0, 0, 255 ) );
+    GfxSetBkColor( ColorRGB( 0, 0, 0 ) );
+    GfxSelectFont( "Helvetica", 8, 700 );
+    GfxTextOut( "" + Prec( buABdXA[i], 2 ), ( buBx[i] + buXx[i] ) / 2, ( buBy[i] + buXy[i] ) / 2 );
+    GfxTextOut( "" + Prec( buBCdAB[i], 2 ), ( buCx[i] + buAx[i] ) / 2, ( buCy[i] + buAy[i] ) / 2 );
+    GfxTextOut( "" + Prec( buADdXA[i], 2 ), ( buDx[i] + buXx[i] ) / 2, ( buDy[i] + buXy[i] ) / 2 );
+    GfxTextOut( "" + Prec( buBCdCD[i], 2 ), ( buBx[i] + buDx[i] ) / 2, ( buBy[i] + buDy[i] ) / 2 );
+
+    if( showPatternLabels )
+    {
+        GfxSetTextColor( ColorRGB( 0, 0, 0 ) );
+        GfxSelectFont( "Helvetica", 10, 700 );
+        GfxSetBkColor( ColorRGB( 0, 0, 255 ) );
+        GfxSetTextAlign( 0 | 24 );
+        GfxTextOut( "X", buXx[i] - 2, buXy[i] );
+        GfxTextOut( "A", buAx[i] - 2, buAy[i] );
+        GfxTextOut( "B", buBx[i] - 2, buBy[i] );
+        GfxTextOut( "C", buCx[i] + 1, buCy[i] );
+        GfxTextOut( "D", buDx[i] + 1, buDy[i] );
+    }
+}
+
+function drawBullishPatterns()
+{
+    flag1 = 1;
+    flag2 = 0;
+    cnt = 0;
+
+    for( i = lvb; i > fvb; i-- )
+    {
+        if( BullHar[i] AND flag1 AND cnt < nBull )
+        {
+            flag1 = 0;
+            flag2 = 1;
+            cnt = cnt + 1;
+
+            if( BullButterfly[i] AND bu AND dBut )
+            {
+                drawBullishPattern( i, "Bullish Butterfly" );
+            }
+            else
+                if( BullCrab[i] AND bu AND dCrab )
+                {
+                    drawBullishPattern( i, "Bullish Crab" );
+                }
+                else
+                    if( BullBat[i] AND bu AND dBat )
+                    {
+                        drawBullishPattern( i, "Bullish Bat" );
+                    }
+                    else
+                        if( BullGartley[i] AND bu AND dGart )
+                        {
+                            drawBullishPattern( i, "Bullish Gartley" );
+                        }
+        }
+
+        if( BullHar4[i] AND flag2 )
+        {
+            flag1 = 1;
+            flag2 = 0;
+        }
+    }
+}
+drawBullishPatterns();
+
+// +++ Bearish Patterns
+PTvalid = ( tx1 > px1 AND px1 > tx2 AND tx2 > px2 ) AND tr;
+
+if( dGart AND be )
+{
+    BearGartley4 = PTvalid AND( ph1 - tl2 ) / ( ph2 - tl2 ) > GBmin AND( ph1 - tl2 ) / ( ph2 - tl2 ) < GBmax AND
+                   ( ph1 - tl1 ) / ( ph1 - tl2 ) > GCmin AND( ph1 - tl1 ) / ( ph1 - tl2 ) < GCmax;
+    BearGartley = IIf( HighestSince( bearGartley4, H ) > ValueWhen( BearGartley4, tl2 ) + ( ValueWhen( BearGartley4, ph2 ) - ValueWhen( BearGartley4, tl2 ) ) * GDmin AND
+                       HighestSince( bearGartley4, H ) < ValueWhen( BearGartley4, tl2 ) + ( ValueWhen( BearGartley4, ph2 ) - ValueWhen( BearGartley4, tl2 ) ) * GDMax AND
+                       LowestSince( BearGartley4, L ) >= ValueWhen( BearGartley4, tl1 ) AND
+                       HighestSince( BearGartley4, H ) == H, True, False );
+    BearGartley = BearGartley AND HighestSince( BearGartley4, H ) > ValueWhen( BearGartley4, ph1 );
+}
+
+if( dBat AND be )
+{
+    BearBat4 = PTvalid AND( ph1 - tl2 ) / ( ph2 - tl2 ) > BatBmin AND( ph1 - tl2 ) / ( ph2 - tl2 ) < BatBmax AND
+               ( ph1 - tl1 ) / ( ph1 - tl2 ) > BatCmin AND( ph1 - tl1 ) / ( ph1 - tl2 ) < BatCmax;
+    BearBat = IIf( ( HighestSince( BearBat4, H ) > ValueWhen( BearBat4, tl2 ) + ( ValueWhen( BearBat4, ph2 ) - ValueWhen( BearBat4, tl2 ) ) * BatDmin AND
+                     HighestSince( BearBat4, H ) < ValueWhen( BearBat4, tl2 ) + ( ValueWhen( BearBat4, ph2 ) - ValueWhen( BearBat4, tl2 ) ) * BatDMax AND
+                     LowestSince( BearBat4, L ) >= ValueWhen( BearBat4, tl1 ) AND
+                     HighestSince( BearBat4, H ) == H ), True, False );
+    BearBat = BearBat AND HighestSince( BearBat4, H ) > ValueWhen( BearBat4, ph1 );
+}
+
+if( dBut AND be )
+{
+    BearButterfly4 = PTvalid AND( ph1 - tl2 ) / ( ph2 - tl2 ) > BtBmin AND( ph1 - tl2 ) / ( ph2 - tl2 ) < BtBmax AND
+                     ( ph1 - tl1 ) / ( ph1 - tl2 ) > BtCmin AND( ph1 - tl1 ) / ( ph1 - tl2 ) < BtCmax;
+    BearButterfly = IIf( HighestSince( BearButterfly4, H ) > ValueWhen( BearButterfly4, tl2 ) + ( ValueWhen( BearButterfly4, ph2 ) - ValueWhen( BearButterfly4, tl2 ) ) * BtDmin AND
+                         HighestSince( BearButterfly4, H ) < ValueWhen( BearButterfly4, tl2 ) + ( ValueWhen( BearButterfly4, ph2 ) - ValueWhen( BearButterfly4, tl2 ) ) * BtDMax AND
+                         LowestSince( BearButterfly4, L ) >= ValueWhen( BearButterfly4, tl1 ) AND
+                         HighestSince( BearButterfly4, H ) == H, True, False );
+    BearButterfly = BearButterfly AND HighestSince( BearButterfly4, H ) > ValueWhen( BearButterfly4, ph2 );
+}
+
+if( dCrab AND be )
+{
+    BearCrab4 = PTvalid AND( ph1 - tl2 ) / ( ph2 - tl2 ) > CBmin AND( ph1 - tl2 ) / ( ph2 - tl2 ) < CBmax AND
+                ( ph1 - tl1 ) / ( ph1 - tl2 ) > CCmin AND( ph1 - tl1 ) / ( ph1 - tl2 ) < CCmax;
+    BearCrab = IIf( HighestSince( BearCrab4, H ) > ValueWhen( BearCrab4, tl2 ) + ( ValueWhen( BearCrab4, ph2 ) - ValueWhen( BearCrab4, tl2 ) ) * CDmin AND
+                    HighestSince( BearCrab4, H ) < ValueWhen( BearCrab4, tl2 ) + ( ValueWhen( BearCrab4, ph2 ) - ValueWhen( BearCrab4, tl2 ) ) * CDMax AND
+                    LowestSince( BearCrab4, L ) >= ValueWhen( BearCrab4, tl1 ) AND
+                    HighestSince( BearCrab4, H ) == H, True, False );
+    BearCrab = BearCrab AND HighestSince( BearCrab4, H ) > ValueWhen( BearCrab4, ph2 );
+}
+
+BearHar4 = BearGartley4 OR BearButterfly4 OR BearBat4 OR BearCrab4 ;
+BearHar = BearGartley OR BearButterfly OR BearBat OR BearCrab ;
+
+beXy = ValueWhen( BearHar4, ph2 );
+beXx = ValueWhen( BearHar4, px2 );
+beAy = ValueWhen( BearHar4, tl2 );
+beAx = ValueWhen( BearHar4, tx2 );
+beBy = ValueWhen( BearHar4, ph1 );
+beBx = ValueWhen( BearHar4, px1 );
+beCy = ValueWhen( BearHar4, tl1 );
+beCx = ValueWhen( BearHar4, tx1 );
+beDy = ValueWhen( BearHar, H );
+beDx = ValueWhen( BearHar, bi );
+
+beABdXA = ( beBy - beAy ) / ( beXy - beAy );
+beBCdAB = ( beBy - beCy ) / ( beBy - beAy );
+beADdXA = ( beDy - beAy ) / ( beXy - beAy );
+beBCdCD = ( beDy - beCy ) / ( beBy - beCy );
+
+function drawBearishPattern( i, patternName )
+{
+    GfxSelectSolidBrush( ColorRGB( 50, 0, 0 ) );
+    GfxSetBkColor( colorBlack );
+    GfxSelectPen( ColorRGB( 255, 0, 0 ), 2, 0 );
+    GfxMoveTo( beXx[i], beXy[i] );
+    GfxLineTo( beAx[i], beAy[i] );
+    GfxMoveTo( beAx[i], beAy[i] );
+    GfxLineTo( beBx[i], beBy[i] );
+    GfxMoveTo( beBx[i], beBy[i] );
+    GfxLineTo( beCx[i], beCy[i] );
+    GfxMoveTo( beCx[i], beCy[i] );
+    GfxLineTo( beDx[i], beDy[i] );
+    GfxMoveTo( beXx[i], beXy[i] );
+    GfxLineTo( beAx[i], beAy[i] );
+
+    GfxSelectPen( ColorRGB( 255, 0, 0 ), 1, 2 );
+    GfxMoveTo( beXx[i], beXy[i] );
+    GfxLineTo( beBx[i], beBy[i] );
+    GfxMoveTo( beAx[i], beAy[i] );
+    GfxLineTo( beCx[i], beCy[i] );
+    GfxMoveTo( beBx[i], beBy[i] );
+    GfxLineTo( beDx[i], beDy[i] );
+    GfxMoveTo( beXx[i], beXy[i] );
+    GfxLineTo( beDx[i], beDy[i] );
+
+    GfxPolygon( beXx[i], beXy[i], beAx[i], beAy[i], beBx[i], beBy[i], beCx[i], beCy[i], beDx[i], beDy[i], beBx[i], beBy[i], beXx[i], beXy[i] );
+
+    GfxSetTextColor( ColorRGB( 0, 0, 0 ) );
+    GfxSelectFont( "Helvetica", 10, 700 );
+    GfxSetBkColor( ColorRGB( 255, 0, 0 ) );
+    GfxSetTextAlign( 0 | 0 );
+    GfxTextOut( patternName, beCx[i] + 3, beCy[i] );
+
+    GfxSetTextAlign( 0 | 0 );
+    GfxSetTextColor( ColorRGB( 255, 0, 0 ) );
+    GfxSetBkColor( ColorRGB( 0, 0, 0 ) );
+    GfxSelectFont( "Helvetica", 8, 700 );
+    GfxTextOut( "" + Prec( beABdXA[i], 2 ), ( beBx[i] + beXx[i] ) / 2, ( beBy[i] + beXy[i] ) / 2 );
+    GfxTextOut( "" + Prec( beBCdAB[i], 2 ), ( beCx[i] + beAx[i] ) / 2, ( beCy[i] + beAy[i] ) / 2 );
+    GfxTextOut( "" + Prec( beADdXA[i], 2 ), ( beDx[i] + beXx[i] ) / 2, ( beDy[i] + beXy[i] ) / 2 );
+    GfxTextOut( "" + Prec( beBCdCD[i], 2 ), ( beBx[i] + beDx[i] ) / 2, ( beBy[i] + beDy[i] ) / 2 );
+
+    if( showPatternLabels )
+    {
+        GfxSetTextColor( ColorRGB( 0, 0, 0 ) );
+        GfxSelectFont( "Helvetica", 10, 700 );
+        GfxSetBkColor( ColorRGB( 255, 0, 0 ) );
+        GfxSetTextAlign( 0 | 24 );
+        GfxTextOut( "X", beXx[i] - 2, beXy[i] );
+        GfxTextOut( "A", beAx[i] - 2, beAy[i] );
+        GfxTextOut( "B", beBx[i] - 2, beBy[i] );
+        GfxTextOut( "C", beCx[i] + 1, beCy[i] );
+        GfxTextOut( "D", beDx[i] + 1, beDy[i] );
+    }
+}
+
+function drawBearishPatterns()
+{
+    flag1 = 1;
+    flag2 = 0;
+    cnt = 0;
+
+    for( i = lvb; i > fvb; i-- )
+    {
+        if( BearHar[i] AND flag1 AND cnt < nBear )
+        {
+            flag1 = 0;
+            flag2 = 1;
+            cnt = cnt + 1;
+
+            if( BearButterfly[i] AND be AND dBut )
+            {
+                drawBearishPattern( i, "Bearish Butterfly" );
+            }
+            else
+                if( BearCrab[i] AND be AND dCrab )
+                {
+                    drawBearishPattern( i, "Bearish Crab" );
+                }
+                else
+                    if( BearBat[i] AND be AND dBat )
+                    {
+                        drawBearishPattern( i, "Bearish Bat" );
+                    }
+                    else
+                        if( BearGartley[i] AND be AND dGart )
+                        {
+                            drawBearishPattern( i, "Bearish Gartley" );
+                        }
+        }
+
+        if( BearHar4[i] AND flag2 )
+        {
+            flag1 = 1;
+            flag2 = 0;
+        }
+    }
+}
+drawBearishPatterns();
+
+function drawPivotLabels()
+{
+    sz = 5;
+
+    for( i = lvb; i > fvb; i-- )
+    {
+        {
+            if( ll[i] ) PlotTextSetFont( "LL", "Arial Black", sz, i, L[i], colorBlue, colorDefault, -25 );
+
+            if( hl[i] ) PlotTextSetFont( "HL", "Arial Black", sz, i, L[i], colorBlue, colorDefault, -25 );
+
+            if( db[i] ) PlotTextSetFont( "DB", "Arial Black", sz, i, L[i], colorLightBlue, colorDefault, -25 );
+
+            if( hh[i] ) PlotTextSetFont( "HH", "Arial Black", sz, i, H[i], colorRed, colorDefault, 20 );
+
+            if( lh[i] ) PlotTextSetFont( "LH", "Arial Black", sz, i, H[i], colorRed, colorDefault, 20 );
+
+            if( dt[i] ) PlotTextSetFont( "DT", "Arial Black", sz, i, H[i], colorOrange, colorDefault, 20 );
+        }
+    }
+}
+
+if( plotLabels ) drawPivotLabels();
+
+if( showPatternDevelopmentPoints )
+{
+    if( bu )
+    {
+        PlotShapes( shapeDigit4 * BullHar4, colorBlue, O, H, 10 );
+        PlotShapes( shapeSmallCircle * BullHar, ColorLightBlue, O, L, -10 );
+    }
+
+    if( be )
+    {
+        PlotShapes( shapeDigit4 * BearHar4, colorRed, O, L, -10 );
+        PlotShapes( shapeSmallCircle * BearHar, colorOrange, O, H, 10 );
+    }
+}

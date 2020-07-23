@@ -1,0 +1,70 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("NARROW RANGES");
+//Written by: Vijay Karanam
+//==================================================================================
+//NR 4, 7 & 21 RANGES 
+TimeFrameMode(0);
+//switch Timeframe 
+TimeFrameSet( inDaily ); 
+
+//==================================================================================
+//NR4 RANGE IDENTIFICATION
+SetOption("NoDefaultColumns", True ); 	//Default columns disabled and Date column first and Ticker name second
+range = H-L;
+Condition = range<Ref(range,-1) AND range<Ref(range,-2) AND range<Ref(range,-3);
+NR4 = IIf(Condition,True, False);
+
+
+//==================================================================================
+//NR7 RANGE IDENTIFICATION
+
+range = H-L;
+Condition0 = range<Ref(range,-1) AND range<Ref(range,-2) AND range<Ref(range,-3)AND range<Ref(range,-4)AND range<Ref(range,-5)AND range<Ref(range,-6);
+NR7 = IIf(Condition0,True, False);
+
+//==================================================================================
+
+//NR14 RANGE IDENTIFICATION
+
+range = H-L;
+Condition1 = range<Ref(range,-1) AND range<Ref(range,-2) AND range<Ref(range,-3)AND range<Ref(range,-4)AND range<Ref(range,-5)AND range<Ref(range,-6)AND range<Ref(range,-7)AND range<Ref(range,-8)AND range<Ref(range,-9)AND range<Ref(range,-10);
+Condition2 = range<Ref(range,-11) AND range<Ref(range,-12) AND range<Ref(range,-13);
+
+NR14 = IIf(Condition1 AND Condition2,True, False);
+
+//==================================================================================
+
+//NR21 RANGE IDENTIFICATION
+
+range = H-L;
+Condition3 = range<Ref(range,-1) AND range<Ref(range,-2) AND range<Ref(range,-3)AND range<Ref(range,-4)AND range<Ref(range,-5)AND range<Ref(range,-6)AND range<Ref(range,-7)AND range<Ref(range,-8)AND range<Ref(range,-9)AND range<Ref(range,-10);
+Condition4 = range<Ref(range,-11) AND range<Ref(range,-12) AND range<Ref(range,-13)AND range<Ref(range,-14)AND range<Ref(range,-15)AND range<Ref(range,-16)AND range<Ref(range,-17)AND range<Ref(range,-18)AND range<Ref(range,-19)AND range<Ref(range,-20);
+
+NR21 = IIf(Condition3 AND Condition4,True, False);
+
+//============================================================================
+//TWEEZER TOP & BOTTOM
+
+TT = (H == Ref(H,-1)) OR (H == Ref(H,-2) AND H > Ref(H,-1)) OR (H == Ref(H,-3) AND H >= HHV(H,-2)) OR (H == Ref(H,-4) AND H >= HHV(H,-3));
+TB = (L == Ref(L,-1)) OR (L == Ref(L,-2) AND L < Ref(L,-1)) OR (L == Ref(L,-3) AND L <= LLV(L,-2)) OR (L == Ref(L,-4) AND L <= LLV(L,-3));
+
+//=======================================================================================================
+NRSTATUS =
+WriteIf(TT,"TWEEZER TOP",
+WriteIf(TB,"TWEEZER BOTTOM",
+WriteIf(NR21,"NR21",
+WriteIf(NR14,"NR21",
+WriteIf(NR7,"NR7",
+WriteIf(NR4,"NR4"," "))))));
+NRCOLOR = IIf( TT, colorOrange,
+IIf( TB , colorBrightGreen, 
+IIf( NR4 OR NR7 OR NR21 OR NR14, colorLime, colorDefault)));
+
+//===============================================================================
+//Filter = NR4 OR NR7 OR NR21 OR NR14 OR TT OR TB ;
+
+AddTextColumn(NRstatus, "NR4/7", 1,colorDarkRed, NRcolor,50);
+
+TimeFrameRestore();
+
+_SECTION_END();

@@ -1,0 +1,94 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("NR7");
+
+R = H - L;
+NR7 = False;
+NR4 = False;
+m7 = m4 = idm7 = idm4 = idm = 0;
+
+for(i = 7; i < BarCount; i++)
+{
+if( R[i] < R[i - 1] AND R[i] < R[i -2] AND R[i] < R[i - 3] AND R[i] < R[i - 4] AND R[i] < R[i - 5] AND R[i] < R[i - 6])
+{
+NR7[i] = True;
+m7[i] = 1;
+}
+}
+
+for(i = 4; i < BarCount; i++)
+{
+if((R[i] < R[i - 1] AND R[i] < R[i -2] AND R[i] < R[i - 3] ) AND NOT NR7[i])
+{
+NR4[i] = True;
+m4[i] = 1;
+}
+}
+IDNR7 = Inside() * NR7;
+IDNR4 = Inside() * NR4;
+ID = Inside();
+idm7 = IIf(IDNR7, 1, 0);
+idm4 = IIf(IDNR4, 1, 0);
+idm = IIf(id, 1, 0);
+
+for(i = 1; i < BarCount; i++)
+{
+if(IDNR7[i] == IDNR7[i - 1]) idm7[i] = idm7[i] + idm7[i - 1];
+if(IDNR4[i] == IDNR4[i - 1]) idm4[i] = idm4[i] + idm4[i - 1];
+if(NR7[i] == NR7[i - 1]) m7[i] = m7[i] + m7[i - 1];
+if(NR4[i] == NR4[i - 1]) m4[i] = m4[i] + m4[i - 1];
+if(ID[i] == ID[i - 1]) idm[i] = idm[i] + idm[i - 1];
+}
+
+MarkerIDNR7 = MarkerIDNR4 = shapeStar ;
+
+Marker7 = shapeDigit7;
+NR7Color = colorBrown;
+
+Marker4 = shapeDigit4;
+NR4Color = colorBrown;
+
+MarkerID = shapeDigit0;
+IDColor = colorBlack;
+
+IDNR7Color = colorBlue;
+IDNR4Color = colorBrown;
+
+MarkerDist = L * 0.995;
+IDNRDist = H * 1.03;
+
+if(Status("action") == actionIndicator)
+{
+_N(Title = StrFormat("{{NAME}}, {{DATE}} ({{INTERVAL}}): {{VALUES}}") + ", Range=" + Prec(R + 0.00001, 2) + ","
++ WriteIf(IDNR7, EncodeColor(colorBrightGreen) + WriteIf(idm7 > 1, StrLeft(NumToStr(idm7), 4), "") + " IDNR7 ", "")
++ WriteIf(IDNR4, EncodeColor(colorLightOrange) + WriteIf(idm4 > 1, StrLeft(NumToStr(idm4), 4), "") + " IDNR4 ", "")
++ WriteIf(NR7 AND NOT ID, EncodeColor(colorBrightGreen) + WriteIf(m7 > 1, StrLeft(NumToStr(m7), 4), "") + " NR7 ", "")
++ WriteIf(NR4 AND NOT ID, EncodeColor(colorLightOrange) + WriteIf(m4 > 1, StrLeft(NumToStr(m4), 4), "") + " NR4 ", "")
++ WriteIf(ID AND NOT NR7 AND NOT NR4, EncodeColor(colorTurquoise) + WriteIf(idm > 1, StrLeft(NumToStr(idm), 4), "") + " Inside Day ", ""));
+
+PlotOHLC(O, H, L, C, "Close", colorLightGrey, styleBar);
+PlotShapes(IIf(IDNR7, MarkerIDNR7, shapeNone), IDNR7Color, 0, IDNRDist);
+PlotShapes(IIf(IDNR4 AND NOT IDNR7, MarkerIDNR4, shapeNone), IDNR4Color, 0, IDNRDist);
+PlotShapes(IIf(NR7 AND NOT ID, Marker7, shapeNone), NR7Color, 0, MarkerDist);
+PlotShapes(IIf(NR4 AND NOT NR7 AND NOT ID, Marker4, shapeNone), NR4Color, 0, MarkerDist);
+PlotShapes(IIf(ID AND NOT NR7 AND NOT NR4, MarkerID, shapeNone), IDColor, 0, IDNRDist);
+}
+
+if(Status("action") == actionExplore)
+{
+//Filter = (m7 > 0) OR (m4 > 0) OR (idm > 0);
+
+SetOption("NoDefaultColumns", True);
+
+//AddColumn(DateTime(), "DATE", formatDateTime, colorDefault, colorDefault, 96);
+//AddTextColumn(Name(), "SYMBOL", 77, colorDefault, colorDefault, 120);
+//AddColumn( High, "High " );
+//AddColumn( Low, "Low " );
+//AddColumn( Volume, "Volume " );
+//AddColumn( Close, "Close " );
+
+AddColumn(IIf(idm, 48 + idm, 32), "INSIDE", formatChar, colorYellow, IIf(idm, colorLightBlue, colorDefault));
+//AddColumn(IIf(m4, 48 + m4, 32), "NR4", formatChar, colorYellow, IIf(m4, colorBlue, colorDefault));
+//AddColumn(IIf(m7, 48 + m7, 32), "NR7", formatChar, colorYellow, IIf(m7, colorGreen, colorDefault));
+AddColumn(R, "Range", 6.2, colorDefault, colorDefault, 84);
+}
+_SECTION_END();
