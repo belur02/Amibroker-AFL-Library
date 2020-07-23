@@ -1,0 +1,292 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN( "Special 6" );
+// Parameters
+
+GraphXSpace=Param("GraphXSpace",5,-30,30,1);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+of = 1;
+n = Param( "N Pivot Bars", 31, 2, 500, 1 );
+Hh = HHV( H, n );
+Ll = LLV( L, n );
+
+p1 = ll + ( hh - ll ) * 0.5;
+p2 = ll + ( hh - ll ) * 0.382;
+p3 = ll + ( hh - ll ) * 0.618;
+p4 = ll + ( hh - ll ) * 0.236;
+p5 = ll + ( hh - ll ) * 0.786;
+
+
+Color1 =(ParamColor("(Highest Hi )",colorBrightGreen));
+Plot( Hh, "p1:", Color1, styleLine+styleThick );
+
+Color2 =(ParamColor("ll + ( hh - ll ) * 0.786",colorYellow));
+Plot( p5, "p1:", Color2, styleLine+styleThick+styleNoTitle );
+
+Color3 =(ParamColor("ll + ( hh - ll ) * 0.618",colorBlue));
+Plot( p3, "p1:", Color3, styleLine+styleThick+styleNoTitle );
+
+Color4 =(ParamColor("ll + ( hh - ll ) * 0.5",colorBrightGreen));
+Plot( p1, "p1:", Color4, styleLine+styleThick+styleNoTitle );
+
+Color5 =(ParamColor("ll + ( hh - ll ) * 0.382",colorRed));
+Plot( p2, "p1:", Color5, styleLine+styleThick+styleNoTitle );
+
+Color6 =(ParamColor("ll + ( hh - ll ) * 0.236",colorLightBlue));
+Plot( p4, "p1:", Color6, styleLine+styleThick+styleNoTitle );
+
+Color7 =(ParamColor("( ll )",colorWhite));
+Plot( Ll, "p1:", Color7, styleLine+styleThick+styleNoTitle );
+
+Buy  = Cross(L, LLV( L, n ));
+Sell = Cross(HHV( H, n ), H);
+
+PlotShapes(IIf(Buy,  shapeSquare,  shapeNone),colorGreen,     0,L, Offset=- 5);
+PlotShapes(IIf(Buy,  shapeSquare,  shapeNone),colorLime,      0,L, Offset=-15);                      
+PlotShapes(IIf(Buy,  shapeUpArrow, shapeNone),colorWhite,     0,L, Offset=-10); 
+
+PlotShapes(IIf(Sell, shapeSquare,  shapeNone),colorDarkRed,   0,H, Offset=  5);
+PlotShapes(IIf(Sell, shapeSquare,  shapeNone),colorRed,       0,H, Offset= 15);                      
+PlotShapes(IIf(Sell, shapeDownArrow,shapeNone),colorWhite,    0,H, Offset=-10);
+
+BuyPrice =ValueWhen(Buy,C);
+SellPrice=ValueWhen(Sell,C);
+
+Buy  = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+
+Buy1  = Cross(C, p4) ;
+Sell1 = Cross(p5, C) ;
+
+PlotShapes(shapeSmallUpTriangle*Buy1,ColorRGB( 80,125,165), 0,L,-20);
+PlotShapes(shapeSmallDownTriangle*Sell1,colorYellow, 0,H,-20);
+                 
+BuyPrice1 =ValueWhen(Buy1,  C,1);
+SellPrice1=ValueWhen(Sell1, C,1);
+
+Buy1  = ExRem(Buy1,Sell1);
+Sell1 = ExRem(Sell1,Buy1);
+
+
+
+Buy2  = Cross(C, p2) ;
+Sell2 = Cross(p3, C) ;
+
+PlotShapes(shapeSmallUpTriangle*Buy2,ColorRGB(230, 0, 0 ), 0,L,-20);
+PlotShapes(shapeSmallDownTriangle*Sell2,colorBlue, 0,H,-20);
+                
+BuyPrice2 =ValueWhen(Buy2,  C,1);
+SellPrice2=ValueWhen(Sell2, C,1);
+
+Buy2  = ExRem(Buy2,Sell2);
+Sell2 = ExRem(Sell2,Buy2);
+
+
+
+Buy3  = Cross(C, p1) ;
+Sell3 = Cross(p1, C) ;
+
+PlotShapes(shapeSmallUpTriangle*Buy3,colorBrightGreen, 0,L,-30);
+PlotShapes(shapeSmallDownTriangle*Sell2,colorBrightGreen, 0,H,-20);
+                
+BuyPrice3 =ValueWhen(Buy3,  C,1);
+SellPrice3=ValueWhen(Sell3, C,1);
+
+Buy3  = ExRem(Buy3,Sell3);
+Sell3 = ExRem(Sell3,Buy3);
+
+
+if(SelectedValue(Buy OR Buy1 OR Buy2 OR Buy3))
+{
+	StaticVarSet( "tmp", 1 );
+	PlaySound("C:\\Program Files\\AmiBroker\\sound\\buy.wav");
+	Say("Buy Buy buy");
+	SetChartBkColor(ColorRGB(143,188,143));
+}
+if(SelectedValue(Sell OR Sell1 OR Sell2 OR Sell3))
+{
+	StaticVarSet( "tmp", 0 );
+	PlaySound("C:\\Program Files\\AmiBroker\\sound\\sell.wav");
+	Say("sell sell sell");
+	SetChartBkColor(ColorRGB(240,128,128));
+}
+if(StaticVarGet("tmp")==1)
+{
+	SetChartBkColor(ColorRGB(143,188,143));
+}
+else
+{
+	SetChartBkColor(ColorRGB(240,128,128));
+}
+
+
+
+if(Status("action") == actionExplore)
+
+
+Filter = Buy | Sell | Buy1 | Sell1 | Buy2 | Sell2 | Buy3 | Sell3 ;
+
+AddColumn( IIf( Buy, BuyPrice, Null ),   "Buy at 0.00 %",  1.2, textColor = colorWhite, bkgndColor = colorDarkGreen ); 
+
+AddColumn( IIf( Buy1, BuyPrice1, Null ),   "Buy at 0.236 %",  1.2, textColor = colorWhite, bkgndColor = colorDarkGreen ); 
+
+AddColumn( IIf( Buy2, BuyPrice2, Null ),   "Buy at 0.382 %",  1.2, textColor = colorWhite, bkgndColor = colorDarkGreen );
+
+AddColumn( IIf( Buy3, BuyPrice3, Null ),   "Buy at 0.5   %",  1.2, textColor = colorWhite, bkgndColor = colorDarkGreen );
+
+
+
+AddColumn( IIf( Sell, SellPrice, Null ), "Sell at 100 %",  1.2, colorYellow, bkgndColor = colorViolet );
+
+AddColumn( IIf( Sell1, SellPrice1, Null ), "Sell at 0.786 %", 1.2, colorYellow, bkgndColor = colorViolet );
+
+AddColumn( IIf( Sell2, SellPrice2, Null ), "Sell at 0.618 %", 1.2, colorYellow, bkgndColor = colorViolet );
+
+AddColumn( IIf( Sell3, SellPrice3, Null ), "Sell at 0.5   %", 1.2, colorYellow, bkgndColor = colorViolet );
+
+
+_SECTION_END();
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("In Daily Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", 
+           O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+TimeFrameSet(inDaily);
+MA3 = MA(C,3);
+Cl = C;
+TimeFrameRestore();
+MA3=(TimeFrameExpand( MA3, inDaily));
+Cl=(TimeFrameExpand( Cl, inDaily));
+barcolor =IIf(C > MA3 , colorGreen,IIf(C < MA3,colorBrown, colorBlack ) );
+
+PlotOHLC( IIf(Open<Close, Open, Close),High,Low,
+           IIf(Open<Close, Close, Open), "Close", barColor, styleBar+styleThick+styleNoTitle );
+
+//Plot( C, "Close", barcolor , styleNoTitle |styleCandle);
+
+_SECTION_END();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN("Price");
+
+SetBarsRequired(sbrAll);
+daynum= Now(9);//day of the week
+SatSun= IIf((daynum==1 OR daynum==7),1,0);
+dec= IIf(StrRight(Name(),3) == "", 3.2, 3.2);
+dec= (Param("Decimals",2,0,7,1)/10)+1;
+uc= ParamColor("Up Candle Fill Color",19);
+dc= ParamColor("Dn Candle Fill Color",24);
+nc= ParamColor("Neutral Fill Color",29);
+bc= BarCount-1;
+x= BarIndex();
+Lx= LastValue(x);
+sx= SelectedValue(x);
+//==============================
+SetBarFillColor(IIf(C>O,ColorRGB(0, 230, 0),IIf(C<O,ColorRGB(230, 0, 0 ),nc)));
+Plot(C,"",IIf(C>O,19,IIf(C<O,38,16)),64);
+
+_SECTION_END();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN( "Magnified Market Price" );
+//by Vidyasagar, vkunisetty@yahoo.com//
+FS = Param( "Font Size", 25, 11, 100, 1 );
+GfxSelectFont( "Times New Roman", FS, 700, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor( "Color", colorWhite ) );
+Hor = Param( "Horizontal Position", 420, 1, 1200, 1 );
+Ver = Param( "Vertical Position", 100, 1, 830, 1 );
+GfxTextOut( "" + C, Hor , Ver );
+GfxTextOut( Name(), Hor, Ver-50 );
+
+GfxSetTextColor( ParamColor( "ColorY", colorWhite ) );
+GfxTextOut( "" + V, Hor , Ver + 45 );
+
+YC = TimeFrameGetPrice( "C", inDaily, -1 );
+DD = Prec( C - YC, 2 );
+xx = Prec( ( DD / YC ) * 100, 2 );
+GfxSelectFont( "Times New Roman", 20, 700, True );
+GfxSetBkMode( colorWhite );
+GfxSetTextColor( ParamColor( "Color", colorRed ) );
+GfxTextOut( "" + DD + " (" + xx + "%)", Hor , Ver + 90 );
+
+_SECTION_END();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+_SECTION_BEGIN( "AA - Fibonacci Retracements and Goals" );
+///////////////////////////////////////////////////
+// **************** Parameters ********************
+//
+Period = Param( "Period", 5.00, 0.25, 50, 0.25 );
+ShowExt = ParamToggle( "Show Extension ?", "No|Yes", 0 );
+///////////////////////////////////////////////////
+// **************** Calculations *****************
+//
+Period = Period * ( 13 * .618 );
+
+Hhb = LastValue( Ref( HHVBars( H, Period ), -1 ) ) + 1;
+Llb = LastValue( Ref( LLVBars( L, Period ), -1 ) ) + 1;
+Hv = LastValue( Ref( HHV( H, Period ), -1 ) );
+Lv = LastValue( Ref( LLV( L, Period ), -1 ) );
+
+Range = ( Hv - Lv );
+LText = "0 %, 23.6 %, 38.2 %, 50 %, 61.8 %, 78.6 %, 100 %, 1.618 %, 1.72 %, 200 %";
+
+if ( Hhb > Llb )
+{
+    Levels[0] = Lv;
+    Levels[1] = ( Range * .236 ) + Levels[0];
+    Levels[2] = ( Range * .382 ) + Levels[0];
+    Levels[3] = ( Range * .5 ) + Levels[0];
+    Levels[4] = ( Range * .618 ) + Levels[0];
+    Levels[5] = ( Range * .786 ) + Levels[0];
+    Levels[6] = Hv;
+    Levels[7] = ( Range * .618 ) + Levels[6];
+    Levels[8] = ( Range * .72 ) + Levels[6];
+    Levels[9] = ( Range ) + Levels[6];
+    x0 = BarCount - 1 - Llb;
+    x1 = BarCount - 1 - Hhb;
+}
+else
+{
+    Levels[0] = Hv;
+    Levels[1] = Levels[0] - ( Range * .236 );
+    Levels[2] = Levels[0] - ( Range * .382 );
+    Levels[3] = Levels[0] - ( Range * .5   );
+    Levels[4] = Levels[0] - ( Range * .618 );
+    Levels[5] = Levels[0] - ( Range * .786 );
+    Levels[6] = Lv;
+    Levels[7] = Levels[6] - ( Range * .618 );
+    Levels[8] = Levels[6] - ( Range * .72  );
+    Levels[9] = Levels[6] - ( Range * 1.0  );
+    x0 = BarCount - 1 - Hhb;
+    x1 = BarCount - 1 - Llb;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// **************************** Plotting Area ********************************
+//
+
+for ( i = 0; i < 10; i++ )
+{
+    if ( i != 6 )
+        x = x0;
+    else
+        x = x1;
+
+    if ( i < 7 OR ShowExt )
+    {
+        Plot( LineArray( x, Levels[i], BarCount, Levels[i] ), "", i + 2, styleDots );
+        PlotText( StrExtract( LText, i ), BarCount, Levels[i], i + 2 );
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

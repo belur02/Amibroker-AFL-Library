@@ -1,0 +1,263 @@
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+/* Fibonacci Internal & External Retracements */
+// This is a Modified Version that shows Fibonacci 00% & 100% instead of WRONG Sup & Res
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+// Downloaded From https://www.WiseStockTrader.com
+
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//	Gap Finder
+//	AFL that plots that unfilled Gaps encountered within the last N bars.
+// Author : Adheer Pai (adheer@gmail.com)
+///////////////////////////////////////////////////////////////////////////////
+
+// Input : The number of bars ago from where to start looking for gaps.
+// Default is 250 : So, by default we search for Gaps found in last 250 trading days ( 1 year )
+period = Param("Lookback Period", 250, 15, 500);
+// If we do not have enough bars, adjust the period accordingly.
+if( BarCount - period - 1 < 0 ) period = BarCount - 2;
+
+bIsGapUp = ( L > Ref(H, -1) );		// Identify GapUp bars
+bIsGapDn = ( H < Ref(L, -1) );		// Identify GapDown bars
+
+// We are not interested in Gap Ups and Gap Downs before the Period e.g. before the last 250 bars.
+// So we clear the values for bars before the ones we are interested in.
+for( i = 0 ; i < (BarCount - 1 - period) ; i++ )
+{
+	bIsGapUp[i] = False;
+	bIsGapDn[i] = False;
+}
+
+// Now plot GapUp bars with a Up-Triangle below its low.
+PlotShapes(IIf(bIsGapUp, shapeSmallUpTriangle, shapeNone), colorBlue, 0, L, -12 );
+// Now plot GapDown bars with a Down-Triangle below its high.
+PlotShapes(IIf(bIsGapDn, shapeSmallDownTriangle, shapeNone), colorRed, 0, H );
+
+// Now walk from the first bar (e.g 250 bars ago, to the current bar)
+for( i = (BarCount - period - 1) ; i <= (BarCount - 1) ; i++ )
+{
+	dUpper = 0.0; dLower = 0.0; bFilled = True;
+	// Is the current bar a Gap-Up bar ?
+	if( bIsGapUp[i] == True )
+	{
+		// If yes, the store the Gap (Upper value) and Lower values.
+		dUpper = L[i]; dLower = H[i-1]; bFilled = False;
+		// Now walk till the current bar and see if the Gap values have been filled from Above.
+		// I.e prices are falling and the gap is being falled.
+		for( j = i+1; j <= (BarCount - 1) ; j++ )
+		{
+			// Check whether the current low is lesser than the Gap high. If yes, the Gap
+			// has been penetrated.
+			if( L[j] < dUpper )
+			{
+				dUpper = L[j];			
+				// Determine whether the Gap has been fully penetrated - if yes, then the
+				// Gap has been filled.
+				if( dUpper <= dLower ) bFilled = True;
+			}
+			if( bFilled == True ) break;
+		}
+	}
+	else if( bIsGapDn[i] == True )
+	{
+		// Same logic as GapUp - except we check whether the Gap has been pierced from Below.
+		// i.e Prices are rising and the Gap has been filled.
+		dUpper = L[i-1]; dLower = H[i]; bFilled = False;
+		for( j = i+1; j <= (BarCount - 1) ; j++ )
+		{
+			if( H[j] > dLower )
+			{
+				dLower = H[j];
+				if( dLower >= dUpper ) bFilled = True;
+			}
+			if( bFilled == True ) break;		// Gap was filled, so move on to find the next gap.
+		}
+	}
+	if( bFilled == False )			// Gap Not filled - so plot horizontal line at the Gap Level.
+	{
+		pLine = LineArray(i-1, dLower, BarCount-1,dLower, 1);
+		Plot(pLine, "", colorRed, styleDashed);
+		pLine = LineArray(i-1, dUpper, BarCount-1, dUpper, 1);
+		Plot(pLine, "", colorBlue, styleDashed);
+	}
+}
+
+// Downloaded From https://www.WiseStockTrader.com
+// GAP with his sector, his industry, the diference in $ and percent.
+// gap up =>green  and gapdown =>red
+//  bob303 
+// only EXPLORATION.
+
+_SECTION_BEGIN("GapExplo");
+gapTF = textt = 0 ;
+//Filter = ( GapDown() OR GapUp() ) AND LLV(Volume,21) > 50000 ;
+Color = IIf(Ref(Low,-1) > High,colorRed,colorDefault);
+gapTF = IIf(Ref(Low,-1) > High,Ref(Low,-1) - High ,Ref(High,-1) - Low);
+gapTFcent = IIf(Ref(Low,-1) > High, (gapTF/Ref(Close,-1))*100,(gapTF/Ref(Close,-1))*100);
+//if (Ref(Low,-1) > High,Ref(Low,-1) - High
+//AddTextColumn ( FullName(), "fullname",70, colorDefault,colorDefault, 150);
+//AddTextColumn( IndustryID(1), "industry",70,colorDefault,colorDefault, 150);
+//AddTextColumn( SectorID(1), "sector",70,colorDefault,colorDefault, 150);
+AddTextColumn ( WriteIf(gapTF>0,"","GapUP") , "GAP", 70, colorDefault,color, 70);
+AddColumn (gapTF, "diff",1.2,Color, colorDefault,-1,gapTF);
+AddColumn (gapTFcent, "diff%",1.2,Color, colorDefault,-1,gapTFcent);
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+Overlay = ParamToggle("MA Overlay Volume?", " No | Yes ", 1);
+GraphZOrder = Overlay;
+
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}}, Volume = ") + EncodeColor(colorGreen) + WriteVal(V,1.0) + StrFormat("  {{VALUES}}"));
+
+_SECTION_BEGIN("MA");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 200, 1 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style", styleLine | styleNoLabel ) | styleNoRescale ); 
+_SECTION_END();
+
+_SECTION_BEGIN("Copyright");
+radius = 0.45 * Status("pxheight"); // get pixel height of the chart and use 45% for pie chart radius 
+textoffset = 0 * radius;
+GfxSelectFont("Tahoma", 12, 700, True, False, 0 );
+GfxSetTextColor( colorRed ); 
+GfxTextOut(" © FreethinkerVenky", textoffset , 270 );
+radius = 0.45 * Status("pxheight"); // get pixel height of the chart and use 45% for pie chart radius 
+textoffset = 0.3 * radius;
+GfxSelectFont("Times New Roman", 10, 700, True, False, 0 );
+GfxSetTextColor( colorBlue ); 
+GfxTextOut("DSTOICTRADER", textoffset , 290 ); 
+_SECTION_END();
+
+_SECTION_BEGIN("avwap new");
+function NewDataJustArrived() {
+    // function by T. Janeczko
+    // mod. by fxshrat to check for new price data too
+    vname = "lbe" + GetChartID();
+    prev = Nz( StaticVarGet( vname ) );
+    curr = Status( "lastbarend" );    
+    StaticVarSet( vname, curr );  
+    // 
+    lastC = LastValue(C);
+    prevC = Nz( StaticVarGet( vname + "_Close" ) ); 
+    StaticVarSet( vname + "_Close", lastC );
+
+    return curr != prev || lastc != prevC;
+}
+
+/// VWAP-Multi-Storage AFL
+/// by fxshrat
+/// it uses CTRL + mouse button click toi set lines (read instructions in chart title
+/// code updates lines on new incoming price data.
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/10
+/// modified from GUI version
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/4
+
+dt = DateTime();
+sdt = SelectedValue(dt);
+newbar = NewDataJustArrived();
+
+gcmb = GetCursorMouseButtons();
+lmb = gcmb == 9;
+mmb = gcmb == 12;
+CTRL = GetAsyncKeyState(17) < 0;
+
+mp = C;
+PV = mp * V;
+CV = Cum( V );
+CumPV = Cum( PV );
+
+start = dt == sdt;
+num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
+denom = CV - ValueWhen( start, CV );
+vwap = IIf( BarsSince(start) > 0, num / Max(1, denom), mp );
+
+nm = Name();
+vwapstr = nm + "VWAP";
+cntstr = nm + "VWAP_cnt";
+dnstr = nm + "VWAP_DN";
+
+if( CTRL && lmb ) {
+	staticget = Nz( StaticVarGet( cntstr ) );
+	//Say( "Store VWAP"+(staticget+1) );	
+	StaticVarSet( cntstr, staticget+1, True );
+	StaticVarSet( vwapstr + staticget, vwap, True );
+	StaticVarSet(dnstr + staticget, sdt, True );	
+}
+
+if( CTRL && mmb ) {
+	//Say( "Reset VWAPs" );
+	StaticVarRemove( vwapstr + "*" );
+	StaticVarRemove( dnstr + "*" );
+	StaticVarRemove( cntstr );
+}
+
+// Output
+SetChartOptions( 0, chartShowDates | chartWrapTitle );
+//Plot( C, Date() + " - Close", colorBlack, styleBar );
+Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorGreen, styleThick );
+
+for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
+    if( newbar ) {
+		//Say( "This is new bar or new data!" );
+		staticsd = StaticVarGet( dnstr + i );
+		staticstart = dt == staticsd;
+		staticnum = CumPV - ValueWhen( staticstart, CumPV );
+		staticdenom = CV - ValueWhen( staticstart, CV );
+		static_vwap = IIf( BarsSince( staticstart ) > 0, staticnum / Max(1, staticdenom), mp );		
+		StaticVarSet( vwapstr + i, static_vwap, True );
+	}
+   
+    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorBlue, styleDashed );
+    dist = 20*ATR(10); 
+    PlotText( "Hi Hello How are you" + StaticVarGet(vwapstr + i ), 0, L[ i ]-dist[i], colorDefault, colorDefault, 0 );
+}
+
+//if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0)
+	//Title = EncodeColor(colorRed) + "1. Hold CTRL key! 2. Click left mouse button to create lines 3. Click CTRL + Middle mouse button to delete lines\n{{VALUES}}";
+_SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+vwapstatus= WriteIf(C>StaticVarGet( vwapstr + 1) OR C>StaticVarGet( vwapstr + 0), "Bullish", WriteIf(C<StaticVarGet( vwapstr + 0) AND C<StaticVarGet( vwapstr + 1), "Bearish", WriteIf(StaticVarGet( vwapstr + 1)<StaticVarGet( vwapstr + 0) OR C<StaticVarGet( vwapstr + 1) , "Neutral", "Neutral")));
+vwapbullish=C>StaticVarGet( vwapstr + 1) OR C>StaticVarGet( vwapstr + 0);
+AddColumn(  StaticVarGet( vwapstr + 0), "AVWAP" + 1, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 0), colorDefault, colorRed), 40 );
+AddColumn(  StaticVarGet( vwapstr + 1), "AVWAP" + 2, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 1), colorDefault, colorRed), 40 );
+AddColumn(  StaticVarGet( vwapstr + 2), "AVWAP" + 3, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 2), colorDefault, colorRed), 40 );
+//AddColumn(  StaticVarGet( vwapstr + 3), "AVWAP" + 4, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 3), colorDefault, colorRed), 40 );
+//AddColumn(  StaticVarGet( vwapstr + 4), "AVWAP" + 5, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 4), colorDefault, colorRed), 40 );
+//AddColumn(  IIf(C>StaticVarGet( vwapstr + 0) AND C>StaticVarGet( vwapstr + 1), C-StaticVarGet( vwapstr + 1), C-StaticVarGet( vwapstr + 0)), "RANGE", 1.0, colorDefault, colorDefault, 30 ); 
+
+AddtextColumn(vwapstatus, "Trend", 1.2, colorDefault, IIf(C>StaticVarGet( vwapstr + 0) AND C>StaticVarGet( vwapstr + 1), colorGreen, IIf(C<StaticVarGet( vwapstr + 0) AND C<StaticVarGet( vwapstr + 1), colorRed, colorDefault)), 40);

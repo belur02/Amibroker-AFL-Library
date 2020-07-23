@@ -1,0 +1,128 @@
+// Downloaded From https://www.WiseStockTrader.com
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//BASIC CHART SET UP
+_SECTION_BEGIN("Bollinger Band Trend Filter");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ST_TR=EMA(C,5);
+MID_TR=EMA(C,10);
+INT_TR=EMA(C,20);
+LNG_TR=EMA(C,40);
+
+
+ST_VAL = IIf(ST_TR > BBandTop(C,25,0.5),1, IIf(ST_TR<BBandTop(C,25,0.5) AND ST_TR>BBandBot(C,25,0.5),0,-1));
+MID_VAL = IIf(MID_TR > BBandTop(C,50,0.5),1, IIf(MID_TR<BBandTop(C,50,0.5) AND MID_TR>BBandBot(C,50,0.5),0,-1));
+Int_VAL = IIf(INT_TR > BBandTop(C,100,0.5),1, IIf(INT_TR<BBandTop(C,100,0.5) AND INT_TR>BBandBot(C,100,0.5),0,-1));
+LNG_VAL = IIf(LNG_TR > BBandTop(C,200,0.5),1, IIf(LNG_TR<BBandTop(C,200,0.5) AND LNG_TR>BBandBot(C,200,0.5),0,-1));
+
+
+
+ST_TF = IIf(ST_TR > BBandTop(C,25,0.5),1, IIf(ST_TR<BBandTop(C,25,0.5) AND ST_TR>BBandBot(C,25,0.5),0,-1))*10;
+MID_TF = IIf(MID_TR > BBandTop(C,50,0.5),1, IIf(MID_TR<BBandTop(C,50,0.5) AND MID_TR>BBandBot(C,50,0.5),0,-1))*10;
+INT_TF = IIf(INT_TR > BBandTop(C,100,0.5),1, IIf(INT_TR<BBandTop(C,100,0.5) AND INT_TR>BBandBot(C,100,0.5),0,-1))*30;
+LNG_TF = IIf(LNG_TR > BBandTop(C,200,0.5),1, IIf(LNG_TR<BBandTop(C,200,0.5) AND LNG_TR>BBandBot(C,200,0.5),0,-1))*40;
+
+
+TF= ST_TF + MID_TF + INT_TF + LNG_TF;
+
+// TREND FILTER RANKING
+TFRNK = 
+IIf(TF>= 0.5,3,
+IIf(TF<=0.4999 AND TF>=0.25,2,
+IIf(TF<=0.2499 AND TF>=0,1,
+IIf(TF<-0.009 AND TF>= -0.25,-1,
+IIf(TF<=-.251 AND TF>=-0.5,-2,
+IIf(TF<-0.501,-3,0))))));
+
+// TREND FILTER HISTORICAL REFERENCING
+
+TF_5 = Ref(TF,-5);
+TF_10 = Ref(TF,-10);
+TF_15 = Ref(TF,-15);
+TF_20 = Ref(TF,-20);
+TF_25 = Ref(TF,-25);
+TF_30 = Ref(TF,-30);
+TF_40 = Ref(TF,-40);
+TF_50 = Ref(TF,-50);
+TF_60 = Ref(TF,-60);
+TF_70 = Ref(TF,-70);
+TF_80 = Ref(TF,-80);
+TF_90 = Ref(TF,-90);
+TF_100 = Ref(TF,-100);
+TF_110 = Ref(TF,-110);
+TF_120 = Ref(TF,-120);
+TF_130 = Ref(TF,-130);
+TF_140 = Ref(TF,-140);
+
+// TREND FILTER COLOR
+
+Clr_TF = 32 + SelectedValue( TF) * 32;
+Clr_TF_5 = 32 + SelectedValue( TF_5) * 32;   
+Clr_TF_10 = 32 + SelectedValue( TF_10) * 32;   
+Clr_TF_15 = 32 + SelectedValue( TF_15) * 32;   
+Clr_TF_20 = 32 + SelectedValue( TF_20) * 32;   
+Clr_TF_25 = 32 + SelectedValue( TF_25) * 32;   
+Clr_TF_30 = 32 + SelectedValue( TF_30) * 32;   
+Clr_TF_40 = 32 + SelectedValue( TF_40) * 32;   
+Clr_TF_50 = 32 + SelectedValue( TF_50) * 32;   
+Clr_TF_60 = 32 + SelectedValue( TF_60) * 32;   
+Clr_TF_70 = 32 + SelectedValue( TF_70) * 32;   
+Clr_TF_80 = 32 + SelectedValue( TF_80) * 32;   
+Clr_TF_90 = 32 + SelectedValue( TF_90) * 32;   
+Clr_TF_100 = 32 + SelectedValue( TF_100) * 32;   
+Clr_TF_110 = 32 + SelectedValue( TF_110) * 32;   
+Clr_TF_120 = 32 + SelectedValue( TF_120) * 32;   
+Clr_TF_130 = 32 + SelectedValue( TF_130) * 32;   
+Clr_TF_140 = 32 + SelectedValue( TF_140) * 32;   
+
+
+TFCLR = 
+IIf(TFRNK==3,ColorRGB(0,255,0),
+IIf(TFRNK==2,Colorgreen,
+IIf(TFRNK==1,colorYELLOW,
+IIf(TFRNK==-1,ColorRGB(252,70,0),
+IIf(TFRNK==-2,ColorRGB(255,80,80),
+IIf(TFRNK==-3,ColorRGB(217,0,0),colorGrey40))))));
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// PRICE PLOT
+
+
+Plot(TF,"BB TREND FILTER",TFCLR ,styleLINE);
+Plot (0,"",colorGrey50,styleLine);
+Plot (-.5,"",colorGrey50,styleDashed);
+Plot (0.5,"",colorGrey50,styledashed);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+Filter = 1;
+
+AddTextColumn( FullName(), "Full name", 77 , colorDefault );
+AddColumn( ST_VAL , "ST_VAL", 1.2);
+AddColumn( MID_VAL , "MID_VAL", 1.2);
+AddColumn( INT_VAL , "INT_VAL", 1.2);
+AddColumn( LNG_VAL , "LNG_VAL", 1.2);
+
+AddColumn( TF, "TF", 1.2, ColorHSB( 128 + Clr_TF, 255, 255 ),  ColorHSB( Clr_TF, 255, 255 ) );
+AddColumn( TF_5, "TF_5",1.2, ColorHSB( 128 + Clr_TF_5, 255, 255 ),  ColorHSB( Clr_TF_5, 255, 255 ) );
+AddColumn( TF_10, "TF_10",1.2, ColorHSB( 128 + Clr_TF_10, 255, 255 ),  ColorHSB( Clr_TF_10, 255, 255 ) );
+AddColumn( TF_15, "TF_15",1.2, ColorHSB( 128 + Clr_TF_15, 255, 255 ),  ColorHSB( Clr_TF_15, 255, 255 ) );
+AddColumn( TF_20, "TF_20",1.2, ColorHSB( 128 + Clr_TF_20, 255, 255 ),  ColorHSB( Clr_TF_20, 255, 255 ) );
+AddColumn( TF_25, "TF_25",1.2, ColorHSB( 128 + Clr_TF_25, 255, 255 ),  ColorHSB( Clr_TF_25, 255, 255 ) );
+AddColumn( TF_30, "TF_30",1.2, ColorHSB( 128 + Clr_TF_30, 255, 255 ),  ColorHSB( Clr_TF_30, 255, 255 ) );
+AddColumn( TF_40, "TF_40",1.2, ColorHSB( 128 + Clr_TF_40, 255, 255 ),  ColorHSB( Clr_TF_40, 255, 255 ) );
+AddColumn( TF_50, "TF_50",1.2, ColorHSB( 128 + Clr_TF_50, 255, 255 ),  ColorHSB( Clr_TF_50, 255, 255 ) );
+AddColumn( TF_60, "TF_60",1.2, ColorHSB( 128 + Clr_TF_60, 255, 255 ),  ColorHSB( Clr_TF_60, 255, 255 ) );
+AddColumn( TF_70, "TF_70",1.2, ColorHSB( 128 + Clr_TF_70, 255, 255 ),  ColorHSB( Clr_TF_70, 255, 255 ) );
+AddColumn( TF_80, "TF_80",1.2, ColorHSB( 128 + Clr_TF_80, 255, 255 ),  ColorHSB( Clr_TF_80, 255, 255 ) );
+AddColumn( TF_90, "TF_90",1.2, ColorHSB( 128 + Clr_TF_90, 255, 255 ),  ColorHSB( Clr_TF_90, 255, 255 ) );
+AddColumn( TF_100, "TF_100",1.2, ColorHSB( 128 + Clr_TF_100, 255, 255 ),  ColorHSB( Clr_TF_100, 255, 255 ) );
+AddColumn( TF_110, "TF_110",1.2, ColorHSB( 128 + Clr_TF_110, 255, 255 ),  ColorHSB( Clr_TF_110, 255, 255 ) );
+AddColumn( TF_120, "TF_120",1.2, ColorHSB( 128 + Clr_TF_120, 255, 255 ),  ColorHSB( Clr_TF_120, 255, 255 ) );;
+AddColumn( TF_130, "TF_130",1.2, ColorHSB( 128 + Clr_TF_130, 255, 255 ),  ColorHSB( Clr_TF_130, 255, 255 ) );
+AddColumn( TF_140, "TF_140",1.2, ColorHSB( 128 + Clr_TF_140, 255, 255 ),  ColorHSB( Clr_TF_140, 255, 255 ) );

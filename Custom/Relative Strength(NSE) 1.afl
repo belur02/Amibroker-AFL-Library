@@ -1,0 +1,6 @@
+_SECTION_BEGIN("REL-STRENGTH");
+base = ParamStr("NSENIFTY", GetBaseIndex() );
+Plot( RelStrength(base), _SECTION_NAME() + "(" + base + ")", ParamColor( "color", colorCycle ), ParamStyle("Style")  );
+AddTextColumn( base, "Base index" ); 
+AddColumn(RelStrength(base), "RS", 1.2);
+_SECTION_END();

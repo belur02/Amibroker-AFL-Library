@@ -1,0 +1,130 @@
+_SECTION_BEGIN("Total OI - 3 Symbols ");
+
+
+Symbol1OI_Vege=Foreign(Name() + "-I", "I");  // first symbol 
+Symbol2OI_Vege=Foreign(Name() + "-II", "I");  // second symbol OI
+Symbol3OI_Vege=Foreign(Name() + "-III", "I");  // Third Symbol OI 
+
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
+
+Symbol1V_Vege=Foreign(Name() + "-I", "V");  // first symbol VOL
+Symbol2V_Vege=Foreign(Name() + "-II", "V");  // second symbol VOL
+Symbol3V_Vege=Foreign(Name() + "-III", "V");  // Third Symbol VOL 
+
+CombinedV_Vege=(Symbol1V_Vege+Symbol2V_Vege+Symbol3V_Vege)*RoundLotSize;     //   3 symbols VOL together 
+
+COIVOL=CombinedV_Vege;
+COIVOL2DAY = Ref( COIVOL, -1 ) + Ref( COIVOL, -2 );
+COIVOL3DAY = COIVOL2DAY + Ref( COIVOL, -3 );
+COIVOL5DAY = COIVOL3DAY + Ref( COIVOL, -4 ) + Ref( COIVOL, -5 );
+COIVOL10DAY = COIVOL5DAY + Ref( COIVOL, -6 ) + Ref(COIVOL, -7 ) + Ref( COIVOL, -8 ) + Ref( COIVOL, -9 ) + Ref( COIVOL, -10 );
+COIVOL15DAY = COIVOL10DAY + Ref( COIVOL, -11 ) + Ref( COIVOL, -12 ) + Ref( COIVOL, -13 ) + Ref( COIVOL, -14 ) + Ref( COIVOL, -15 );
+
+//Plot(Symbol1OI_Vege ," Current Month OI",colorBlack,styleLine);
+//Plot(Symbol2OI_Vege ," Near Month OI",colorBlue,styleLine);
+//Plot(Symbol3OI_Vege ," Far Month OI",colorGreen,styleLine);
+//Plot(CombinedOI_Vege ,"COI",IIf( C > O, ParamColor("Up Color", colorGreen ), ParamColor("Down Color", colorRed ) ), ParamStyle( "Style", styleHistogram | styleThick, maskHistogram  ));
+//Plot(CombinedOI_Vege ,"COI", colorBlue, styleThick);
+Filter=1;
+
+
+AddColumn(CombinedOI_Vege/100000 ,"COI(L)", 1.0, colorDefault, colorDefault , 40);
+_SECTION_BEGIN("COI%");
+
+//AddColumn(ROC(COI,1), "%", 1.0, IIf(ROC(COI,1)>=0,colorBlack,colorRed), oiccolor, -1, oicrank);
+_SECTION_END();
+
+_SECTION_BEGIN("COI-foreign");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+
+
+
+
+//Plot( CombinedOI_Vege, _DEFAULT_NAME(), IIf(ROC(C, 1)>0, colorGreen, colorRed), ParamStyle("Style", styleThick) ); 
+//AddColumn(CombinedOI_Vege, " COI ", 1.0, colorDefault, colorDefault);
+coiadd = CombinedOI_Vege-Ref(CombinedOI_Vege, -1);		//Cumulative Open Interest Addition
+chg = MA(CombinedOI_Vege, 14);							//COI Last 3 months average
+
+
+AddColumn(MA(CombinedOI_Vege/100000, 26), " 26D ", 1.0, colorDefault, IIf(CombinedOI_Vege<MA(CombinedOI_Vege, 26), colorRed, colorDefault), 40);
+
+AddColumn(coiadd/100000, "COI+", 1.2, colorDefault, colorDefault, -1);	//Cumulative Open Interest Addition
+
+_SECTION_BEGIN( "Coi+" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+bluebar = Param( "Show Blue Bar", 10, 0, 99 );
+
+if ( ShowVolume )
+{
+    VolColor = ( coiadd >= O AND ROC(C, 1)>0)*ParamColor ("UpColor" ,colorGreen) +
+                ( coiadd > O AND ROC(C, 1)<0)*ParamColor( "DnColor" ,colorRed) +
+                ( coiadd < O AND ROC(C, 1)>0)*ParamColor( "ShortCover" ,colorLime) +
+                ( coiadd < O AND ROC(C, 1)<0)*ParamColor( "Unwind" ,colorBrown) ;
+  
+    PlotOHLC(0, coiadd, 0, coiadd, _SECTION_NAME(), IIf(coiadd>bluebar, VolColor, VolColor) , styleCandle, 10) ;
+    //Plot(MA(coiadd, 10), "5DAVG", colorLightGrey, styleArea);
+    //Plot(MA(coiadd, 10), "10DAVG", colorBlack, styleLine);
+}
+_SECTION_END();
+
+L_b = ROC(C, 1)>0 AND coiadd >= O;
+s_b = ROC(C, 1)<0 AND coiadd > O;
+s_c = ROC(C, 1)>0 AND coiadd < O ;
+L_u = ROC(C, 1)<0 AND coiadd < O;
+
+trendSTATUS =
+WriteIf(L_b,"long_buildup",
+WriteIf(s_b,"short_buildup",
+WriteIf(L_u,"long_unwinding",
+WriteIf(s_c,"short_covering"," "))));
+
+GraphXSpace = 5;
+dist = 1.5*coiadd;
+
+for( i = 0; i < BarCount; i++ )
+{
+if( L_b[i]) PlotText( "L", i, coiadd[i]+dist[i], colorGreen );
+if( s_b[i]) PlotText( "S", i, coiadd[i]+dist[i], colorRed );
+if( s_c[i]) PlotText( "C", i, coiadd[i], colorGreen );
+if( L_u[i]) PlotText( "U", i, coiadd[i], colorRed );
+}
+//Plot( coiadd, "COI+", IIf(ROC(C, 1)>0 AND coiadd>0, colorGreen, IIf(ROC(C, 1)<0 AND coiadd>0, colorRed, IIf(ROC(C, 1)>0 AND coiadd<0, colorPaleGreen, colorBrown))),  styleHistogram ); 
+AddColumn(ROC(Symbol1OI_Vege, 1), "OI%", 1.0, IIf(C>Ref(C,-1),colorGreen,colorRed), colorDefault, -1);
+
+AddColumn((coiadd/chg)*100, "26%", 1.0, colorDefault, colorDefault, -1);
+_SECTION_END();
+
+
+_SECTION_BEGIN("COI-VOL");
+AddColumn(CombinedV_Vege/100000 ,"V1", 1.2, colorDefault, IIf(CombinedV_Vege>MA(CombinedV_Vege, 26), colorGreen, colorDefault) , 40);
+AddColumn(ROC(CombinedV_Vege, 1), "V%", 1.2, colorDefault,colorDefault, 40);
+//AddColumn(COIVOL/100000, "V1", 1.0, colorDefault, colorDefault, 30);
+AddColumn(COIVOL2DAY/200000, "V2", 1.2, colorDefault, colorDefault, 30);
+AddColumn(COIVOL3DAY/300000, "V3", 1.2, colorDefault, colorDefault, 30);
+AddColumn(COIVOL5DAY/500000, "V5", 1.2, colorDefault, colorDefault, 30);
+AddColumn(COIVOL10DAY/1000000, "V10", 1.2, colorDefault, colorDefault, 30);
+AddColumn(COIVOL15DAY/1500000, "V15", 1.2, colorDefault, colorDefault, 30);
+_SECTION_END();
+
+/*
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA2");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA3");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+*/

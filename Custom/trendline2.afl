@@ -1,0 +1,40 @@
+
+//Coded by Rajandan R - Founder Marketcalls , Co-Founder www.traderscafe.in 
+//Coded on 17th July 2018
+
+//Instructions - While Exploration chartid of the trendlinecharts has to be 
+//mentioned in the parameters section. Else exploration with throw empty output.
+
+_SECTION_BEGIN("Price Action & Trendline Breakout Exploration AFL");
+
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+ 
+
+
+chartid = Param("Chart ID",0,1000,9999);
+
+RE = Study("RE",IIf(chartid>GetChartID(),chartid,1163));
+SE = Study("SU",IIf(chartid>GetChartID(),chartid,1163));
+
+Buy = Cross(H,RE);
+Sell = Cross(SE,L);
+
+
+signalcolor = IIf(Buy,colorGreen,IIf(Sell,colorred,colorGrey40));
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+AddColumn(IIf(Buy,RE, SE), "Price Touch", 1.2);
+AddColumn( IIf( Buy, 'B', 'S' ), "Signal", formatChar, colorWhite, signalcolor);
+
+
+
+
+_SECTION_END();

@@ -63,8 +63,8 @@ if( CTRL && mmb ) {
 
 // Output
 SetChartOptions( 0, chartShowDates | chartWrapTitle );
-Plot( C, Date() + " - Close", colorYellow, styleBar );
-Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorBlueGrey, styleThick );
+Plot( C, Date() + " - Close", colorBlack, styleBar );
+Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorGreen, styleThick );
 
 for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
     if( newbar ) {
@@ -77,7 +77,7 @@ for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
 		StaticVarSet( vwapstr + i, static_vwap, True );
 	}
    
-    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorBlue, styleThick );
+    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorBlue, styleLine );
 }
 
 //if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0)

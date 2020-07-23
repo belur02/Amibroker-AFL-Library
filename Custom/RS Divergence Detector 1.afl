@@ -1,0 +1,56 @@
+_SECTION_BEGIN("Divergence Detector");
+// Downloaded From https://www.WiseStockTrader.com
+// ********************************************
+// INDICATOR	: Ultimate Divergence Detector
+// DATE			: 07-04-2014
+// PROGRAMMER	: Brad Konia
+// COPYRIGHTS	: Public Domain
+// ********************************************
+
+SetChartOptions(0,0,ChartGrid50,0,100);
+ 
+
+_SECTION_BEGIN("REL-STRENGTH");
+base = ParamStr("NSENIFTY", GetBaseIndex() );
+//Plot( RelStrength(base), _SECTION_NAME() + "(" + base + ")", ParamColor( "color", colorCycle ), ParamStyle("Style")  ); 
+
+
+indName = "RelStrength"; // Specify the name of the indicator. This is cosmetic only.
+length = Param(indName + " Length", 8,  8, 100, 1); // Indicator length
+threshold = Param("Zig/Zag Threshold %", 1, 1, 50, 1); // Minimum % change in indicator value to be considered a zig/zag
+indVal = RelStrength(base); // Load the indVal array with the values from the indicator of your choice
+indZig = Zig(indVal, threshold); // Set the zig/zag values for the indicator
+indPeakVal1 = Peak(indVal, threshold, 1); // Most recent peak value
+indPeakBars1 = PeakBars(indVal, threshold, 1); // Bars since most recent peak
+indPeakVal2 = Peak(indVal, threshold, 2); // Second most recent peak value
+indPeakBars2 = PeakBars(indVal, threshold, 2); // Bars since second most recent peak
+indTroughVal1 = Trough(indVal, threshold, 1); // Most recent trough value
+indTroughBars1 = TroughBars(indVal, threshold, 1); // Bars since most recent trough
+indTroughVal2 = Trough(indVal, threshold, 2); // Second most recent trough value
+indTroughBars2 = TroughBars(indVal, threshold, 2); // Bars since second most recent trough
+
+// Determine if current bar is a peak or trough
+peakBar = indPeakBars1 == 0;
+troughBar = indTroughBars1 == 0;
+
+// Bearish divergence
+divergeBear = IIf(peakBar AND (indPeakVal1 < indPeakVal2) AND  High > Ref(High, -indPeakBars2), True, False);
+Short = Ref(divergeBear, -1); // Enter short if the previous bar was a bearish divergence
+Cover = Ref(troughBar, -1); // Cover short if the previous bar was a trough
+
+// Bullish divergence
+divergeBull = IIf((indTroughBars1 == 0) AND (indTroughVal1 > indTroughVal2) AND Low < Ref(Low, -indTroughBars2), True, False);
+Buy = Ref(divergeBull, -1); // Enter long if the previous bar was a bullish divergence
+Sell = Ref(peakBar, -1); // Close long if the previous bar was a peak
+
+Plot(indVal, indName, colorBlue );
+Plot(indZig, "", colorWhite);
+PlotShapes(IIf(peakBar OR troughBar, shapeNone, shapeNone), colorGrey40, 0, indVal, 0);
+PlotShapes(IIf(divergeBear, shapeHollowCircle, shapeNone), colorRed, 0, indVal, 0);
+PlotShapes(IIf(divergeBull, shapeHollowCircle, shapeNone),  colorBrightGreen, 0, indVal, 0);
+
+divSTATUS =
+WriteIf(divergeBull,"Bullish Divergence",
+WriteIf(divergeBear,"Bearish divergence"," "));
+AddtextColumn(divSTATUS," RS Divergence ", 1, colorDefault, colorDefault); 
+_SECTION_END();

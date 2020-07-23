@@ -1,0 +1,25 @@
+_SECTION_BEGIN("HA");
+//www.stockbangladesh.com
+//Mehedi Arafat
+
+tchoice=Param("Title Selection ",2,1,2,1);
+
+Q=Param("% Change",2.1,1,10,1);
+Z= Ref(Zig(C ,q ),-1) ;
+HH=Ref(((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(z,q,1 ) >Peak(Z,q,2))),-1);
+LH=Ref(((Z<Ref(Z,-1) AND Ref(Z,-1) > Ref(Z,-2)) AND (Peak(Z,q,1 ) <Peak(Z,q,2))),-1);
+HL=Ref(((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) >Trough(Z,q,2))),-1);
+LL=Ref(((Z>Ref(Z,-1) AND Ref(Z,-1) < Ref(Z,-2)) AND (Trough(Z,q,1 ) <Trough(Z,q,2))),-1);
+GraphXSpace = 5;
+dist = 0.5*ATR(20);
+
+for( i = 0; i < BarCount; i++ )
+{
+if( HH[i] ) PlotText( "HH", i, H[ i ]+dist[i], colorGreen );
+if( LH[i] ) PlotText( "LH", i, H[ i ]+dist[i], colorCustom12 );
+if( HL[i] ) PlotText( "HL", i, L[ i ]-dist[i], colorBlack );
+if( LL[i] ) PlotText( "LL", i, L[ i ]-dist[i], colorRed );
+
+}
+
+_SECTION_END();

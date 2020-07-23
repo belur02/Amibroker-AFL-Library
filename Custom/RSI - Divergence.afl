@@ -1,0 +1,129 @@
+_SECTION_BEGIN("RSI");
+//SetChartOptions(0,0,chartGrid30|chartGrid70);
+//periods = Param( "Periods", 15, 1, 200, 1 );
+//Plot( RSI( periods), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style")  );
+
+SetChartOptions(0,0,ChartGrid50,0,100);
+ 
+periods = Param("Periods", 14, 1, 200, 1);
+Levelup = Param("Level up",70,1,100,1);
+Leveldown = Param("Level down",30,1,100,1);
+ 
+z = RSI(periods);
+ 
+LineColor = ParamColor("Line Color", colorLightBlue );
+LineStyle = ParamStyle("Line Style", styleLine);
+LevelupColor = ParamColor("Overbought Color",colorRed);
+LeveldownColor = ParamColor("Oversold Color",colorGreen);
+ 
+Plot(z, "RSI (" + periods + ")", LineColor , LineStyle);
+Plot(Levelup,"Level UP ",LevelupColor,styleDashed);
+Plot(Leveldown,"Level Down",LeveldownColor,styleDashed);
+PlotOHLC(z,z,50,z,"",IIf(z>50, LevelupColor, LeveldownColor), styleCloud | styleNoLabel | styleClipMinMax, Leveldown, Levelup);
+
+if( Status("action") == actionCommentary ) 
+{
+
+Buy = Cross( vrsi, 30 );
+Sell = Cross( 70, vrsi );
+
+printf( "The current value for the RSI" + periods + " is " + WriteVal( vrsi ) );
+
+printf("\n\nThe RSI, written by J. Welles Wilder in 1978, can be used in several different ways to analyze a chart.\n");
+
+printf("Tops and Bottoms:\n\n");
+
+printf( 
+WriteIf( vrsi > 70, "The RSI is above 70.  This is where it usually tops.  The RSI usually forms tops and bottoms before the underlying security.",
+WriteIf( vrsi < 30, "The RSI is below 30.  This is where it usually bottoms.  The RSI usually forms tops and bottoms before the underlying security.",
+"The RSI is not currently in a topping (above 70) or bottoming (below 30) range. " 
++ WriteIf( Cross( 70, vrsi ), "However, the RSI just crossed below 70 from a topping formation.  This is a bearish sign.",
+WriteIf( Cross( vrsi, 30 ), "However, the RSI just crossed above 30 from a bottoming formation.  This is a bullish sign.", "" ) ) ) ) ); 
+
+bars30 = BarsSince( Buy );
+bars70 = BarsSince( Sell );
+
+printf("\n\nBuy/Sell signals:");
+printf("\nA buy or sell signal is generated when the RSI moves out of an overbought/oversold area. \nThe last signal was a "+
+WriteIf( bars30 < bars70, "buy", WriteIf( bars30 > bars70, "sell", "" ))+
+WriteVal( Min( bars30, bars70 ), 3.0 ) + " period(s) ago.");
+
+printf("\n\nChart Formations:");
+
+printf("\nThe RSI often forms chart patterns (such as head and shoulders or rising wedges) and support/resistance levels that may or may not be visible on the price chart.  "+
+"Since the analysis of chart patterns/formations is subjective, the automatic interpretator cannot find them.  Please visually inspect the chart and look for such patterns.");
+
+printf("\n\nFailure Swings (also known as support or resistance penetrations or breakouts):");
+printf(
+WriteIf( vrsi >= HHV( vrsi, 14 ), "The RSI has just reached its highest value in the last 14 period(s).  This is bullish.",
+WriteIf( vrsi <= LLV( vrsi, 14 ), "The RSI has just reached its lowest value in the last 14 period(s).  This is bearish.",
+"The RSI does not currently show any Failure Swings." ) ) );
+
+printf("\n\nDivergence:\n");
+printf(
+WriteIf( Close >= HHV( Close, 14 ) AND vrsi < HHV( vrsi, 14 ), 
+"The security price has set a new 14-day high while the RSI has not.  This is a bearish divergence.",
+WriteIf( vrsi >= HHV( vrsi, 14 ) AND Close < HHV( Close, 14 ), 
+"The RSI has set a new 14-day high while the security price has not.  This is a bullish divergence.",
+WriteIf( Close <= LLV( Close, 14 ) AND vrsi > LLV( vrsi, 14 ), 
+"The security price has set a new 14-day low while the RSI has not.  This is a bullish divergence.",
+WriteIf( vrsi <= LLV( vrsi, 14) AND Close > LLV(Close,14), 
+"The RSI has set a new 14-day low while the security price has not.  This is a bearish divergence.",
+"The RSI and price are not diverging." ) ) ) )); 
+
+printf("\nThis commentary is not a recommendation to buy or sell. Use at your own risk.");
+}
+
+_SECTION_END();
+
+
+_SECTION_BEGIN("Divergence Detector");
+// Downloaded From https://www.WiseStockTrader.com
+// ********************************************
+// INDICATOR	: Ultimate Divergence Detector
+// DATE			: 07-04-2014
+// PROGRAMMER	: Brad Konia
+// COPYRIGHTS	: Public Domain
+// ********************************************
+
+
+indName = "RSI"; // Specify the name of the indicator. This is cosmetic only.
+length = Param(indName + " Length", 14,  8, 100, 1); // Indicator length
+threshold = Param("Zig/Zag Threshold %", 10, 1, 50, 1); // Minimum % change in indicator value to be considered a zig/zag
+indVal = RSI(length); // Load the indVal array with the values from the indicator of your choice
+indZig = Zig(indVal, threshold); // Set the zig/zag values for the indicator
+indPeakVal1 = Peak(indVal, threshold, 1); // Most recent peak value
+indPeakBars1 = PeakBars(indVal, threshold, 1); // Bars since most recent peak
+indPeakVal2 = Peak(indVal, threshold, 2); // Second most recent peak value
+indPeakBars2 = PeakBars(indVal, threshold, 2); // Bars since second most recent peak
+indTroughVal1 = Trough(indVal, threshold, 1); // Most recent trough value
+indTroughBars1 = TroughBars(indVal, threshold, 1); // Bars since most recent trough
+indTroughVal2 = Trough(indVal, threshold, 2); // Second most recent trough value
+indTroughBars2 = TroughBars(indVal, threshold, 2); // Bars since second most recent trough
+
+// Determine if current bar is a peak or trough
+peakBar = indPeakBars1 == 0;
+troughBar = indTroughBars1 == 0;
+
+// Bearish divergence
+divergeBear = IIf(peakBar AND (indPeakVal1 < indPeakVal2) AND  High > Ref(High, -indPeakBars2), True, False);
+Short = Ref(divergeBear, -1); // Enter short if the previous bar was a bearish divergence
+Cover = Ref(troughBar, -1); // Cover short if the previous bar was a trough
+
+// Bullish divergence
+divergeBull = IIf((indTroughBars1 == 0) AND (indTroughVal1 > indTroughVal2) AND Low < Ref(Low, -indTroughBars2), True, False);
+Buy = Ref(divergeBull, -1); // Enter long if the previous bar was a bullish divergence
+Sell = Ref(peakBar, -1); // Close long if the previous bar was a peak
+
+Plot(indVal, indName, colorBlue);
+Plot(indZig, "", colorWhite);
+//PlotShapes(IIf(peakBar OR troughBar, shapeHollowCircle, shapeNone), colorGrey40, 0, indVal, 0);
+PlotShapes(IIf(divergeBear, shapeHollowCircle, shapeNone), colorRed, 0, indVal, 0);
+PlotShapes(IIf(divergeBull, shapeHollowCircle, shapeNone),  colorBrightGreen, 0, indVal, 0);
+
+divSTATUS =
+WriteIf(divergeBull,"Bullish Divergence",
+WriteIf(divergeBear,"Bearish divergence"," "));
+AddtextColumn(divSTATUS," RSI Divergence ", 1, colorDefault, colorDefault); 
+_SECTION_END();
+
