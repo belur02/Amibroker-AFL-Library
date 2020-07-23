@@ -1,0 +1,9 @@
+_SECTION_BEGIN("ATR");
+periods = Param( "Periods", 15, 1, 200, 1 );
+Plot( ATR(periods), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+atrrank = PercentRank( ATR(periods), 1 );
+atrcolor = ColorHSB( atrrank * 84/100, 255, 255 );
+AddColumn(ATR(periods), _DEFAULT_NAME(), 1.2, colorDefault, IIf(V>Ref(V,-1),colorDefault,colorRed),  40, atrrank);
+
+//AddColumn(ATR(periods), _DEFAULT_NAME(), 1.2);
+_SECTION_END();

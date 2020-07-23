@@ -1,14 +1,98 @@
-_SECTION_BEGIN("AVWAP Trading Setup");
-dn = DateTime();
-sd = SelectedValue( dn );
-start = dn == sd;
+_SECTION_BEGIN("avwap new");
+function NewDataJustArrived() {
+    // function by T. Janeczko
+    // mod. by fxshrat to check for new price data too
+    vname = "lbe" + GetChartID();
+    prev = Nz( StaticVarGet( vname ) );
+    curr = Status( "lastbarend" );    
+    StaticVarSet( vname, curr );  
+    // 
+    lastC = LastValue(C);
+    prevC = Nz( StaticVarGet( vname + "_Close" ) ); 
+    StaticVarSet( vname + "_Close", lastC );
+
+    return curr != prev || lastc != prevC;
+}
+
+/// VWAP-Multi-Storage AFL
+/// by fxshrat
+/// it uses CTRL + mouse button click toi set lines (read instructions in chart title
+/// code updates lines on new incoming price data.
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/10
+/// modified from GUI version
+/// @link http://forum.amibroker.com/t/multiple-anchored-vwap/4739/4
+
+dt = DateTime();
+sdt = SelectedValue(dt);
+newbar = NewDataJustArrived();
+
+gcmb = GetCursorMouseButtons();
+lmb = gcmb == 9;
+mmb = gcmb == 12;
+CTRL = GetAsyncKeyState(17) < 0;
+
 mp = C;
 PV = mp * V;
 CV = Cum( V );
-VSS = CV - ValueWhen( start, CV );
-denom = IIf( VSS == 0, 1, VSS );
+CumPV = Cum( PV );
+
+start = dt == sdt;
 num = Cum( PV ) - ValueWhen( start, Cum( PV ) );
-M = IIf( BarsSince( start ), num/denom, mp );
-Plot( C, Date() + " Close", colorBrightGreen, styleBar );
-Plot( M, "M" + _PARAM_VALUES(), colorBrightGreen, styleThick );
+denom = CV - ValueWhen( start, CV );
+vwap = IIf( BarsSince(start) > 0, num / Max(1, denom), mp );
+
+nm = Name();
+vwapstr = nm + "VWAP";
+cntstr = nm + "VWAP_cnt";
+dnstr = nm + "VWAP_DN";
+
+if( CTRL && lmb ) {
+	staticget = Nz( StaticVarGet( cntstr ) );
+	//Say( "Store VWAP"+(staticget+1) );	
+	StaticVarSet( cntstr, staticget+1, True );
+	StaticVarSet( vwapstr + staticget, vwap, True );
+	StaticVarSet(dnstr + staticget, sdt, True );	
+}
+
+if( CTRL && mmb ) {
+	//Say( "Reset VWAPs" );
+	StaticVarRemove( vwapstr + "*" );
+	StaticVarRemove( dnstr + "*" );
+	StaticVarRemove( cntstr );
+}
+
+// Output
+SetChartOptions( 0, chartShowDates | chartWrapTitle );
+Plot( C, Date() + " - Close", colorBlack, styleBar );
+Plot( vwap, "VWAPselect" + _PARAM_VALUES(), colorGreen, styleThick );
+
+for( i = 0; i < Nz(StaticVarGet( cntstr )); i++ ) {
+    if( newbar ) {
+		//Say( "This is new bar or new data!" );
+		staticsd = StaticVarGet( dnstr + i );
+		staticstart = dt == staticsd;
+		staticnum = CumPV - ValueWhen( staticstart, CumPV );
+		staticdenom = CV - ValueWhen( staticstart, CV );
+		static_vwap = IIf( BarsSince( staticstart ) > 0, staticnum / Max(1, staticdenom), mp );		
+		StaticVarSet( vwapstr + i, static_vwap, True );
+	}
+   
+    Plot( StaticVarGet(vwapstr + i ), "VWAP" + (i+1) + _PARAM_VALUES(), colorBlue, styleLine );
+}
+
+//if( Nz( LastValue(StaticVarGet( vwapstr + "0" ) )) == 0)
+	//Title = EncodeColor(colorRed) + "1. Hold CTRL key! 2. Click left mouse button to create lines 3. Click CTRL + Middle mouse button to delete lines\n{{VALUES}}";
 _SECTION_END();
+
+// Downloaded From https://www.WiseStockTrader.com
+SetChartOptions(0,chartShowArrows|chartShowDates);
+vwapstatus= WriteIf(C>StaticVarGet( vwapstr + 1) OR C>StaticVarGet( vwapstr + 0), "Bullish", WriteIf(C<StaticVarGet( vwapstr + 0) AND C<StaticVarGet( vwapstr + 1), "Bearish", WriteIf(StaticVarGet( vwapstr + 1)<StaticVarGet( vwapstr + 0) OR C<StaticVarGet( vwapstr + 1) , "Neutral", "Neutral")));
+vwapbullish=C>StaticVarGet( vwapstr + 1) OR C>StaticVarGet( vwapstr + 0);
+AddColumn(  StaticVarGet( vwapstr + 0), "AVWAP" + 1, 1.2, colorDefault, IIf(C>StaticVarGet( vwapstr + 0), colorDefault, colorRed), 40 );
+AddColumn(  StaticVarGet( vwapstr + 1), "AVWAP" + 2, 1.2, colorDefault, IIf(C>StaticVarGet( vwapstr + 1), colorDefault, colorRed), 40 );
+AddColumn(  StaticVarGet( vwapstr + 2), "AVWAP" + 3, 1.2, colorDefault, IIf(C>StaticVarGet( vwapstr + 2), colorDefault, colorRed), 40 );
+//AddColumn(  StaticVarGet( vwapstr + 3), "AVWAP" + 4, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 3), colorDefault, colorRed), 40 );
+//AddColumn(  StaticVarGet( vwapstr + 4), "AVWAP" + 5, 1.0, colorDefault, IIf(C>StaticVarGet( vwapstr + 4), colorDefault, colorRed), 40 );
+//AddColumn(  IIf(C>StaticVarGet( vwapstr + 0) AND C>StaticVarGet( vwapstr + 1), C-StaticVarGet( vwapstr + 1), C-StaticVarGet( vwapstr + 0)), "RANGE", 1.0, colorDefault, colorDefault, 30 ); 
+
+AddtextColumn(vwapstatus, "Trend", 1.2, colorDefault, IIf(C>StaticVarGet( vwapstr + 0) AND C>StaticVarGet( vwapstr + 1), colorGreen, IIf(C<StaticVarGet( vwapstr + 0) AND C<StaticVarGet( vwapstr + 1), colorRed, colorDefault)), 40);
