@@ -1,0 +1,6 @@
+_SECTION_BEGIN("Price");
+Ticker = ParamStr("Symbol", Name() );
+//PlotForeign( Ticker, Ticker, ParamColor("Color", colorCycle ), ParamStyle("Style") | GetPriceStyle() ); 
+PlotForeign( Ticker, Ticker, IIf(ROC(Foreign(Ticker, "Close"), 1)>0, colorGreen, colorRed), styleThick ); 
+
+_SECTION_END();

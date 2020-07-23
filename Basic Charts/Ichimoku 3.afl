@@ -1,24 +1,18 @@
-//@version=4
-study(title="Ichimoku Cloud", shorttitle="Ichimoku", overlay=true)
+prds = Param( "Standard Line Periods", 13, 5, 26, 1 );
+turn = Param( "Turning Line Periods", 3, 3, 10, 1 );
+delay = Param( "Delayed Line Periods", 12, 4, 25, 1 );
+span = Param( "Spans Periods", 16, 10, 52, 1 );
 
-conversionPeriods = input(9, minval=1, title="Conversion Line Periods"),
-basePeriods = input(26, minval=1, title="Base Line Periods")
-laggingSpan2Periods = input(52, minval=1, title="Lagging Span 2 Periods"),
-displacement = input(26, minval=1, title="Displacement")
+TL = ( HHV( H, turn ) + LLV( L, turn ) ) / 2;
+SL = ( HHV( H, prds ) + LLV( L, prds ) ) / 2;
+DL = Ref( C, delay );
+Sp1 = ( SL + TL ) / 2;
+Sp2 = ( HHV( H, span ) + LLV( L, span ) ) / 2;
 
-donchian(len) => avg(lowest(len), highest(len))
+_N( Title = StrFormat( "{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) Vol " + WriteVal( V, 1.0 ) + " {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
 
-conversionLine = donchian(conversionPeriods)
-baseLine = donchian(basePeriods)
-leadLine1 = avg(conversionLine, baseLine)
-leadLine2 = donchian(laggingSpan2Periods)
-
-plot(conversionLine, color=#0496ff, title="Conversion Line")
-plot(baseLine, color=#991515, title="Base Line")
-plot(close, offset = -displacement, color=#459915, title="Lagging Span")
-
-p1 = plot(leadLine1, offset = displacement, color=color.green,
- title="Lead 1")
-p2 = plot(leadLine2, offset = displacement, color=color.red, 
- title="Lead 2")
-fill(p1, p2, color = leadLine1 > leadLine2 ? color.green : color.red)
+Plot( C, "Close", colorDefault, styleNoTitle | GetPriceStyle() );
+Plot( SL, "SL", colorRed, styleThick | styleNoLabel );
+Plot( TL, "TL", colorGreen, styleThick | styleNoLabel );
+color = IIf( Sp1 > Sp2, ParamColor( "Span1 Color", ColorRGB( 0, 255, 0 ) ), ParamColor( "Span2 Color", ColorRGB( 255, 104, 32 ) ) );
+PlotOHLC ( Sp1, Sp1, Sp2, Sp2, "Cloud", Color, styleCloud | styleNoLabel, Null, Null, delay, -2 );

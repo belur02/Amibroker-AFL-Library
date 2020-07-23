@@ -1,0 +1,31 @@
+
+
+_SECTION_BEGIN("COI");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Symbol1OI_Vege=Foreign(Name() + "-I", "I");  // first symbol 
+Symbol2OI_Vege=Foreign(Name() + "-II", "I");  // second symbol OI
+Symbol3OI_Vege=Foreign(Name() + "-III", "I");  /// Third Symbol OI 
+
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
+Plot( CombinedOI_Vege, _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN( "Delivery" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+bluebar = Param( "Show Blue Bar", 90, 40, 99 );
+
+
+if ( ShowVolume )
+{
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, CombinedOI_Vege, 0, CombinedOI_Vege, "del%", IIf(OpenInt/V*100>bluebar, colorBlue, VolColor) , styleCandle, 10) ;
+    //Plot(MA(OpenInt/V*100, 10), "AvgVol", colorLightGrey, styleArea);
+    //Plot(MA(OpenInt/V*100, 10), "AvgVol", colorBlack, styleLine);
+}
+
+AddColumn(CombinedOI_Vege ,"Total OI");
+_SECTION_END();

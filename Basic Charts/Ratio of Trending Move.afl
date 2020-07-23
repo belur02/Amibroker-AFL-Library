@@ -1,0 +1,32 @@
+// Ratio of Trending Move
+_SECTION_BEGIN("Daily RTM");
+stt=EMA( C, 5 );	//Short-Term Trend
+ltt=EMA( C, 21 );	//Longer-Term Trend
+nLevel = Param("nLevel",1,1,100,1);	//Neutral Level
+RTM=stt/ltt; //RTM = Short-Term Trend / Longer-Term Trend
+Plot(nLevel,"nLevel",colorDefault,styleDashed);
+Plot( RTM, _DEFAULT_NAME(), IIf(ROC(C, 1)>0, colorGreen, colorRed), ParamStyle("Style") );
+//AddColumn(RTM, "DailyRTM", 1.2, colorDefault, IIf(RTM>1, colorGreen, colorDefault));
+_SECTION_END();
+
+_SECTION_BEGIN("Weekly RTM");
+//For Weekly Ratio
+StartBar=SelectedValue(BarIndex());
+FinishBar = EndValue( BarIndex() );
+i = Startbar;
+TimeFrameSet(inWeekly);
+wstt=EMA(Close,4); //Short-Term Trend
+wltt=EMA(Close,12); //Longer-Term Trend
+swRTM2=TimeFrameExpand(wstt,inWeekly);
+lwRTM2=TimeFrameExpand(wltt,inWeekly);
+wRTM=swRTM2/lwRTM2;  //RTM = Short-Term Trend / Longer-Term Trend
+Plot(wRTM,_DEFAULT_NAME(),colorBlue,ParamStyle("Style"));
+//buy = cross( close, ema( close, 45 ) );
+//sell = cross( ema( close, 45 ), close );
+//AddColumn(wRTM, "WeeklyRTM", 1.2, colorDefault, IIf(wRTM>1, colorGreen, colorDefault));
+rtrendm=WriteIf(RTM>1 AND wRTM>1 AND RTM>wRTM, "BULLISH",
+WriteIf(RTM>1 AND wRTM>1, "B_ZONE",
+WriteIf(RTM<1 AND wRTM<1, "BEARISH", "")));
+AddtextColumn(rtrendm, "RTM", 1.2, colorDefault, IIf(RTM>1 AND wRTM>1 AND RTM>wRTM, colorGreen, IIf(RTM<1 AND wRTM<1 AND RTM<wRTM, colorRed, colorDefault)));
+TimeFrameRestore();
+_SECTION_END();

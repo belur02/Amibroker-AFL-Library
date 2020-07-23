@@ -1,0 +1,73 @@
+//www.aflcode.com
+
+SetChartOptions( 0, chartShowDates );
+
+_SECTION_BEGIN( "Price" );
+_N( Title = StrFormat( "{{NAME}} - {{INTERVAL}} {{DATE}} \nOp %g, \nHi %g, \nLo %g, \nCl %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ) );
+Plot( C, "Close", ParamColor( "Color", colorBlack ), styleNoTitle | styleCandle  | styleThick );
+_SECTION_END();
+
+_SECTION_BEGIN( "pivot" );
+price = ParamToggle( "Plot Price", "Off|On", 1 );
+num = Param( "trend", 4, 1, 10, 1 );
+dist = 0.5 * ATR( 10 );
+rightfig = Param( "rightfig ", 7, 1, 10, 1 );
+xspace = Param( "GraphXSpace ", 10, 1, 20, 1 );
+
+mHHV = HHV( H, num );
+mLLV = LLV( L, num );
+
+FirstVisibleBar = Status( "FirstVisibleBar" );
+Lastvisiblebar = Status( "LastVisibleBar" );
+
+for ( b = Firstvisiblebar + num; b <= Lastvisiblebar AND b < BarCount -
+        num; b++ )
+{
+    i = num;
+    ml = 0;
+    mu = 0;
+
+    while ( i > 0 )
+    {
+
+        if ( L[b] < L[b+i] )
+        {
+            ml++;
+        }
+
+
+        if ( H[b] > H[b+i] )
+        {
+            mu++;
+        }
+
+        i--;
+    }
+
+
+    if ( ml == num AND L[B] == mLLV[B] )
+    {
+        PlotText( "\n *\n", b, L[b], colorGreen );
+
+        if ( price == 1 )
+        {
+            p = StrRight( NumToStr( L[b], 4.1 ), rightfig );
+            PlotText( "\n\n" + p, b - 2 , L[b] , colorGreen );
+        }
+    }
+
+
+    if ( mu == num AND H[B] == mHHV[B] )
+    {
+        PlotText( " *\n", b, H[b], colorRed );
+
+        if ( price == 1 )
+        {
+            p = StrRight( NumToStr( H[b], 4.1 ), rightfig );
+            PlotText( p , b - 2 , H[b] + dist[b] + 1, colorRed );
+        }
+    }
+}
+_SECTION_END();
+
+GraphXSpace = xspace;
