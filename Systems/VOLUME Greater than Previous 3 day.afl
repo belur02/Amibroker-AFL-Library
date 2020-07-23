@@ -1,0 +1,21 @@
+//        VOLUME Greater than Previous 3 day VOLUME 
+ 
+ 
+AddTextColumn( FullName(), "Name");
+AddColumn( Close, "Close" );
+AddColumn( Volume, "Volume" );
+ 
+ 
+AddColumn( Ref( V, -1 ), "VOL -1" );
+AddColumn( Ref( V, -2 ), "VOL -2" );
+AddColumn( Ref( V, -3 ), "VOL -3" );
+AddColumn( Volume, "Volume" );
+ 
+ 
+V2DAY = Ref( V, -1 ) + Ref( V, -2 ) ;
+V3DAY = Ref( V, -1 ) + Ref( V, -2 ) + Ref( V, -3 );
+ 
+ 
+Filter = V > V3DAY ;
+ 
+Buy= V > V3DAY ;

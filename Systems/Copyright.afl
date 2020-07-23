@@ -1,0 +1,12 @@
+_SECTION_BEGIN("Copyright");
+radius = 0.45 * Status("pxheight"); // get pixel height of the chart and use 45% for pie chart radius 
+textoffset = 0 * radius;
+GfxSelectFont("Tahoma", 12, 700, True, False, 0 );
+GfxSetTextColor( colorRed ); 
+GfxTextOut(" © FreethinkerVenky", textoffset , 270 );
+radius = 0.45 * Status("pxheight"); // get pixel height of the chart and use 45% for pie chart radius 
+textoffset = 0.3 * radius;
+GfxSelectFont("Times New Roman", 10, 700, True, False, 0 );
+GfxSetTextColor( colorBlue ); 
+GfxTextOut("DSTOICTRADER", textoffset , 290 ); 
+_SECTION_END();

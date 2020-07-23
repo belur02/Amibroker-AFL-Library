@@ -1,0 +1,42 @@
+// Downloaded From www.WiseStockTrader.com
+function Lastthursday()
+{
+    Daysinmonth = IIf( Month() == 1 OR Month() == 3 OR Month() == 5 OR Month() == 7 OR Month() == 8 OR Month() == 10 OR Month() == 12, 31, 30 );
+    Daysinmonthfeb = IIf( Year() % 4 == 0 AND Year() % 100 != 0, 29, 28 );
+    Daysinmonthfinal = IIf( Month() == 2, Daysinmonthfeb, Daysinmonth );
+    returnvalue = IIf( Daysinmonthfinal - Day() < 7 AND DayOfWeek() == 4, 1, IIf( Daysinmonthfinal - Day() < 8 AND DayOfWeek() == 3 AND Ref( DayOfWeek(), 1 ) != 4 AND Day() != Daysinmonthfinal , 1, 0 ) );
+    return returnvalue;
+}
+
+Period = ParamList( "Base", "Daily|Weekly|Monthly|Lastthursday|Yearly", 1 );
+
+if(Period=="Daily" )
+{
+Bars_so_far_today = 1 + BarsSince( Day() != Ref(Day(), -1));
+StartBar = ValueWhen(TimeNum() == 091500, BarIndex());
+TodayVolume = Sum(V,Bars_so_far_today);
+average = (H+L+C)/3;
+IIf (BarIndex() >= StartBar, VWAP = Sum (average * V, Bars_so_far_today  ) / TodayVolume,0);
+}
+
+if(Period=="Weekly" OR Interval()==24 * 3600 ) 	
+{ 
+Bars_so_far_today = 1 + BarsSince(DayOfWeek() < Ref( DayOfWeek(), -1 ));
+StartBar = ValueWhen(TimeNum() == 091500, BarIndex());
+Vol = TimeFrameGetPrice("V", inWeekly, 0);
+TodayVolume = Sum(Vol,Bars_so_far_today);
+average = (H+L+C)/3;
+IIf (BarIndex() >= StartBar, VWAP = Sum (average * Vol, Bars_so_far_today  ) / TodayVolume,0);
+}
+
+if(Period=="Monthly"  )
+{
+Bars_so_far_today = 1 + BarsSince(Month() != Ref(Month(), -1));
+Vol = TimeFrameGetPrice("V", inMonthly, 0);
+StartBar = ValueWhen(TimeNum() == 091500, BarIndex());
+TodayVolume = Sum(Vol,Bars_so_far_today);
+average = (H+L+C)/3;
+IIf (BarIndex() >= StartBar, VWAP = Sum (average * Vol, Bars_so_far_today  ) / TodayVolume,0);
+}
+
+Plot (VWAP,"VWAP", IIf(Ref(VWAP,2)<VWAP,colorRed,colorBrightGreen),styleStaircase);

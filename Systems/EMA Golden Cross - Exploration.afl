@@ -1,0 +1,27 @@
+// Downloaded From https://www.WiseStockTrader.com
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//********************************************************** EMA CrossOver******************************************************************************	*
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+E1=EMA(C, 20);
+E2=EMA(C, 50);
+E3=EMA(C, 200);
+
+E1_Cross = WriteIf(Cross(E1, E2),"1.CrossUP", WriteIf(Cross(E2, E1),"3.CrossDown", WriteIf(E1 >= E2,"2.Up", WriteIf(E2 > E1,"4.Down","5.Neutral"))));
+E2_Cross = WriteIf(Cross(E1, E3),"1.CrossUP", WriteIf(Cross(E3, E1),"3.CrossDown", WriteIf(E1 >= E3,"2.Up", WriteIf(E3 > E1,"4.Down","5.Neutral"))));
+E3_Cross = WriteIf(Cross(E2, E3),"1.CrossUP", WriteIf(Cross(E3, E2),"3.CrossDown", WriteIf(E2 >= E3,"2.Up", WriteIf(E3 > E2,"4.Down","5.Neutral"))));
+
+E1_cColor = IIf(Cross(E1, E2), colorBrightGreen, IIf(Cross(E2, E1), colorRed, IIf(E1 >= E2, colorGreen, IIf(E2 > E1, colorDarkRed, colorDefault))));
+E2_cColor = IIf(Cross(E1, E3), colorBrightGreen, IIf(Cross(E3, E1), colorRed, IIf(E1 >= E3, colorGreen, IIf(E3 > E1, colorDarkRed, colorDefault))));
+E3_cColor = IIf(Cross(E2, E3), colorBrightGreen, IIf(Cross(E3, E2), colorRed, IIf(E2 >= E3, colorGreen, IIf(E3 > E2, colorDarkRed, colorDefault))));
+
+AddTextColumn(E1_Cross,"EMA20-50", 1, colorDefault, E1_cColor); 
+AddTextColumn(E2_Cross,"EMA20-200", 1, colorDefault, E2_cColor); 
+AddTextColumn(E3_Cross,"EMA50-200", 1, colorDefault, E3_cColor); 
+ 
+EMA_Ch= 
+IIf(E1>=E2, 1, 0)+
+IIf(E1>=E3, 10, 0)+
+IIf(E2>=E3, 100, 0);
+AddColumn(EMA_Ch, "EMA", colorDefault, colorDefault);
+
+Filter = 1;

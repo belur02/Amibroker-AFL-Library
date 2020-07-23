@@ -1,0 +1,46 @@
+// Downloaded From www.WiseStockTrader.com
+_SECTION_BEGIN("Price");
+SetChartOptions(0,chartShowArrows|chartShowDates);
+_N(Title = StrFormat("{{NAME}} - {{INTERVAL}} {{DATE}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+Plot( C, "Close", ParamColor("Color", colorDefault ), styleNoTitle | ParamStyle("Style") | GetPriceStyle() ); 
+_SECTION_END();
+
+
+_SECTION_BEGIN("Triple EMA Crossover Rules");
+
+P1 = ParamField("Price field",-1);
+Periods1 = Param("Periods1", 3, 2, 300, 1, 10 );
+Plot( EMA( P1, Periods1 ), _DEFAULT_NAME(), ParamColor( "Color1", colorCycle ), ParamStyle("Style1") ); 
+
+P2 = ParamField("Price field",-1);
+Periods2 = Param("Periods2", 13, 2, 300, 1, 10 );
+Plot( EMA( P2, Periods2 ), _DEFAULT_NAME(), ParamColor( "Color2", colorCycle ), ParamStyle("Style2") ); 
+
+P3 = ParamField("Price field",-1);
+Periods3 = Param("Periods3", 34, 2, 300, 1, 10 );
+Plot( EMA( P3, Periods3 ), _DEFAULT_NAME(), ParamColor( "Color3", colorCycle ), ParamStyle("Style3") ); 
+
+
+
+Buy = EMA(P1, Periods1) > EMA(P2, Periods2) AND EMA(P2, Periods2) > EMA(P3, Periods3);
+Sell = EMA(P1, Periods1) < EMA(P2, Periods2) AND EMA(P2, Periods2) < EMA(P3, Periods3);
+
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+
+Filter=Buy OR Sell;
+SetOption("NoDefaultColumns", True );
+AddColumn( DateTime(), "Date", formatDateTime );
+AddColumn( IIf( Buy, 66, 83 ), "Signal", formatChar );
+addcolumn( Close, "Close price", 1.4 );
+
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-40);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0,L, Offset=-50);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-45); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=40);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=50);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-45);
+
+_SECTION_END();

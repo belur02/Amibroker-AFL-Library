@@ -1,0 +1,259 @@
+// Downloaded From https://www.WiseStockTrader.com
+_SECTION_BEGIN("Divergence");
+Plot(MA(Close,3),"",IIf(MA(Close,3) > Ref(MA(Close,3),-1),colorBrightGreen,colorRed),styleThick);
+Plot(EMA(Close,20),"",IIf(EMA(Close,20) > Ref(EMA(Close,20),-1),colorBrightGreen,colorRed),styleThick+styleNoLabel);
+Col_bar = IIf(StochD(14) > Ref(StochD(14),-1),colorBrightGreen,colorRed);
+Plot(Close,"close",col_bar,styleBar+styleThick);
+ 
+GraphXSpace=7;
+n=Param("% Reverse ",20,0,100,1);
+
+Buy=Sell=0;
+Var = Zig(RSI(14), n);
+t= Trough(RSI(14), n, 1);
+p= Peak(RSI(14), n, 1);
+x[0] =Var[0];
+price[0] = C[0];
+j=0;
+
+// bearish divergence
+for ( i=0; i<BarCount; i++)
+{
+if(Var[i] == p[i])
+{
+
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] <x[j-1] && price[j-1]< price[j])
+Sell[i] =1;
+}
+}
+
+// bullish divergence
+for ( i=0; i<BarCount; i++)
+{
+if(Var[i] == t[i])
+{
+j++;
+x[j] =Var[i];
+price[j] =C[i];
+if(x[j] >x[j-1] && price[j]<price[j-1])
+Buy[i] =1;
+}
+}
+
+//Plot(Var, "", 39);
+PlotShapes ( IIf(Sell, shapeDigit2, shapeNone), colorRed);
+PlotShapes( IIf(Buy, shapeDigit2, shapeNone), colorBrightGreen);
+
+
+ST33=StochD(14);
+TR1=LLVBars(ST33,4);
+TR2=IIf(ST33<30 AND TR1>0 AND Ref(TR1,-1)==0,Ref(ST33,-1),0);
+TRC=IIf(TR2>0,C,0);
+vs=ValueWhen(tr2, Ref(st33,-1), 1);
+dvs=vs-Ref(vs,-1);
+vc=ValueWhen(trc, LLV(C,3), 1);
+dvc=vc-Ref(vc,-1);
+diver=IIf(dvs>0 AND dvc<0,30,0);
+DAS=BarsSince(Ref(TR2,-1)>0);
+DD=IIf(DAS<20 AND C>=Ref(C,-1),DIVER,0);
+//Graph0=TR2;
+//Graph0Style=2;
+//Graph0BarColor=12;
+//Graph1=dd;
+//Graph1BarColor=5;
+Buy1=DD>0 ;
+PlotShapes( IIf(Buy1, shapeDigit1, shapeNone), colorBrightGreen);
+
+ST33=StochD(14);
+TR11=HHVBars(ST33,4);
+TR21=IIf(ST33>70 AND TR11>0 AND Ref(TR11,-1)==0,Ref(ST33,-1),0);
+TRC1=IIf(TR21>0,C,0);
+vs1=ValueWhen(tr21, Ref(st33,-1), 1);
+dvs1=vs1-Ref(vs1,-1);
+vc1=ValueWhen(trc1, HHV(H,3), 1);
+dvc1=vc1-Ref(vc1,-1);
+diver1=IIf(dvs1<0 AND dvc1>0,90,0);
+DAS1=BarsSince(Ref(TR21,-1)>0);
+ddd1=IIf(DAS1<20 AND C<Ref(C,-1),DIVER1,0);
+//Graph1=TR2;
+//Graph0=ddd;
+//Graph0BarColor=4;
+//Graph1Style=2;
+//Graph1BarColor=1;
+Sell1=ddd1==90;
+PlotShapes ( IIf(Sell1, shapeDigit1, shapeNone), colorRed);
+EMA1= EMA(Close,12);
+EMA2= EMA(EMA1,12);
+Difference= EMA1 - EMA2;
+ZeroLagEMAp= EMA1 + Difference;
+//---------------------------------------
+EMA1= EMA(Close,26);
+EMA2= EMA(EMA1,26);
+Difference= EMA1 - EMA2;
+ZeroLagEMAq= EMA1 + Difference;
+//---------------------------------------
+ZeroLagMACD=ZeroLagEMAp - ZeroLagEMAq;
+
+ST33= ZeroLagMACD;
+bars=50;
+TR1= LLVBars(ST33,5);
+COND1=TR1> 0 AND Ref(TR1,-1)==0 AND Ref(ST33,-1)<0;
+TR2= IIf(COND1,Ref(ST33,-1),0);
+M1= ValueWhen(COND1,ST33);
+P1= ValueWhen(COND1,LLV(L,3));
+DM1=M1- Ref(M1,-1);DP1=P1-Ref(P1,-1);
+DT= Ref(BarsSince(COND1),-1);
+POSDIV=DM1> 0 AND DP1<0 AND DT<BARS; 
+TR11= HHVBars(ST33,5);
+COND11=TR11> 0 AND Ref(TR11,-1)==0 AND Ref(ST33,-1)>0;
+TR21= IIf(COND11,Ref(ST33,-1),0);
+M11= ValueWhen(COND11,ST33);
+P11= ValueWhen(COND11,HHV(H,3));
+DM11=M11- Ref(M11,-1);DP11=P11-Ref(P11,-1);
+DT1= Ref(BarsSince(COND11),-1);
+NEGDIV=DM11< 0 AND DP11>0 AND DT1<BARS;
+PlotShapes(shapeDigit3*POSDIV,colorBrightGreen);
+PlotShapes(shapeDigit3*NEGDIV,colorRed);
+
+
+
+//========hist divergence
+A1=EMA(C,12)-EMA(C,26);
+a2 = EMA(a1,9);
+Hist = a1-a2;
+
+ST33= Hist;
+bars=50;
+TR1= LLVBars(ST33,5);
+COND1=TR1> 0 AND Ref(TR1,-1)==0 AND Ref(ST33,-1)<0;
+TR2= IIf(COND1,Ref(ST33,-1),0);
+M1= ValueWhen(COND1,ST33);
+P1= ValueWhen(COND1,LLV(L,3));
+DM1=M1- Ref(M1,-1);DP1=P1-Ref(P1,-1);
+DT= Ref(BarsSince(COND1),-1);
+POSDIV1=DM1> 0 AND DP1<0 AND DT<BARS; 
+TR11= HHVBars(ST33,5);
+COND11=TR11> 0 AND Ref(TR11,-1)==0 AND Ref(ST33,-1)>0;
+TR21= IIf(COND11,Ref(ST33,-1),0);
+M11= ValueWhen(COND11,ST33);
+P11= ValueWhen(COND11,HHV(H,3));
+DM11=M11- Ref(M11,-1);DP11=P11-Ref(P11,-1);
+DT1= Ref(BarsSince(COND11),-1);
+NEGDIV1=DM11< 0 AND DP11>0 AND DT1<BARS;
+PlotShapes(shapeDigit4*POSDIV1,colorBrightGreen);
+PlotShapes(shapeDigit4*NEGDIV1,colorRed);
+
+//================cci divergence
+ST33= CCI(14);
+bars=50;
+TR1= LLVBars(ST33,5);
+COND1=TR1> 0 AND Ref(TR1,-1)==0 AND Ref(ST33,-1)<0;
+TR2= IIf(COND1,Ref(ST33,-1),0);
+M1= ValueWhen(COND1,ST33);
+P1= ValueWhen(COND1,LLV(L,3));
+DM1=M1- Ref(M1,-1);DP1=P1-Ref(P1,-1);
+DT= Ref(BarsSince(COND1),-1);
+POSDIV2=DM1> 0 AND DP1<0 AND DT<BARS; 
+TR11= HHVBars(ST33,5);
+COND11=TR11> 0 AND Ref(TR11,-1)==0 AND Ref(ST33,-1)>0;
+TR21= IIf(COND11,Ref(ST33,-1),0);
+M11= ValueWhen(COND11,ST33);
+P11= ValueWhen(COND11,HHV(H,3));
+DM11=M11- Ref(M11,-1);DP11=P11-Ref(P11,-1);
+DT1= Ref(BarsSince(COND11),-1);
+NEGDIV2=DM11< 0 AND DP11>0 AND DT1<BARS;
+PlotShapes(shapeDigit5*POSDIV2,colorBrightGreen);
+PlotShapes(shapeDigit5*NEGDIV2,colorRed); 
+
+diff_cci = round((CCI(14) - Ref(CCI(14),-1))*10)/10;
+diff_stoch = round((StochD(14) - Ref(StochD(14),-1))*10)/10;
+diff_rsi = round((RSI(14)-Ref(RSI(14),-1))*10)/10;
+diff_hist = round((Hist - Ref(Hist,-1))*10)/10;
+diff_macd = round((ZeroLagMACD - Ref(ZeroLagMACD,-1))*10)/10;
+
+
+
+DayH = TimeFrameGetPrice("H", inDaily, -1);// yesterdays high 
+DayL = TimeFrameGetPrice("L", inDaily, -1);//low 
+DayC = TimeFrameGetPrice("C", inDaily, -1);//close
+DayO = TimeFrameGetPrice("O", inDaily );//open today
+
+R6 = (DayH / DayL) * DayC * 1.002;
+R5 = (DayH / DayL) * DayC;
+R4 = (((DayH / DayL) + 0.83) / 1.83) * DayC;
+R3 = ( ( (DayH / DayL) + 2.66) / 3.66) * DayC;
+R2 = ( ( (DayH / DayL) + 4.5) / 5.5) * DayC;
+R1 = ( ( (DayH / DayL) + 10) / 11) * DayC;
+ 
+S1 = (2- ( ( (DayH / DayL) + 10) / 11)) * DayC;
+S2 = (2-( (DayH / DayL) + 4.5) / 5.5) * DayC;
+S3 = (2-(( DayH / DayL) + 2.66) / 3.66) * DayC;
+S4 = (2-( (DayH / DayL) + 0.83) / 1.83) * DayC;
+S5 = (2-( DayH / DayL)) * DayC;
+S6 = (2-( DayH / DayL)) * DayC * 0.998;
+
+
+pivot = (DayO+ DayH+DayL+DayC)/4;
+Plot(Pivot,"", colorWhite,styleThick);
+intra_buy = C > R4 AND (Buy OR  Buy1 OR posdiv OR posdiv1 OR posdiv2);
+intra_sell = C < S4 AND ( Sell OR Sell1 OR negdiv OR negdiv1 OR negdiv2); 
+  
+Filter=intra_buy OR intra_sell;
+AddColumn(C,"Present Price");
+AddColumn( IIf(Buy,1,IIf(Sell,-1,0)) ,"RSI",1.0,colorBlack,IIf(Buy,colorGreen,IIf(Sell,colorRed,colorDefault)));
+AddColumn( IIf(Buy1,1,IIf(Sell1,-1,0)) ,"STOCH",1.0,colorBlack,IIf(Buy1,colorGreen,IIf(Sell1,colorRed,colorDefault)));
+AddColumn( IIf(posdiv,1,IIf(negdiv,-1,0)) ,"MACD",1.0,colorBlack,IIf(posdiv,colorGreen,IIf(negdiv,colorRed,colorDefault)));
+AddColumn( IIf(posdiv1,1,IIf(negdiv1,-1,0)) ,"HIST",1.0,colorBlack,IIf(posdiv1,colorGreen,IIf(negdiv1,colorRed,colorBlack)));
+AddColumn( IIf(posdiv2,1,IIf(negdiv2,-1,0)) ,"CCI",1.0,colorBlack,IIf(posdiv2,colorGreen,IIf(negdiv2,colorRed,colorBlack)));
+AddColumn (r4,"H4",1.0,colorBlack,IIf(C > R4,colorGreen,colorRed));
+AddColumn (r3,"H3",1.0,colorBlack,IIf(C > R3,colorGreen,colorRed));
+AddColumn (s3,"L3",1.0,colorBlack,IIf(C > S3,colorGreen,colorRed));
+AddColumn (S4,"L4",1.0,colorBlack,IIf(C > S4,colorGreen,colorRed));
+AddColumn (DayH,"Yesterday's High",1.0,colorBlack,IIf(C > DayH,colorGreen,colorRed));
+AddColumn (Pivot,"Pivot",1.0,colorBlack,IIf(C > pivot,colorGreen,colorRed));
+AddColumn (DayL,"Yesterday's Low",1.0,colorBlack,IIf(C > DayL,colorGreen,colorRed));
+
+
+
+
+
+
+
+
+Title = EncodeColor(colorWhite)+ "SHEROUNE ka SYSTEM" + " - " +  Name() + " - " + EncodeColor(colorRed)+ Interval(2) + EncodeColor(colorWhite) +
+ "  - " + Date() +" - "+
+ EncodeColor(colorYellow)+   " Yesterday's High : "+ EncodeColor(colorWhite)+DayH + EncodeColor(colorYellow)+   "    Yesterday's Low : "+ EncodeColor(colorWhite)+DayL
+
++"\n"+
+WriteIf(H > Ref(H,-1),EncodeColor(colorBrightGreen),EncodeColor(colorRed))+"              Hi "+H+"\n"+ 
+EncodeColor(colorWhite)+"Op "+O+EncodeColor(colorAqua)+" Cl : " +C+"\n"+
+WriteIf(L < Ref(L,-1),EncodeColor(colorRed),EncodeColor(colorBrightGreen))+"              Lo "+L+
+"\n"+
+WriteIf(diff_cci > 0, EncodeColor(colorBrightGreen), EncodeColor(colorRed))+"Diff in CCI :" + diff_cci+
+WriteIf(diff_RSI > 0, EncodeColor(colorBrightGreen), EncodeColor(colorRed))+"\n Diff in RSI :" +diff_RSI+
+WriteIf(diff_stoch > 0, EncodeColor(colorBrightGreen), EncodeColor(colorRed))+"\n Diff in STOCH :" + diff_Stoch+
+WriteIf(diff_macd > 0, EncodeColor(colorBrightGreen), EncodeColor(colorRed))+"\n Diff in MACD :" + diff_macd+
+WriteIf(diff_RSI > 0, EncodeColor(colorBrightGreen), EncodeColor(colorRed))+"\n Diff in HIST :" + diff_HIST+
+
+WriteIf(Sell,EncodeColor(colorRed)+"\n SELL :Divergence on RSI","") +
+WriteIf(Buy,EncodeColor(colorBrightGreen)+"\n BUY :Divergence on RSI","") +
+WriteIf(Sell1,EncodeColor(colorRed)+"\n SELL :Divergence on STOCH","") +
+WriteIf(Buy1,EncodeColor(colorBrightGreen)+"\n BUY :Divergence on STOCH","")+ 
+WriteIf(POSDIV,EncodeColor(colorBrightGreen)+"\n BUY :Divergence on MACD","")+ 
+WriteIf(NEGDIV,EncodeColor(colorRed)+"\n SELL :Divergence on MACD","") +
+WriteIf(POSDIV1,EncodeColor(colorBrightGreen)+"\n BUY :Divergence on HIST","")+ 
+WriteIf(NEGDIV1,EncodeColor(colorRed)+"\n SELL :Divergence on HIST","") +
+WriteIf(POSDIV2,EncodeColor(colorBrightGreen)+"\n BUY :Divergence on CCI","")+ 
+WriteIf(NEGDIV2,EncodeColor(colorRed)+"\n SELL :Divergence on CCI","") 
+
+;
+
+Plot( BBandTop( Close, 20, 2 ), "BBTop" , IIf(BBandTop( Close, 20, 2 ) > Ref(BBandTop( Close, 20, 2 ),-1),colorBlue,colorGrey40), styleThick ); 
+Plot( BBandBot( Close, 20, 2 ), "BBbot" , IIf(BBandBot( Close, 20, 2 ) < Ref(BBandBot( Close, 20, 2 ),-1),colorBlue,colorGrey40), styleThick ); 
+
+//Plot( BBandBot( P, Periods, Width ), "BBBot" + _PARAM_VALUES(), Color, Style ); 
+_SECTION_END();
+_SECTION_END();

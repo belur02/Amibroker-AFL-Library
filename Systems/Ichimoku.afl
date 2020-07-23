@@ -1,0 +1,100 @@
+// Downloaded From www.WiseStockTrader.com
+_SECTION_BEGIN("i");
+/* ICHIMOKU CHART */ 
+n1 = Param("Ишимоку: период 1",9,1,200,1); 
+n2 = Param("Ишимоку: период 2",26,1,400,1); 
+n3 = Param("Ишимоку: период 3",52,1,600,1); 
+
+TenkanSen   =(HHV(H,n1)+LLV(L,n1))/2;            // Tenkan-sen (Тенкан-сен) – это среднее значение цены за первый промежуток времени (равна (high+low)/2, где high и low – максимум и минимум за период). 
+KijunSen    =(HHV(H,n2)+LLV(L,n2))/2;            // Kijun-sen (Киджун-сен) – это среднее значение цены за второй промежуток. 
+ChinkouSpan =Ref(C,-n2);                          // Chinkou Span (Чикоу спен) - цена закрытия текущего бара, сдвинутая назад на величину второго временного интервала. 
+Cks         = Close;                             // Графический Chinkou Span, сдвиг назад засчет отрисовки. 
+SenkouSpanA =Ref((KijunSen+TenkanSen)/2,-n2);    // Senkou Span A (Сенкоу спен А) / Up Kumo - середина расстояния между Tenkan-sen и Kijun-sen, сдвинутое вперед на величину второго временного интервала. 
+SpA         =(KijunSen+TenkanSen)/2;             // Графический Senkou Span A , сдвиг вперед засчет отрисовки. 
+SenkouSpanB =Ref((HHV(H,n3)+LLV(L,n3))/2,-n2);   // Senkou Span B (Сенкоу спен В) / Down Kumo - среднее значение цены за третий временной интервал, сдвинутое вперед на величину второго временного интервала. 
+SpB         =(HHV(H,n3)+LLV(L,n3))/2;            // Графический Senkou Span B, сдвиг вперед засчет отрисовки. 
+DL = Ref( C, 25 );
+
+
+Cond1 =  Ref(Close > Max(SenkouSpanA,SenkouSpanB),-1);  //цена выше облака  -- бычье настроение 
+Cond2 =  Ref(Close < Min(SenkouSpanA,SenkouSpanB),-1);  //цена ниже облака  -- медвежье настроение 
+Cond3 =  Ref(Cross(TenkanSen,KijunSen),-1);  //пересечение Тенкан и Киджун -- сигнал на покупку 
+Cond4 =  Ref(Cross(KijunSen,TenkanSen),-1);  //пересечение Тенкан и Киджун -- сигнал на продажу 
+Cond5 =  Ref(Cross(Close,ChinkouSpan ),-1);  //пересечение Чикоу и цены 
+Cond6 =  Ref(Cross(ChinkouSpan ,Close),-1);  //пересечение Чикоу и цены 
+Cond7 =  Ref(Cross (Close , Max(SenkouSpanA,SenkouSpanB)),-1);  //цена выходит вверх из облака  -- сигнал на покупку 
+Cond8 =  Ref(Cross ( Min(SenkouSpanA,SenkouSpanB), Close),-1);  //цена выходит вниз  из облака  -- сигнал на продажу 
+Cond9 = Close > TenkanSen AND TenkanSen > KijunSen AND KijunSen > Max(SenkouSpanA,SenkouSpanB); // сигнал трех линий вверх 
+Cond10= Close < TenkanSen AND TenkanSen < KijunSen AND KijunSen < Min(SenkouSpanA,SenkouSpanB); // сигнал трех линий вниз 
+RemCond9=ExRem(Cond9,NOT Cond9);                  
+RemCond10=ExRem(Cond10,NOT Cond10); 
+
+ColSenk =IIf (Cond1,colorGreen, IIf(Cond2,colorRed,colorLightGrey)); // задает цвет, если цена выше/ниже/внутри облака. 
+Flat  =  TenkanSen == Ref(TenkanSen,-1) OR (NOT(Cond1) AND NOT(Cond2)) ; 
+
+for( i = 0; i < BarCount; i++ ) //раскрашивает среднюю линию индикатора по взаиморасположению и направления движения TenkanSen, цены и облака. 
+{ 
+   if (Flat[i]) 
+      ColTenk[i] = colorLightGrey; 
+   else 
+   { 
+if (Cond1[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+if (Cond1[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] < TenkanSen[i-1]) 
+     ColTenk[i] = colorRed; 
+if (Cond2[i] AND TenkanSen[i] > TenkanSen[i-1]) 
+     ColTenk[i] = colorGreen; 
+   } 
+} 
+
+
+AlertIf( Cond3 OR Cond4, "SOUND c:/WINDOWS/Media/notify.wav", "пересечение Тенкан и Киджун",0,1+2+4+8); 
+AlertIf( Cond5 OR Cond6, "SOUND c:/WINDOWS/Media/notify.wav", "пересечение Чикоу и цены",0,1+2+4+8); 
+AlertIf( Cond7 OR Cond8, "SOUND c:/WINDOWS/Media/notify.wav", "цена выходит  из облака",0,1+2+4+8); 
+AlertIf( RemCond9 OR RemCond10, "SOUND c:/WINDOWS/Media/notify.wav", "сигнал трех линий",0,1+2+4+8); 
+
+//PlotShapes(IIf(Cond7, shapeSmallUpTriangle ,shapeNone),colorGreen,0,H,10);              
+//PlotShapes(IIf(Cond8, shapeSmallDownTriangle ,shapeNone),colorRed,0,L,10); 
+//PlotShapes(IIf(Cond3, shapeHollowSmallUpTriangle,shapeNone),colorGreen,0,H,12);              
+//PlotShapes(IIf(Cond4, shapeHollowSmallDownTriangle ,shapeNone),colorRed,0,L,12); 
+//PlotShapes(IIf(Cond5, shapeSmallCircle ,shapeNone),colorGreen,0,H,4);              
+//PlotShapes(IIf(Cond6, shapeSmallCircle + shapePositionAbove ,shapeNone),colorRed,0,L,4); 
+//PlotShapes(IIf(RemCond9 , shapeHollowSquare ,shapeNone),colorGreen,0,H,18);              
+//PlotShapes(IIf(RemCond10, shapeHollowSquare + shapePositionAbove ,shapeNone),colorRed,0,L,18); 
+
+//Plot (C,"Close",colorBlack,styleThick); 
+Plot (C,"Bars",colorBlack,styleCandle); 
+Plot (TenkanSen,"Tenkan-sen",colorRed); 
+Plot (KijunSen, "Kijun-sen", colorBlue); 
+Plot (Cks,"Chinkou Span",colorLime, style = styleLine,0,0,-n2); 
+Plot (SpA,"SenkouSpanA",colorOrange,styleDashed,0,0,n2); 
+Plot (SpB,"SenkouSpanB",colorViolet,styleDashed + styleThick,0,0,n2); 
+PlotOHLC (SpA,SpA,SpB,SpB,"Cloud",IIf (SpA > SpB,colorPink,colorLavender),styleCloud, 10, 10, n2 ); 
+above = IIf(KijunSen>SenkouSpanA AND TenkanSen>SenkouSpanB,1,0);
+within = IIf(KijunSen>SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+below = IIf(TenkanSen<SenkouSpanA AND TenkanSen<SenkouSpanB,1,0);
+Buy = Cross(TenkanSen,KijunSen) AND (DL>Close);
+Sell = Cross(KijunSen,TenkanSen) AND (DL<KijunSen);
+StrongBuy = Buy AND above;
+MediumBuy = Buy AND within;
+WeakBuy = Buy AND below;
+StrongSell = Sell AND below;
+MediumSell = Sell AND within;
+WeakSell = Sell AND above;
+
+IIf( (StrongBuy),PlotShapes(shapeUpTriangle*StrongBuy,colorGreen),0);
+IIf( (MediumBuy),PlotShapes(shapeUpArrow*MediumBuy,colorGreen),0);
+IIf( (WeakBuy),PlotShapes(shapeHollowUpArrow*WeakBuy,colorIndigo),0);
+IIf( (StrongSell),PlotShapes(shapeDownTriangle*StrongSell,colorRed),0);
+IIf( (MediumSell),PlotShapes(shapeDownArrow*MediumSell,colorRed),0);
+IIf( (WeakSell),PlotShapes(shapeHollowDownArrow*WeakSell,colorBrown),0);
+
+
+// Горизонтальная цветная индикаторная полоса (пример). 
+
+
+Plot( 1, "Ribbon", ColTenk, styleOwnScale|styleArea|styleNoLabel, -2, 200 );   // индицирует флэт на TenkanSen. 
+Plot( 4, "Ribbon", ColSenk, styleOwnScale|styleArea|styleNoLabel, -1, 200 );   // индицирует положение цены относительно облака
+_SECTION_END();

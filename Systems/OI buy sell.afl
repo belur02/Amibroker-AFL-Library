@@ -1,0 +1,64 @@
+_SECTION_BEGIN("oi");
+//Plot( OI, _DEFAULT_NAME(), ParamColor("Color", colorBlueGrey ), ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick, maskHistogram ), 2 );
+_SECTION_END();
+//written by Thomas Zmuck
+//Date: 15-07-02
+//thomas.zm@aon.at
+ 
+Symbol1OI_Vege=Foreign(Name(),"I");  // first symbol 
+Symbol2OI_Vege=Foreign(StrReplace(Name(), "-I", "-II" ),"I");  // second symbol OI
+Symbol3OI_Vege=Foreign(StrReplace(Name(), "-I", "-III" ),"I");   /// Third Symbol OI 
+CombinedOI_Vege=Symbol1OI_Vege+Symbol2OI_Vege+Symbol3OI_Vege;     //   3 symbols OI together 
+
+
+gain=ROC(C,1);
+coiadd=ROC(CombinedOI_Vege,1);
+
+
+
+x = IIf(gain > 0 AND coiadd > 0, '1',
+IIf(gain > 0 AND coiadd < 0, '2',
+IIf(gain < 0 AND coiadd > 0, '3',
+IIf(gain < 0 AND coiadd < 0, '4', '5'))));
+
+
+//AddColumn(x,"Trade Setup", formatChar);
+
+//Ref(x, 0)
+SetSortColumns( -11 );  // rank according to 3rd column (ascending)
+//SetSortColumns( -13 );  // rank according to 3rd column (ascending)
+
+//AddColumn( x=1, "bullish", format = 1.2, textColor = colorDefault, bkgndColor = colorDefault ) 
+
+
+
+
+
+pds = 10;
+V1 = CombinedOI_Vege/MA(CombinedOI_Vege,10);
+V2 = CombinedOI_Vege/MA(CombinedOI_Vege,20);
+V3 = CombinedOI_Vege/MA(CombinedOI_Vege,50);
+x=100*CombinedOI_Vege/MA(CombinedOI_Vege,pds);
+barcolor = IIf( x>Ref(x,-1),5,6);
+/* Colourized price bars drawn here */
+//Plot(100*CombinedOI_Vege/MA(CombinedOI_Vege,pds)," coi/ma(10)",barcolor, 2+4);
+Plot(100," AVG(10)",colorGrey50, styleThick); 
+//Plot(100," AVG(10)",colorLightGrey, styleArea);
+ 
+//Buying Condition – Open Interest Increase + Price Increase
+//Selling Condition – Open Interest Decrease + Price Decrease
+unsure = V1<1 AND V2<1 AND V3<1;
+sure = V1>1 AND V2>1 AND V3>1;
+ 
+Filter = unsure;
+AddColumn(100*CombinedOI_Vege/MA(CombinedOI_Vege,10),"V/ma(V,10)",1.0);
+AddColumn(100*CombinedOI_Vege/MA(CombinedOI_Vege,20),"V/ma(V,20)",1.0);
+AddColumn(100*CombinedOI_Vege/MA(CombinedOI_Vege,50),"V/ma(V,50)",1.0);
+AddColumn(ROC(C,1),"%today"); 
+
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, 100*CombinedOI_Vege/MA(CombinedOI_Vege,pds), 0, 100*CombinedOI_Vege/MA(CombinedOI_Vege,pds), "coi/ma(10)", barcolor , styleCandle, 10) ;
+    //Plot(100*CombinedOI_Vege/MA(CombinedOI_Vege,pds), "coi/ma(10)", colorLightGrey, styleArea);
+    Plot(100*CombinedOI_Vege/MA(CombinedOI_Vege,pds), "coi/ma(10)", colorBlack, styleLine);

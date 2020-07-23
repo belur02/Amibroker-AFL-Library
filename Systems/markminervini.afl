@@ -1,0 +1,27 @@
+
+_SECTION_BEGIN("MaRK-MINERVINI");
+
+
+
+function Trending(Carray, Harray, Larray)
+{
+	// 52 week high/low check, within 25%
+	W52wkHigh = Carray > 0.75 * HHV(Harray, 52 * 5) AND Carray > LLV(Larray, 52*5)*1.30;
+
+	// Check trend using SMAs
+	SMA050 = MA(Carray, 050);
+	SMA150 = MA(Carray, 150);
+	SMA200 = MA(Carray, 200);
+
+	UnwrappedSMA = Carray > SMA050 AND SMA050 > SMA150 AND SMA150 > SMA200;
+
+	UpTrend = SMA200 > Ref(SMA200, -22);
+
+	//Filter 
+	Stage2 = W52wkHigh AND UnwrappedSMA AND UpTrend;
+	
+	return Stage2;
+}
+
+
+_SECTION_END();

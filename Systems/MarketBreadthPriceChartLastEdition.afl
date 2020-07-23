@@ -1,0 +1,2765 @@
+_SECTION_BEGIN("Plotting Parameters");
+LongPlot=ParamToggle("Long","Off|On",0);
+ShortPlot=ParamToggle("Short","Off|On",0);
+DiffLongShort=ParamToggle("Difference between Long And Short", "Off|On",0);
+Plot0Line=ParamToggle("Zero Line", "Off|On",0);
+_SECTION_END();
+
+_SECTION_BEGIN("Algorithm parameters");
+Periods = Param("Periods", 10, 2, 300, 1 );
+Width = Param("Width", 0.8, 0, 10, 0.05 );
+CY1 =  Param("Short Cycle Length?" ,10, 1 ,1000 ,1 )/2;
+CY2 =  Param("Medium Cycle Length?" ,80, 1 ,1000 ,1 )/2;
+M1 =  Param("Short Cycle Multiplyer?" ,1, 0.01 ,10 ,1 );
+M2 =  Param("Medium Cycle Multiplyer?" ,3, 0.01 ,10 ,1 );
+MA1=Param("Option 4 ShortMACDLen",23,5,36);
+MA2=Param("Option 4 LOngMACDLen",50,10,100);
+TCLen=Param("Option 4 TCLen(StochPeriod)",10,5,20);
+
+MA3=Param("Option 5 ShortMACDLen",10,5,36);
+MA4=Param("Option 5 LOngMACDLen",20,10,100);
+SA1=Param("Option 5 signal Avg",5,10,100);
+MAMACD=Param("Option 5 MACD line MAvg",10,5,100);
+
+MA5=Param("Option 6 MA",10,5,36);
+MA6=Param("Option 6 MA 2",20,10,100);
+MA9=Param("Option 6 MA 3",40,10,100);
+
+MA7=Param("Option 7 MA",10,5,36);
+MA8=Param("Option 7 MA 2",20,10,100);
+WatchlistNum= Param ("WatchList Number",64, 0,100,1);
+
+_SECTION_END();
+//_SECTION_BEGIN("Backtest Timeframes");
+//expM = ParamToggle("Monthly signal","Off|On",0);
+//expW = ParamToggle("Weekly signal","Off|On",0);
+//expD = ParamToggle("Daily signal","Off|On",0);
+//exp4h = ParamToggle("4 h  signal","Off|On",0);
+//exp1h = ParamToggle("1 h  signal","Off|On",0);
+//exp30m = ParamToggle("30 m  signal","Off|On",0);
+//exp15m = ParamToggle("15 m  signal","Off|On",0);
+//exp5m = ParamToggle("5 m  signal","Off|On",0);
+//_SECTION_END();
+function multiTimeframePriceBuy()
+{
+	
+	//TimeFrameSet(tf);
+	//dc = TimeFrameGetPrice( "C", inDaily, -1 ); 
+
+	T1 =  Ref(MA(Close ,CY1 ),0)+ M1*ATR(CY1 );
+	B1 =  Ref(MA( Close ,CY1 ),0)- M1*ATR(CY1 );
+
+	T2 =  Ref(MA(Close ,CY2 ),0)+ M2*ATR(CY2 );
+	B2 =  Ref(MA( Close ,CY2 ),0)- M2*ATR(CY2 );
+	
+	MiddleBand = (B2+T2)/2;
+	CenterLine = MA(C, Periods );
+	KTop   = CenterLine + Width * ATR( Periods );
+	KBot = CenterLine - Width * ATR( Periods );
+	//TimeFrameRestore();
+
+	//expandmode = expandFirst;
+	//T1=TimeFrameExpand(T1,tf,expandmode);
+	//B1=TimeFrameExpand(B1,tf,expandmode);
+	//T2=TimeFrameExpand(T2,tf,expandmode);
+	//B2=TimeFrameExpand(B2,tf,expandmode);
+	//KTop=TimeFrameExpand(KTop,tf,expandmode);
+	//KBot=TimeFrameExpand(KBot,tf,expandmode);
+	//MiddleBand=TimeFrameExpand(MiddleBand,tf,expandmode);
+	//Plot(MiddleBand,"MiddleBand",colorAqua);
+	//Plot(B1,"T1",colorAqua+5);
+	//AddColumn(C,"Close",1.10);
+	//AddColumn(T2,"BigCycleUpperBand",1.10);
+	//AddColumn(B2,"BigCycleLowerBand",1.10);
+	//AddColumn(MiddleBand,"BigCycleMiddleBand",1.10);
+	//AddColumn(T1,"KeltneUpperBand",1.10);
+	//AddColumn(B1,"KeltneLowerBand",1.10);
+	//Plot(KTop,"KTop"+tf,colorWhite);
+	T12 =  Ref(MA(Close ,CY1 ),0)+ M1*ATR(CY1 );
+	B12 =  Ref(MA( Close ,CY1 ),0)- M1*ATR(CY1 );
+
+	T22 =  Ref(MA(Close ,CY2 ),0)+ M2*ATR(CY2 );
+	B22 =  Ref(MA( Close ,CY2 ),0)- M2*ATR(CY2 );
+	MiddleBand2 = (B22+T22)/2;
+
+	//Plot(MiddleBand2,"MiddleBand",colorAqua+5);
+	//Plot(B12,"T1",colorAqua+5);
+	//Filter=C;
+
+
+	//OPTIONS 
+	option1Answer = 0;
+	option1Value = 0;
+	buyGr = ParamToggle("Buy Rule ? ","OR|AND",0);
+	_SECTION_BEGIN("Option 1 Buy");
+	Option1 = ParamToggle("Option 1 Entry/Explore","Off|On",0);
+	Option1Choice = ParamList("Option 1 Choice Entry/Explore","Close with BigCylceUpperBand|Close with BigCylceLowerBand|Close With KeltneUpperBand|Close With KeltneLowerBand|Close With BigCylceMiddleBand|Close With Yesterday VWAP|Close with H(t-1)|Close with L(t-1)");
+	Option1Direction = ParamList("Option1 Direction Entry/Explore",">|<",0);
+	if (Option1 == 1)
+	{
+		switch (Option1Choice)
+		{
+			case "Close with BigCylceUpperBand":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>T2,1,0);
+					
+				else
+					option1Answer = IIf(C<T2,1,0);
+				
+				option1Value = (C-T2)/T2 * 100;
+				buycross = Cross(C,T2);
+				break;
+			
+			case "Close with BigCylceLowerBand":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>B2,1,0);
+				else
+					option1Answer = IIf(C<B2,1,0);
+				
+				option1Value = (C - B2)/B2 * 100;
+				buycross = Cross(C,B2);
+				break;
+			
+			case "Close With KeltneUpperBand":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>KTop,1,0);
+				else
+					option1Answer = IIf(C<KTop,1,0);
+					
+				option1Value = (C - KTop)/KTop * 100;
+				buycross = Cross(C,KTop);
+				break;
+			
+			case "Close With KeltneLowerBand":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>KBot,1,0);
+				else
+					option1Answer = IIf(C<KBot,1,0);
+				
+				option1Value = (C - KBot)/KBot * 100;
+				buycross = Cross(C,KBot);
+				break;
+			
+			case "Close With BigCylceMiddleBand":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>MiddleBand,1,0);
+				else
+					option1Answer = IIf(C<MiddleBand,1,0);
+				
+				option1Value = (C - MiddleBand)/MiddleBand * 100 ;
+				buycross = Cross(C,MiddleBand);
+				break;
+				
+			case "Close With Yesterday VWAP":
+			
+				if (Option1Direction == ">")
+					option1Answer = IIf(C>dc,1,0);
+				else
+					option1Answer = IIf(C<dc,1,0);
+				
+				option1Value = (C - dc)/dc * 100 ;
+				buycross = Cross(C,dc);
+				break;
+			
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option1Direction == ">")
+					option1Answer = IIf(tfC>tfH,1,0);
+				else
+					option1Answer = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+				
+				//AddColumn(tfl,"lD1");
+				if (Option1Direction == ">")
+					option1Answer = IIf(tfC>tfL,1,0);
+				else
+					option1Answer = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+			
+			
+		} 
+	}
+
+	else
+		option1Answer = buyGr;
+		
+	_SECTION_END();		
+	option2Answer = 0;
+	option2Value = 0;
+	_SECTION_BEGIN("Option 2 Buy");
+	Option2 = ParamToggle("Option 2 Entry/Explore","Off|On",0);
+	Option2Choice = ParamList("Option 2 Choice Entry/Explore","KeltneUpper With BigCycleUpperBand|KeltneUpper With BigCycleLowerBand|KeltneLower With BigCycleUpperBand|KeltneLower With BigCycleLowerBand|KeltneUpper With BigCycleMiddleBand|KeltneLower With BigCycleMiddleBand|Close with H(t-1)|Close with L(t-1)");
+	Option2Direction = ParamList("Option2 Direction Entry/Explore",">|<",0);
+	if (Option2 == 1)
+	{
+		switch (Option2Choice)
+		{
+			case "KeltneUpper With BigCycleUpperBand":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(KTop>T2,1,0);
+				else
+					option2Answer = IIf(KTop<T2,1,0);
+					
+				option2Value = (KTop-T2)/T2 * 100;
+				buycross = Cross(KTop,T2);
+				break;
+		
+		
+			case "KeltneUpper With BigCycleLowerBand":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(KTop>B2,1,0);
+				else
+					option2Answer = IIf(KTop<B2,1,0);
+				
+				option2Value = (KTop-B2)/B2 * 100;
+				buycross = Cross(KTop,B2);
+				break;
+			
+			case "KeltneLower With BigCycleUpperBand":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(KBot>T2,1,0);
+				else
+					option2Answer = IIf(KBot<T2,1,0);
+				option2Value = (KBot - T2)/T2 * 100;
+				buycross = Cross(KBot,T2);
+				break;
+				
+			case "KeltneLower With BigCycleLowerBand":
+			
+				if (Option2Direction ==">")
+					option2Answer = IIf(KBot>B2,1,0);
+				else
+					option2Answer = IIf(KBot<B2,1,0);
+				option2Value = (KBot-B2)/B2 * 100;
+				buycross = Cross(KBot,B2);
+				break;
+				
+			case "KeltneUpper With BigCycleMiddleBand":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(KTop>MiddleBand,1,0);
+				else
+					option2Answer = IIf(KTop<MiddleBand,1,0);
+				option2Value = (KTop-MiddleBand)/MiddleBand * 100;
+				buycross = Cross(KTop,MiddleBand);
+				break;
+				
+			case "KeltneLower With BigCycleMiddleBand":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(KBot>MiddleBand,1,0);
+				else
+					option2Answer = IIf(KBot<MiddleBand,1,0);
+				option2Value = (KBot-MiddleBand)/ MiddleBand * 100;
+				buycross = Cross(KBot,MiddleBand);
+				break;
+				
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option2Direction == ">")
+					option2Answer = IIf(tfC>tfH,1,0);
+				else
+					option2Answer = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+			
+				if (Option2Direction == ">")
+					option2Answer = IIf(tfC>tfL,1,0);
+				else
+					option2Answer = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+		}
+		
+		
+		
+	}
+
+	else
+		option2Answer = buyGr;
+	 _SECTION_END();
+	 option3Answer = 0;
+	 _SECTION_BEGIN("Option 3 Buy");
+	option3 = ParamToggle("Option 3 Entry/Explore","Off|On",0);
+	option3Value = 0;
+	option3Choice = ParamList("Option 3 Choice Entry/Explore","Close with BigCylceUpperBand|Close with BigCylceLowerBand|Close With KeltneUpperBand|Close With KeltneLowerBand|Close With BigCylceMiddleBand|Close With Yesterday VWAP|KeltneUpper With BigCycleUpperBand|KeltneUpper With BigCycleLowerBand|KeltneLower With BigCycleUpperBand|KeltneLower With BigCycleLowerBand|KeltneUpper With BigCycleMiddleBand|KeltneLower With BigCycleMiddleBand|Close with H(t-1)|Close with L(t-1)");
+	Option3Direction = ParamList("Option3 Direction Entry/Explore",">|<",0);
+	if (Option3 == 1)
+	{
+		switch (Option3Choice)
+		{
+			case "Close with BigCylceUpperBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>T2,1,0);
+				else
+					option3Answer = IIf(C<T2,1,0);
+				option3Value = (C - T2)/T2 * 100;
+				buycross = Cross(C,T2);
+				break;
+			
+			case "Close with BigCylceLowerBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>B2,1,0);
+				else
+					option3Answer = IIf(C<B2,1,0);
+				option3Value = (C -B2)/B2 * 100;
+				buycross = Cross(C,B2);
+				break;
+			
+			case "Close With KeltneUpperBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>KTop,1,0);
+				else
+					option3Answer = IIf(C<KTop,1,0);
+				option3Value = (C - KTop)/KTop * 100;
+				buycross = Cross(C,KTop);
+				break;
+			
+			case "Close With KeltneLowerBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>KBot,1,0);
+				else
+					option3Answer = IIf(C<KBot,1,0);
+				option3Value = (C-KBot)/KBot * 100;
+				buycross = Cross(C,KBot);
+			
+				break;
+			
+			case "Close With BigCylceMiddleBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>MiddleBand,1,0);
+				else
+					option3Answer = IIf(C<MiddleBand,1,0);
+					
+				option3Value = ((C - MiddleBand)/MiddleBand) * 100;
+				buycross = Cross(C,MiddleBand);
+				break;
+				
+			case "KeltneUpper With BigCycleUpperBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KTop>T2,1,0);
+				else
+					option3Answer = IIf(KTop<T2,1,0);
+				
+				option3Value = (KTop-T2)/T2 * 100;
+				buycross = Cross(KTop,T2);
+			
+				break;
+		
+			case "KeltneLower With BigCycleUpperBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KBot>T2,1,0);
+				else
+					option3Answer = IIf(KBot<T2,1,0);
+				option3Value = (KBot- T2)/T2 * 100;
+				buycross = Cross(KBot,T2);
+				break;
+			
+			case "KeltneLower With BigCycleLowerBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KBot>B2,1,0);
+				else
+					option3Answer = IIf(KBot<B2,1,0);
+				option3Value = (KBot - B2)/B2 * 100;
+				buycross = Cross(KBot,B2);
+				break;
+				
+			case "KeltneUpper With BigCycleLowerBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KTop>B2,1,0);
+				else
+					option3Answer = IIf(KTop<B2,1,0);
+					
+				option3Value = (KTop - B2)/B2 *100;
+				buycross = Cross(KTop,B2);
+				break;
+				
+			case "KeltneUpper With BigCycleMiddleBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KTop>MiddleBand,1,0);
+				else
+					option3Answer = IIf(KTop<MiddleBand,1,0);
+				
+				option3Value = (KTop - MiddleBand)/MiddleBand*100 ;
+				buycross = Cross(KTop,MiddleBand);
+				break;
+				
+			case "KeltneLower With BigCycleMiddleBand":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(KBot>MiddleBand,1,0);
+				else
+					option3Answer = IIf(KBot<MiddleBand,1,0);
+				
+				option3Value = (KBot- MiddleBand)/MiddleBand * 100 ;
+				buycross = Cross(KBot,MiddleBand);
+				break;
+				
+			case "Close With Yesterday VWAP":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(C>dc,1,0);
+				else
+					option3Answer = IIf(C<dc,1,0);
+				
+				optionValue = (C - dc)/dc * 100 ;
+				buycross = Cross(C,dc);
+				break;
+				
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option3Direction == ">")
+					option3Answer = IIf(tfC>tfH,1,0);
+				else
+					option3Answer = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+			
+				if (Option3Direction == ">")
+					option3Answer = IIf(tfC>tfL,1,0);
+				else
+					option3Answer = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+		} 
+		
+	}
+
+	else 
+		option3Answer = buyGr;
+	_SECTION_END();
+	 option4Answer = 0;
+	 _SECTION_BEGIN("Option 4 Buy");
+	option4 = ParamToggle("Option 4 Entry/Explore","Off|On",0);
+	option4Value = 0;
+	option4Choice = ParamList("Option 4 Choice Entry/Explore","25|50|75");
+	option4Direction = ParamList("option4 Direction Entry/Explore",">|<",0);
+	if (option4 == 1)
+	{
+		//TimeFrameSet(tf);
+		Factor=.5;
+		//Calculate a MACD Line
+		XMac = MACD(MA1,MA2) ; // MACD in Amibroker always uses Close for MACD calculation
+
+		//1st Stochastic: Calculate Stochastic of a MACD
+		Value1 = LLV(XMac, TCLen);
+		Value2 = HHV(XMac, TCLen) - Value1;
+
+		//Frac1=1; // prime Frac1 to a default of 1
+		//Frac1 = IIf(Value2 > 0, ((XMac - Value1) / Value2) * 100, Ref(FRAC1,-1));
+		// have to "prime" first value so that reference to "i-1" does not result in subscript out of range
+		// since MACD for both periods is not defined until MA2 period, 0 seems to be mathematically correct priming value
+		frac1=0;
+		for (i = 1; i < BarCount; i++) {
+		if (Value2[i] > 0) {
+			frac1[i] = ((XMac[i] - Value1[i])/Value2[i])*100;
+			}
+		else {
+			frac1[i]= frac1[i-1];
+			}
+		}
+
+		//Smoothed calculation for %FastD of MACD
+
+		PF[0]=frac1[0]; 
+		PF[1]=frac1[1];
+		for (i = 2; i < BarCount; i++) {
+			PF[i]=PF[i-1]+(Factor*(frac1[i]-PF[i-1]));
+		}
+
+		 
+		//2nd Stochastic: Calculate Stochastic of Smoothed Percent FastD, above.
+		Value3 = LLV(PF, TCLen);
+		Value4 = HHV(PF, TCLen) - Value3;
+
+		//%FastK of PF
+		/*
+		Frac2=1;
+		Frac2 = IIf(Value4 > 0, ((PF - Value3) / Value4) * 100, Ref(FRAC2,-1));
+		*/
+
+		frac2[0]=0;
+		for (i = 1; i < BarCount; i++) {
+			if (Value4[i] > 0 ) {
+				frac2[i]=((PF[i] - Value3[i])/Value4[i])*100;
+			}
+			else {
+				frac2[i]=frac2[i-1];
+			}
+		}
+
+		//Smoothed calculation for %FastD of PF
+		PFF[0]=frac2[0];
+		PFF[1]=frac2[1];
+		for (i = 2; i < BarCount; i++) {
+			PFF[i]=PFF[i-1]+(Factor*(frac2[i]-PFF[i-1]));
+		}
+		//TimeFrameRestore();
+		//PFF=TimeFrameExpand(PFF,tf,expandmode);
+		switch (option4Choice)
+		{
+			case "25":
+			
+				if (option4Direction == ">")
+					option4Answer = IIf(PFF>25,1,0);
+				else
+					option4Answer = IIf(PFF<25,1,0);
+				break;
+			
+			case "50":
+			
+				if (option4Direction == ">")
+					option4Answer = IIf(PFF>50,1,0);
+				else
+					option4Answer = IIf(PFF<50,1,0);
+				break;
+			
+			case "75":
+			
+				if (option4Direction == ">")
+					option4Answer = IIf(PFF>75,1,0);
+				else
+					option4Answer = IIf(PFF<75,1,0);
+				break;
+			
+		} 
+		
+	}
+
+	else 
+		option4Answer = buyGr;
+
+_SECTION_END();
+option5Answer = 0;
+	 _SECTION_BEGIN("Option 5 Buy");
+	option5 = ParamToggle("Option 5 Entry/Explore","Off|On",0);
+	option5Value = 0;
+	option5Choice = ParamList("Option 5 Choice Entry/Explore","MACD line above Signal line && MACD line > 0|MACD line above Signal line && MACD line < 0|MACD line below Signal line && MACD line > 0|MACD line below Signal line && MACD line < 0|MACD line below Signal line && MACD line < MA(10)|MACD line above Signal line && MACD line > MA(10)|MACD line > MA(10)|MACD line < MA(10)|MACD hist bar < MACD previous hist bar|MACD hist bar > MACD previous hist bar|Histogram Peak?|Histogram Bottom?");
+	previousN=Param("Previous histogram n bars?",1,0,10,1);if (option5 == 1)
+	//option5Direction = ParamList("option5 Direction Entry/Explore",">|<",0);
+
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		maMcd=MA(XMac,MAMACD);
+		hist=XMac - sl;
+		maMcd=MA(XMac,MAMACD);
+		prevHist=Ref(hist,-1);
+		bPreVHist=Ref(hist,-2);
+		prevNHist=Ref(hist,-previousN);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//XMac=TimeFrameExpand(XMac,tf,expandmode);
+		//sl=TimeFrameExpand(sl,tf,expandmode);
+		//maMcd=TimeFrameExpand(maMcd,tf,expandmode);
+		switch (option5Choice)
+		{
+			case "MACD line above Signal line && MACD line > 0":
+			
+				option5Answer = IIf(XMac>sl AND XMac>0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line < 0":
+			
+				option5Answer = IIf(XMac>sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line below Signal line && MACD line > 0":
+			
+				option5Answer = IIf(XMac<sl AND XMac>0,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < 0":
+			
+				option5Answer = IIf(XMac<sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line > MA(10)":
+			
+				option5Answer = IIf(XMac>sl AND XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < MA(10)":
+			
+				option5Answer = IIf(XMac<sl AND XMac<maMcd,1,0);
+				break;
+				
+			case "MACD line > MA(10)":
+			
+				option5Answer = IIf(XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line < MA(10)":
+			
+				option5Answer = IIf(XMac<maMcd,1,0);
+				break;
+				
+			case "MACD hist bar < MACD previous hist bar":
+				option5Answer = IIf(hist < prevNHist,1,0);
+				break;
+				
+			case "MACD hist bar > MACD previous hist bar":
+				option5Answer = IIf(hist>prevNHist,1,0);
+				break;
+				
+			case "Histogram Peak?":
+				option5Answer = IIf(hist < prevHist AND prevHist > bPrevHist,1,0);
+				//AddColumn(option4Answer,"op5");
+				break;
+				
+			case "Histogram Bottom?":
+				option5Answer = IIf(hist > prevHist AND prevHist < bPrevHist,1,0);
+				//AddColumn(option4Answer,"op5");
+				break;
+		} 
+		
+	}
+
+	else 
+		option5Answer = buyGr;
+	option5Answer_2 = 0;
+	 _SECTION_BEGIN("Option 5 Buy_2");
+	option5_2 = ParamToggle("Option 5 Entry/Explore","Off|On",0);
+	option5Value_2 = 0;
+	option5Choice_2 = ParamList("Option 5 Choice Entry/Explore","MACD line above Signal line && MACD line > 0|MACD line above Signal line && MACD line < 0|MACD line below Signal line && MACD line > 0|MACD line below Signal line && MACD line < 0|MACD line below Signal line && MACD line < MA(10)|MACD line above Signal line && MACD line > MA(10)|MACD line > MA(10)|MACD line < MA(10)|MACD hist bar < MACD previous hist bar|MACD hist bar > MACD previous hist bar|Histogram Peak?|Histogram Bottom?");
+	previousN_2=Param("Previous histogram n bars?",1,0,10,1);
+	//option5Direction = ParamList("option5 Direction Entry/Explore",">|<",0);
+	if (option5_2 == 1)
+	{
+		TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		hist=XMac - sl;
+		//peakH=hist<Ref(hist,-1) AND Ref(hist,-1)>Ref(hist,-2);
+		//bottomH= hist>Ref(hist,-1) AND Ref(hist,-1)<Ref(hist,-2);
+		maMcd=MA(XMac,MAMACD);
+		prevHist=Ref(hist,-1);
+		bPreVHist=Ref(hist,-2);
+		prevNHist=Ref(hist,-previousN);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//XMac=TimeFrameExpand(XMac,tf,expandmode);
+		//sl=TimeFrameExpand(sl,tf,expandmode);
+		//maMcd=TimeFrameExpand(maMcd,tf,expandmode);
+		//hist=TimeFrameExpand(hist,tf,expandmode);
+		//prevHist=TimeFrameExpand(prevHist,tf,expandmode);
+		//prevNHist=TimeFrameExpand(prevNHist,tf,expandmode);
+		//bPrevHist=TimeFrameExpand(bPrevHist,tf,expandmode);
+		switch (option5Choice_2)
+		{
+			case "MACD line above Signal line && MACD line > 0":
+			
+				option5Answer_2 = IIf(XMac>sl AND XMac>0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line < 0":
+			
+				option5Answer_2 = IIf(XMac>sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line below Signal line && MACD line > 0":
+			
+				option5Answer_2 = IIf(XMac<sl AND XMac>0,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < 0":
+			
+				option5Answer_2 = IIf(XMac<sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line > MA(10)":
+			
+				option5Answer_2 = IIf(XMac>sl AND XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < MA(10)":
+			
+				option5Answer_2 = IIf(XMac<sl AND XMac<maMcd,1,0);
+				break;
+				
+			case "MACD line > MA(10)":
+			
+				option5Answer_2 = IIf(XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line < MA(10)":
+			
+				option5Answer_2 = IIf(XMac<maMcd,1,0);
+				break;
+				
+			case "MACD hist bar < MACD previous hist bar":
+				option5Answer_2 = IIf(hist < prevNHist,1,0);
+				break;
+				
+			case "MACD hist bar > MACD previous hist bar":
+				option5Answer_2 = IIf(hist>prevNHist,1,0);
+				break;
+				
+			case "Histogram Peak?":
+				option5Answer_2 = IIf(hist < prevHist AND prevHist > bPrevHist,1,0);
+				break;
+				
+			case "Histogram Bottom?":
+				option5Answer_2 = IIf(hist > prevHist AND prevHist < bPrevHist,1,0);
+				break;
+		} 
+		
+	}
+
+	else 
+		option5Answer_2 = buyGr;
+	_SECTION_END();
+	
+	option6Answer = 0;
+	 _SECTION_BEGIN("Option 6 Buy");
+	option6= ParamToggle("Option 6 Entry/Explore","Off|On",0);
+	option6Value = 0;
+	option6Choice = ParamList("Option 6 Choice Entry/Explore","Close above MA(20) and MA(10)|Close below MA(20) and MA(10)|Close above MA(20)|Close below MA(20)|Close above MA(20) and MA(40)|Close below MA(20) and MA(40)|Close > MA(20) && MA(10)>MA(20)|Close < MA(20) && MA(10)<MA(20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)|Dev20 > MA(Dev20-20)|Dev40 > MA(Dev40-20)|Dev20 < MA(Dev20-20)|Dev40 < MA(Dev40-20)|Dev20-MA > MA(Dev20-MA-20)|Dev20-MA < MA(Dev20-MA-20)");
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);");
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);
+	if (option6 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		MOV1=MA(C,MA5);
+		MOV2= MA(C,MA6);
+		MOV3= MA(C,MA9);
+		dev20=C-Mov2;
+		dev40=C-MOV3;
+		
+		dev40SMA = MA(dev40,MA6);
+		dev20SMA = MA(dev20,MA6);
+		dev20_dev20SMA = dev20 - MA(dev20,MA6);
+		dev40SMA40= MA(dev40, MA9);
+		dev20SMA40= MA(dev20, MA9);
+		dev20SMA2 = MA(dev20_dev20SMA,MA6);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		//MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		//MOV3=TimeFrameExpand(MOV3,tf,expandmode);
+		//cM=TimeFrameExpand(C,tf,expandmode);
+		
+		//dev20=TimeFrameExpand(dev20,tf,expandmode);
+		//dev20SMA=TimeFrameExpand(dev20SMA,tf,expandmode);
+		//dev40=TimeFrameExpand(dev40,tf,expandmode);
+		//dev40SMA=TimeFrameExpand(dev40SMA,tf,expandmode);
+		
+		switch (option6Choice)
+		{
+			case "Close above MA(20) and MA(10)":
+			
+				option6Answer = IIf(C>MOV1 AND C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(10)":
+			
+				option6Answer = IIf(C<MOV1 AND C<MOV2,1,0);
+				break;
+				
+				
+				
+			case "Close above MA(20)":
+			
+				option6Answer = IIf(C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20)":
+			
+				option6Answer = IIf(C<MOV2,1,0);
+				break;
+			
+			case "Close above MA(20) and MA(40)":
+			
+				option6Answer = IIf(C>MOV2 AND C>MOV3,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(40)":
+			
+				option6Answer = IIf(C<MOV2 AND C<MOV3,1,0);
+				break;
+				
+			case "Close > MA(20) && MA(10)>MA(20)":
+			
+				option6Answer = IIf(MOV1>MOV2 AND C>MOV2,1,0);
+				break;
+			
+			case "Close < MA(20) && MA(10)<MA(20)":
+			
+				option6Answer = IIf(MOV1<MOV2 AND C<MOV2,1,0);
+				break;
+				
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)":
+				option6Answer = IIf(dev20>dev20SMA AND dev40>dev40SMA,1,0);
+				break;
+
+				
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)":
+				option6Answer = IIf(dev20>dev20SMA AND dev40>dev40SMA AND dev20>dev20SMA40 AND dev40 > dev40SMA40, 1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)":
+				option6Answer = IIf(dev20<dev20SMA AND dev40<dev40SMA,1,0);
+				break;
+			
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)":
+				option6Answer = IIf(dev20<dev20SMA AND dev40<dev40SMA AND dev20<dev20SMA40 AND dev40 < dev40SMA40, 1,0);
+				break;
+				
+			case "Dev20 > MA(Dev20-20)":
+				option6Answer = IIf(dev20>dev20SMA,1,0);
+				break;
+				
+			case "Dev40 > MA(Dev40-20)":
+				option6Answer = IIf(dev40>dev40SMA,1,0);
+				break;
+			
+							
+			case "Dev20 < MA(Dev20-20)":
+				option6Answer = IIf(dev20<dev20SMA,1,0);
+				break;
+				
+			case "Dev40 < MA(Dev40-20)":
+				option6Answer = IIf(dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20-MA > MA(Dev20-MA-20)":
+				option6Answer = IIf(dev20_dev20SMA>dev20SMA2,1,0);
+				break;
+			
+			case "Dev20-MA < MA(Dev20-MA-20)":
+				option6Answer = IIf(dev20_dev20SMA<dev20SMA2,1,0);
+				break;
+		
+	}
+}
+	else 
+		option6Answer = buyGr;
+	_SECTION_END();
+	
+	
+	option6Answer_2 = 0;
+	 _SECTION_BEGIN("Option 6 Buy_2");
+	option6_2= ParamToggle("Option 6_2 Entry/Explore","Off|On",0);
+	option6Value_2 = 0;
+	option6Choice_2 = ParamList("Option 6_2 Choice Entry/Explore","Close above MA(20) and MA(10)|Close below MA(20) and MA(10)|Close above MA(20)|Close below MA(20)|Close above MA(20) and MA(40)|Close below MA(20) and MA(40)|Close > MA(20) && MA(10)>MA(20)|Close < MA(20) && MA(10)<MA(20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)|Dev20 > MA(Dev20-20)|Dev40 > MA(Dev40-20)|Dev20 < MA(Dev20-20)|Dev40 < MA(Dev40-20)|Dev20-MA > MA(Dev20-MA-20)|Dev20-MA < MA(Dev20-MA-20)");
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);
+	if (option6_2 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		MOV1=MA(C,MA5);
+		MOV2= MA(C,MA6);
+		MOV3= MA(C,MA9);
+		dev20=C-Mov2;
+		dev40=C-MOV3;
+		
+		dev40SMA = MA(dev40,MA6);
+		dev20SMA = MA(dev20,MA6);
+		dev20_dev20SMA = dev20 - MA(dev20,MA6);
+		dev20SMA2 = MA(dev20_dev20SMA,MA6);
+		dev40SMA40=MA(dev40,MA9);
+		dev20SMA40=MA(dev20,MA9);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		//MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		//MOV3=TimeFrameExpand(MOV3,tf,expandmode);
+		//cM=TimeFrameExpand(C,tf,expandmode);
+		
+		//dev20=TimeFrameExpand(dev20,tf,expandmode);
+		//dev20SMA=TimeFrameExpand(dev20SMA,tf,expandmode);
+		//dev40=TimeFrameExpand(dev40,tf,expandmode);
+		//dev40SMA=TimeFrameExpand(dev40SMA,tf,expandmode);
+		
+		switch (option6Choice_2)
+		{
+			case "Close above MA(20) and MA(10)":
+			
+				option6Answer_2 = IIf(C>MOV1 AND C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(10)":
+			
+				option6Answer_2 = IIf(C<MOV1 AND C<MOV2,1,0);
+				break;
+				
+				
+				
+			case "Close above MA(20)":
+			
+				option6Answer_2 = IIf(C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20)":
+			
+				option6Answer_2 = IIf(C<MOV2,1,0);
+				break;
+			
+			case "Close above MA(20) and MA(40)":
+			
+				option6Answer_2 = IIf(C>MOV2 AND C>MOV3,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(40)":
+			
+				option6Answer_2 = IIf(C<MOV2 AND C<MOV3,1,0);
+				break;
+				
+			case "Close > MA(20) && MA(10)>MA(20)":
+			
+				option6Answer_2 = IIf(MOV1>MOV2 AND C>MOV2,1,0);
+				break;
+			
+			case "Close < MA(20) && MA(10)<MA(20)":
+			
+				option6Answer_2 = IIf(MOV1<MOV2 AND C<MOV2,1,0);
+				break;
+				
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)":
+				option6Answer_2 = IIf(dev20>dev20SMA AND dev40>dev40SMA,1,0);
+				break;
+			
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)":
+				option6Answer_2 = IIf(dev20>dev20SMA AND dev40>dev40SMA AND dev20>dev20SMA40 AND dev40 > dev40SMA40, 1,0);
+				break;
+						
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)":
+				option6Answer_2 = IIf(dev20<dev20SMA AND dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)":
+				option6Answer_2 = IIf(dev20<dev20SMA AND dev40<dev40SMA AND dev20<dev20SMA40 AND dev40 < dev40SMA40, 1,0);
+				break;
+							
+			case "Dev20 > MA(Dev20-20)":
+				option6Answer_2 = IIf(dev20>dev20SMA,1,0);
+				break;
+				
+			case "Dev20-MA > MA(Dev20-MA-20)":
+				option6Answer_2 = IIf(dev20_dev20SMA>dev20SMA2,1,0);
+				break;
+			
+			case "Dev20-MA < MA(Dev20-MA-20)":
+				option6Answer_2 = IIf(dev20_dev20SMA<dev20SMA2,1,0);
+				break;
+				
+			case "Dev40 > MA(Dev40-20)":
+				option6Answer_2 = IIf(dev40>dev40SMA,1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20)":
+				option6Answer_2 = IIf(dev20<dev20SMA,1,0);
+				break;
+				
+			case "Dev40 < MA(Dev40-20)":
+				option6Answer_2 = IIf(dev40<dev40SMA,1,0);
+				break;
+
+		} 
+		
+	}
+
+	else 
+		option6Answer_2 = buyGr;
+	_SECTION_END();
+	
+	option7Answer = 0;
+	 _SECTION_BEGIN("Option 7 Buy");
+	option7= ParamToggle("Option 7 Entry/Explore","Off|On",0);
+	option7Value = 0;
+	option7Choice = ParamList("Option 7 Choice Entry/Explore","RSI above MA(20) and MA(10)|RSI below MA(20) and MA(10)|RSI above MA(20)|RSI below MA(20)");
+	//option5Direction = ParamList("option7 Direction Entry/Explore",">|<",0);
+	if (option7 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		MOV1=MA(RSI(),MA7);
+		MOV2= MA(RSI(),MA8);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		switch (option7Choice)
+		{
+			case "RSI above MA(20) and MA(10)":
+			
+				option7Answer = IIf(RSI()>MOV1 AND RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20) and MA(10)":
+			
+				option7Answer = IIf(RSI()<MOV1 AND RSI()<MOV2,1,0);
+				break;
+				
+			case "RSI above MA(20)":
+			
+				option7Answer = IIf(RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20)":
+			
+				option7Answer = IIf(RSI()<MOV2,1,0);
+				break;
+			
+			
+			
+		} 
+		//TimeFrameRestore();
+		/*
+		expandmode = expandFirst;
+		MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		expandmode = expandLast;
+		rsiM=TimeFrameExpand(RSI(14),tf,expandmode);
+		switch (option7Choice)
+		{
+			case "RSI above MA(20) and MA(10)":
+			
+				option7Answer = IIf(RSI()>MOV1 AND RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20) and MA(10)":
+			
+				option7Answer = IIf(RSI()<MOV1 AND RSI()<MOV2,1,0);
+				break;
+			
+			
+			
+		} 
+		*/
+		
+	}
+
+	else 
+		option7Answer = buyGr;
+	_SECTION_END();
+	//score = option1Value + option2Value + option3Value+ option4Value;
+	//AddColumn(score,"Score");
+option8Answer = 0;
+	 _SECTION_BEGIN("Option 8 Buy");
+	option8 = ParamToggle("Option 8 Entry/Explore","Off|On",0);
+	option8Value = 0;
+	option8Choice = ParamList("Option 8 Choice Entry/Explore","Close with right High|Close with right Low|Close with middle High|Close with middle Low|Close with left High|Close with left Low");
+	//previousN=Param("Previous histogram n bars?",1,0,10,1);
+	peakBottom=ParamList("Historgram Peak/Bottom ?","Peak|Bottom|both");
+	option8Direction = ParamToggle("option8 Direction Entry/Explore",">|<",0);
+	if (option8 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		hist=XMac - sl;
+		//peakH=hist<Ref(hist,-1) AND Ref(hist,-1)>Ref(hist,-2);
+		//bottomH= hist>Ref(hist,-1) AND Ref(hist,-1)<Ref(hist,-2);
+		maMcd=MA(XMac,MAMACD);
+		rightLow=0;
+		rightHigh=0;
+		middleLow=0;
+		middleHigh=0;
+		leftLow=0;
+		leftHigh=0;
+		peakFlag=0;
+		iPeak=0;
+		bottomFlag=0;
+		iBottom=0;
+		prev=Ref(hist,-1);
+		before=Ref(hist,-2);
+		for (i=BarCount-1;i>BarCount-50;i--)
+		{
+			if(i>0)
+			{
+				if(peakBottom=="Peak")
+				{
+					PeakH=IIf(hist[i] < prev[i] AND prev[i] > before[i],1,0);
+					if(PeakH[BarCount-1])
+					{
+						rightLow=L[i];
+						rightHigh=H[i];
+						middleLow=L[i-1];
+						middleHigh=H[i-1];
+						leftLow=L[i-2];
+						leftHigh=H[i-2];
+						break;
+					}
+				}
+				if(peakBottom=="Bottom")
+				{
+					bottom=IIf(hist[i] > prev[i] AND prev[i] < before[i],1,0);
+					if(bottom[BarCount-1])
+					{
+						rightLow=L[i];
+						rightHigh=H[i];
+						middleLow=L[i-1];
+						middleHigh=H[i-1];
+						leftLow=L[i-2];
+						leftHigh=H[i-2];
+						break;
+					}
+				}
+				if(peakBottom=="both")
+				{
+					if(peakFlag==0)
+					{
+						PeakH=IIf(hist[i] < prev[i] AND prev[i] > before[i],1,0);
+						if(PeakH[BarCount-1])
+						{
+							peakFlag=1;
+							iPeak=i;
+						}
+						
+					}
+					if(bottomFlag==0)
+					{
+						bottom=IIf(hist[i] > prev[i] AND prev[i] < before[i],1,0);
+						if(bottom[BarCount-1])
+						{
+							bottomFlag=1;
+							iBottom=i;
+						}
+						
+						
+					}
+					
+					if(bottomFlag AND peakFlag)
+					{
+						
+						rightLow=Min(L[iBottom],L[iPeak]);
+						rightHigh=Max(H[iBottom],H[iPeak]);
+						middleLow=Min(L[iBottom-1],L[iPeak-1]);
+						middleHigh=Max(H[iBottom-1],H[iPeak-1]);
+						leftLow=Min(L[iBottom-2],L[iPeak-2]);
+						leftHigh=Max(H[iBottom-2],H[iPeak-2]);
+						break;
+					}
+				}
+			}
+			
+			
+			
+			
+		}
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		
+		//AddColumn(peakH,"peakH");
+		//AddColumn(bottomH,"bH");
+		switch (option8Choice)
+		{
+			case "Close with right High" :
+					if (option8Direction == 0)
+						option8Answer = IIf(C>rightHigh,1,0);
+					else
+						option8Answer = IIf(C<rightHigh,1,0);
+					break;
+			 case "Close with right Low" :
+					if (option8Direction == 0)
+						option8Answer = IIf(C>rightLow,1,0);
+					else
+						option8Answer = IIf(C<rightLow,1,0);
+					break;
+			 case "Close with middle High" :
+					if (option8Direction == 0)
+						option8Answer = IIf(C>middleHigh,1,0);
+					else
+						option8Answer = IIf(C<middleHigh,1,0);
+					break;
+			 case "Close with middle Low" :
+					if (option8Direction == 0)
+						option8Answer = IIf(C>middleLow,1,0);
+					else
+						option8Answer = IIf(C<middleLow,1,0);
+					break;
+			 case "Close with left High" :
+					if (option8Direction == 0)
+						option8Answer = IIf(C>leftHigh,1,0);
+					else
+						option8Answer = IIf(C<leftHigh,1,0);
+					break;
+			 case "Close with left Low":
+					if (option8Direction == 0)
+						option8Answer = IIf(C>leftLow,1,0);
+					else
+						option8Answer = IIf(C<leftLow,1,0);
+					break;
+		} 
+		
+	}
+
+	else 
+		option8Answer = buyGr;
+	
+	option9Answer = 0;
+	 _SECTION_BEGIN("Option 9 Buy");
+	option9 = ParamToggle("Option 9 Entry/Explore","Off|On",0);
+	option9Value = 0;
+	option9Choice = ParamList("Option 9 Choice Entry/Explore","Close with High|Close with Low|Close with Open|Close with Close");
+	previousNBuy=Param("Previous n bars buy?",1,0,10,1);
+	option9Direction = ParamToggle("option 9 Direction Entry/Explore",">|<",0);
+	lD=10000000;
+	hD=0;
+	if (option9 == 1)
+	{
+		//TimeFrameSet(tf);
+			cD=Ref(C,-previousNBuy);
+			//AddColumn(BarCount-1,"bc");
+			for( i=1;i<=previousNBuy;i++)
+			{
+				hd=Max(hd,Ref(H,-i));
+				ld=Min(ld,Ref(L,-i));
+				//lD=Min(lD,L[i]);
+			}
+			//AddColumn(lD,"lD9");
+			oD=Ref(O,-previousNBuy);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//cD=TimeFrameExpand(cD,tf,expandmode);
+		//lD=TimeFrameExpand(lD,tf,expandmode);
+		//hD=TimeFrameExpand(hD,tf,expandmode);
+		//oD=TimeFrameExpand(oD,tf,expandmode);
+		//expandmode = expandLast;
+		//AddColumn(peakH,"peakH");
+		//AddColumn(bottomH,"bH");
+		
+		
+		switch (option9Choice)
+		{
+			case "Close with High" : 
+				if (option9Direction == 0)
+					option9Answer = IIf(C>hD,1,0);
+				else
+					option9Answer = IIf(C<hD,1,0);
+				break;
+			case "Close with Low" : 
+				if (option9Direction == 0)
+					option9Answer = IIf(C>lD,1,0);
+				else
+					option9Answer = IIf(C<lD,1,0);
+				break;
+			case "Close with Open" : 
+				if (option9Direction == 0)
+					option9Answer = IIf(C>oD,1,0);
+				else
+					option9Answer = IIf(C<oD,1,0);
+				break;
+			case "Close with Close":
+				if (option9Direction == 0)
+					option9Answer = IIf(C>cD,1,0);
+				else
+					option9Answer = IIf(C<cD,1,0);
+				break;
+		} 
+		
+	}
+
+	else 
+		option9Answer = buyGr;
+	//AddColumn(option8Answer,"option8Answer");
+	_SECTION_END();
+	score = option1Value + option2Value + option3Value+ option4Value;
+	//AddColumn(score,"Score");
+	if(buyGr==0)
+		FilterBuy = option1Answer OR option2Answer OR option3Answer OR option4Answer OR option5Answer OR option5Answer_2 OR option6Answer OR option6Answer_2 OR option7Answer OR option8Answer OR option9Answer;
+	else
+		FilterBuy = option1Answer And option2Answer And option3Answer And option4Answer And option5Answer And option5Answer_2 And option6Answer AND option6Answer_2 And option7Answer AND option8Answer AND option9Answer;
+	return FilterBuy;
+}
+
+
+function multiTimeframePriceSell()
+{
+	//TimeFrameSet(tf);
+	//dc = TimeFrameGetPrice( "C", inDaily, -1 ); 
+
+	T1 =  Ref(MA(Close ,CY1 ),0)+ M1*ATR(CY1 );
+	B1 =  Ref(MA( Close ,CY1 ),0)- M1*ATR(CY1 );
+
+	T2 =  Ref(MA(Close ,CY2 ),0)+ M2*ATR(CY2 );
+	B2 =  Ref(MA( Close ,CY2 ),0)- M2*ATR(CY2 );
+	CenterLine = MA(C, Periods );
+	KTop   = CenterLine + Width * ATR( Periods );
+	KBot = CenterLine - Width * ATR( Periods );
+	MiddleBand = (B2+T2)/2;
+	tfC=C;
+	tfH=Ref(H,-1);
+	tfL=Ref(L,-1);
+	//TimeFrameRestore();
+
+	//expandmode = expandFirst;
+	//T1=TimeFrameExpand(T1,tf,expandmode);
+	//B1=TimeFrameExpand(B1,tf,expandmode);
+	//T2=TimeFrameExpand(T2,tf,expandmode);
+	//B2=TimeFrameExpand(B2,tf,expandmode);
+	//KTop=TimeFrameExpand(KTop,tf,expandmode);
+	//KBot=TimeFrameExpand(KBot,tf,expandmode);
+	//MiddleBand=TimeFrameExpand(MiddleBand,tf,expandmode);
+	//Plot(MiddleBand,"MiddleBand",colorAqua);
+	//Plot(B1,"T1",colorAqua+5);
+	//AddColumn(C,"Close",1.10);
+	//AddColumn(T2,"BigCycleUpperBand",1.10);
+	//AddColumn(B2,"BigCycleLowerBand",1.10);
+	//AddColumn(MiddleBand,"BigCycleMiddleBand",1.10);
+	//AddColumn(T1,"KeltneUpperBand",1.10);
+	//AddColumn(B1,"KeltneLowerBand",1.10);
+
+	T12 =  Ref(MA(Close ,CY1 ),0)+ M1*ATR(CY1 );
+	B12 =  Ref(MA( Close ,CY1 ),0)- M1*ATR(CY1 );
+
+	T22 =  Ref(MA(Close ,CY2 ),0)+ M2*ATR(CY2 );
+	B22 =  Ref(MA( Close ,CY2 ),0)- M2*ATR(CY2 );
+	MiddleBand2 = (B22+T22)/2;
+	//OPTIONS 
+	option1AnswerSell = 0;
+	option1ValueSell = 0;
+	sellGr = ParamToggle("Sell Rule ? ","OR|AND",0);
+	 _SECTION_BEGIN("Option 1 Exit");
+	Option1Sell = ParamToggle("Option 1 Exit","Off|On",0);
+	Option1ChoiceSell = ParamList("Option 1 Choice Exit","Close with BigCylceUpperBand|Close with BigCylceLowerBand|Close With KeltneUpperBand|Close With KeltneLowerBand|Close With BigCylceMiddleBand|Close with H(t-1)|Close with L(t-1)");
+	Option1DirectionSell = ParamList("Option1 Direction Exit",">|<",0);
+	if (Option1Sell == 1)
+	{
+		switch (Option1ChoiceSell)
+		{
+			case "Close with BigCylceUpperBand":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(C>T2,1,0);
+					
+				else
+					option1AnswerSell = IIf(C<T2,1,0);
+				
+				option1ValueSell = (C-T2)/T2 * 100;
+				sellcross = Cross(T2,C);
+				break;
+			
+			case "Close with BigCylceLowerBand":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(C>B2,1,0);
+				else
+					option1AnswerSell = IIf(C<B2,1,0);
+				
+				option1ValueSell = (C - B2)/B2 * 100;
+				sellcross = Cross(B2,C);
+				break;
+			
+			case "Close With KeltneUpperBand":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(C>KTop,1,0);
+				else
+					option1AnswerSell = IIf(C<KTop,1,0);
+					
+				option1ValueSell = (C - KTop)/KTop * 100;
+				sellcross = Cross(KTop,C);
+				break;
+			
+			case "Close With KeltneLowerBand":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(C>KBot,1,0);
+				else
+					option1AnswerSell = IIf(C<KBot,1,0);
+				
+				option1ValueSell = (C - KBot)/KBot * 100;
+				sellcross = Cross(KBot,C);
+				break;
+			
+			case "Close With BigCylceMiddleBand":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(C>MiddleBand,1,0);
+				else
+					option1AnswerSell = IIf(C<MiddleBand,1,0);
+				
+				option1ValueSell = (C - MiddleBand)/MiddleBand * 100 ;
+				sellcross = Cross(MiddleBand,C);
+				break;
+				
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(tfC>tfH,1,0);
+				else
+					option1AnswerSell = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+			
+				if (Option1DirectionSell == ">")
+					option1AnswerSell = IIf(tfC>tfL,1,0);
+				else
+					option1AnswerSell = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+		} 
+	}
+
+	else
+		option1AnswerSell = sellGr;
+	_SECTION_END();
+	
+	_SECTION_BEGIN("Option 2 Exit");	
+	option2AnswerSell = 0;
+	option2ValueSell = 0;
+	Option2Sell = ParamToggle("Option 2 Exit","Off|On",0);
+	Option2ChoiceSell = ParamList("Option 2 Choice Exit ","KeltneUpper With BigCycleUpperBand|KeltneUpper With BigCycleLowerBand|KeltneLower With BigCycleUpperBand|KeltneLower With BigCycleLowerBand|KeltneUpper With BigCycleMiddleBand|KeltneLower With BigCycleMiddleBand|Close with H(t-1)|Close with L(t-1)");
+	Option2DirectionSell = ParamList("Option2 Direction Exit",">|<",0);
+	if (Option2Sell == 1)
+	{
+		switch (Option2ChoiceSell)
+		{
+			case "KeltneUpper With BigCycleUpperBand":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(KTop>T2,1,0);
+				else
+					option2AnswerSell = IIf(KTop<T2,1,0);
+					
+				option2ValueSell = (KTop-T2)/T2 * 100;
+				sellcross = Cross(T2,KTop);
+				break;
+		
+		
+			case "KeltneUpper With BigCycleLowerBand":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(KTop>B2,1,0);
+				else
+					option2AnswerSell = IIf(KTop<B2,1,0);
+				
+				option2ValueSell = (KTop-B2)/B2 * 100;
+				sellcross = Cross(B2,KTop);
+				break;
+			
+			case "KeltneLower With BigCycleUpperBand":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(KBot>T2,1,0);
+				else
+					option2AnswerSell = IIf(KBot<T2,1,0);
+				option2ValueSell = (KBot - T2)/T2 * 100;
+				sellcross = Cross(T2,KBot);
+				break;
+				
+			case "KeltneLower With BigCycleLowerBand":
+			
+				if (Option2DirectionSell ==">")
+					option2AnswerSell = IIf(KBot>B2,1,0);
+				else
+					option2AnswerSell = IIf(KBot<B2,1,0);
+				option2ValueSell = (KBot-B2)/B2 * 100;
+				sellcross = Cross(B2,KBot);
+				break;
+				
+			case "KeltneUpper With BigCycleMiddleBand":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(KTop>MiddleBand,1,0);
+				else
+					option2AnswerSell = IIf(KTop<MiddleBand,1,0);
+				option2ValueSell = (KTop-MiddleBand)/MiddleBand * 100;
+				sellcross = Cross(MiddleBand,KTop);
+				break;
+				
+			case "KeltneLower With BigCycleMiddleBand":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(KBot>MiddleBand,1,0);
+				else
+					option2AnswerSell = IIf(KBot<MiddleBand,1,0);
+				option2ValueSell = (KBot-MiddleBand)/ MiddleBand * 100;
+				sellcross = Cross(MiddleBand,KBot);
+				break;
+				
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(tfC>tfH,1,0);
+				else
+					option2AnswerSell = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+			
+				if (Option2DirectionSell == ">")
+					option2AnswerSell = IIf(tfC>tfL,1,0);
+				else
+					option2AnswerSell = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+		}
+		
+		
+		
+	}
+
+	else
+		option2AnswerSell = sellGr;
+	_SECTION_END(); 
+	
+	 option3AnswerSell = 0;
+	  _SECTION_BEGIN("Option 3 Exit");
+	option3Sell = ParamToggle("Option 3 Exit ","Off|On",0);
+	//AddColumn(option3Sell,"option3Sell");
+	option3ValueSell = 0;
+	option3ChoiceSell = ParamList("Option 3 Choice Exit","Close with BigCylceUpperBand|Close with BigCylceLowerBand|Close With KeltneUpperBand|Close With KeltneLowerBand|Close With BigCylceMiddleBand|KeltneUpper With BigCycleUpperBand|KeltneUpper With BigCycleLowerBand|KeltneLower With BigCycleUpperBand|KeltneLower With BigCycleLowerBand|KeltneUpper With BigCycleMiddleBand|KeltneLower With BigCycleMiddleBand|Close with H(t-1)|Close with L(t-1)");
+	Option3DirectionSell = ParamList("Option3 Direction Exit",">|<",0);
+	if (Option3Sell == 1)
+	{	
+		
+		switch (Option3ChoiceSell)
+		{
+			case "Close with BigCylceUpperBand":
+				
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(C>T2,1,0);
+				else
+					option3AnswerSell = IIf(C<T2,1,0);
+				option3ValueSell = (C - T2)/T2 * 100;
+				sellcross = Cross(T2,C);
+				break;
+			
+			case "Close with BigCylceLowerBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(C>B2,1,0);
+				else
+					option3AnswerSell = IIf(C<B2,1,0);
+				option3ValueSell = (C -B2)/B2 * 100;
+				sellcross = Cross(B2,C);
+				break;
+			
+			case "Close With KeltneUpperBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(C>KTop,1,0);
+				else
+					option3AnswerSell = IIf(C<KTop,1,0);
+				option3ValueSell = (C - KTop)/KTop * 100;
+				sellcross = Cross(KTop,C);
+				break;
+			
+			case "Close With KeltneLowerBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(C>KBot,1,0);
+				else
+					option3AnswerSell = IIf(C<KBot,1,0);
+				option3ValueSell = (C-KBot)/KBot * 100;
+				sellcross = Cross(KBot,C);
+			
+				break;
+			
+			case "Close With BigCylceMiddleBand":
+			
+				_TRACE("n is anumber\n"); 
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(C>MiddleBand,1,0);
+				
+				else
+					option3AnswerSell = C<MiddleBand;
+					
+				option3ValueSell = (C - MiddleBand)/MiddleBand * 100;
+				sellcross = Cross(MiddleBand,C);
+			
+				break;
+			
+			case "KeltneUpper With BigCycleUpperBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KTop>T2,1,0);
+				else
+					option3AnswerSell = IIf(KTop<T2,1,0);
+				
+				option3ValueSell = (KTop-T2)/T2 * 100;
+				sellcross = Cross(T2,KTop);
+				break;
+		
+			case "KeltneLower With BigCycleUpperBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KBot>T2,1,0);
+				else
+					option3AnswerSell = IIf(KBot<T2,1,0);
+				option3ValueSell = (KBot- T2)/T2 * 100;
+				sellcross = Cross(T2,KBot);
+				break;
+			
+			case "KeltneLower With BigCycleLowerBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KBot>B2,1,0);
+				else
+					option3AnswerSell = IIf(KBot<B2,1,0);
+				option3ValueSell = (KBot - B2)/B2 * 100;
+				sellcross = Cross(B2,KBot);
+				break;
+				
+			case "KeltneUpper With BigCycleLowerBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KTop>B2,1,0);
+				else
+					option3AnswerSell = IIf(KTop<B2,1,0);
+					
+				option3ValueSell = (KTop - B2)/B2 *100;
+				sellcross = Cross(B2,KTop);
+				break;
+				
+			case "KeltneUpper With BigCycleMiddleBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KTop>MiddleBand,1,0);
+				else
+					option3AnswerSell = IIf(KTop<MiddleBand,1,0);
+				
+				option3ValueSell = (KTop - MiddleBand)/MiddleBand*100 ;
+				sellcross = Cross(MiddleBand,KTop);
+				break;
+				
+			case "KeltneLower With BigCycleMiddleBand":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(KBot>MiddleBand,1,0);
+				else
+					option3AnswerSell = IIf(KBot<MiddleBand,1,0);
+				
+				option3ValueSell = (KBot- MiddleBand)/MiddleBand * 100 ;
+				sellcross = Cross(MiddleBand,KBot);
+				break;
+			case "Close with H(t-1)":
+				//AddColumn(tfC,"tfC");
+				//AddColumn(tfh,"tfh");
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(tfC>tfH,1,0);
+				else
+					option3AnswerSell = IIf(tfC<tfH,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+				
+			case "Close with L(t-1)":
+			
+				if (Option3DirectionSell == ">")
+					option3AnswerSell = IIf(tfC>tfL,1,0);
+				else
+					option3AnswerSell = IIf(tfC<tfL,1,0);
+				
+				//option1Value = (C - dc)/dc * 100 ;
+				//buycross = Cross(C,dc);
+				break;
+			default:
+				break;//_TRACE("n is an even number\n"); 
+		} 
+		
+	}
+
+	else 
+		option3AnswerSell = sellGr;
+	_SECTION_END();
+	
+option4AnswerSell = 0;
+	 _SECTION_BEGIN("Option 4 Exit");
+	option4Sell = ParamToggle("Option 4 Exit","Off|On",0);
+	option4Value = 0;
+	option4Choice = ParamList("Option 4 Choice Exit","25|50|75");
+	option4Direction = ParamList("option4 Direction Exit",">|<",0);
+	
+	if (option4Sell == 1)
+	{
+		//TimeFrameSet(tf);
+		Factor=.5;
+		//Calculate a MACD Line
+		XMac = MACD(MA1,MA2) ; // MACD in Amibroker always uses Close for MACD calculation
+
+		//1st Stochastic: Calculate Stochastic of a MACD
+		Value1 = LLV(XMac, TCLen);
+		Value2 = HHV(XMac, TCLen) - Value1;
+
+		//Frac1=1; // prime Frac1 to a default of 1
+		//Frac1 = IIf(Value2 > 0, ((XMac - Value1) / Value2) * 100, Ref(FRAC1,-1));
+		// have to "prime" first value so that reference to "i-1" does not result in subscript out of range
+		// since MACD for both periods is not defined until MA2 period, 0 seems to be mathematically correct priming value
+		frac1=0;
+		for (i = 1; i < BarCount; i++) {
+		if (Value2[i] > 0) {
+			frac1[i] = ((XMac[i] - Value1[i])/Value2[i])*100;
+			}
+		else {
+			frac1[i]= frac1[i-1];
+			}
+		}
+
+		//Smoothed calculation for %FastD of MACD
+
+		PF[0]=frac1[0]; 
+		PF[1]=frac1[1];
+		for (i = 2; i < BarCount; i++) {
+			PF[i]=PF[i-1]+(Factor*(frac1[i]-PF[i-1]));
+		}
+
+		 
+		//2nd Stochastic: Calculate Stochastic of Smoothed Percent FastD, above.
+		Value3 = LLV(PF, TCLen);
+		Value4 = HHV(PF, TCLen) - Value3;
+
+		//%FastK of PF
+		/*
+		Frac2=1;
+		Frac2 = IIf(Value4 > 0, ((PF - Value3) / Value4) * 100, Ref(FRAC2,-1));
+		*/
+
+		frac2[0]=0;
+		for (i = 1; i < BarCount; i++) {
+			if (Value4[i] > 0 ) {
+				frac2[i]=((PF[i] - Value3[i])/Value4[i])*100;
+			}
+			else {
+				frac2[i]=frac2[i-1];
+			}
+		}
+
+		//Smoothed calculation for %FastD of PF
+		PFF[0]=frac2[0];
+		PFF[1]=frac2[1];
+		for (i = 2; i < BarCount; i++) {
+			PFF[i]=PFF[i-1]+(Factor*(frac2[i]-PFF[i-1]));
+		}
+		//imeFrameRestore();
+		AddColumn(PFF,"PFF"+tf);
+		//PFF=TimeFrameExpand(PFF,tf,expandmode);
+		switch (option4Choice)
+		{
+			case "25":
+			
+				if (option4Direction == ">")
+					option4AnswerSell = IIf(PFF>25,1,0);
+				else
+					option4AnswerSell = IIf(PFF<25,1,0);
+				break;
+			
+			case "50":
+			
+				if (option4Direction == ">")
+					option4AnswerSell = IIf(PFF>50,1,0);
+				else
+					option4AnswerSell = IIf(PFF<50,1,0);
+				break;
+			
+			case "75":
+			
+				if (option4Direction == ">")
+					option4AnswerSell = IIf(PFF>75,1,0);
+				else
+					option4AnswerSell = IIf(PFF<75,1,0);
+				break;
+			
+		} 
+		AddColumn(PFF,"PFF"+tf);
+		
+	}
+
+	else 
+		option4AnswerSell = sellGr;
+	
+_SECTION_END();
+
+	option5AnswerSell = 0;
+	 _SECTION_BEGIN("Option 5 Sell");
+	option5Sell = ParamToggle("Option 5 Exit","Off|On",0);
+	option5Value = 0;
+	option5Choice = ParamList("Option 5 Choice Exit","MACD line above Signal line && MACD line > 0|MACD line above Signal line && MACD line < 0|MACD line below Signal line && MACD line > 0|MACD line below Signal line && MACD line < 0|MACD line below Signal line && MACD line < MA(10)|MACD line above Signal line && MACD line > MA(10)|MACD line > MA(10)|MACD line < MA(10)|MACD hist bar < MACD previous hist bar|MACD hist bar > MACD previous hist bar|Histogram Peak?|Histogram Bottom?");
+	//option5Direction = ParamList("option5 Direction Entry/Explore",">|<",0);
+	previousN=Param("Previous histogram n bars?",1,0,10,1);
+	if (option5Sell == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		hist=XMac - sl;
+
+		//1st Stochastic: Calculate Stochastic of a MACD
+		maMcd=MA(XMac,MAMACD);
+		prevHist=Ref(hist,-1);
+		bPreVHist=Ref(hist,-2);
+		prevNHist=Ref(hist,-previousN);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//XMac=TimeFrameExpand(XMac,tf,expandmode);
+		//sl=TimeFrameExpand(sl,tf,expandmode);
+		//maMcd=TimeFrameExpand(maMcd,tf,expandmode);
+		switch (option5Choice)
+		{
+			case "MACD line above Signal line && MACD line > 0":
+			
+				option5AnswerSell = IIf(XMac>sl AND XMac>0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line < 0":
+			
+				option5AnswerSell = IIf(XMac>sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line below Signal line && MACD line > 0":
+			
+				option5AnswerSell = IIf(XMac<sl AND XMac>0,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < 0":
+			
+				option5AnswerSell = IIf(XMac<sl AND XMac<0,1,0);
+				break;
+			
+			
+			case "MACD line above Signal line && MACD line > MA(10)":
+			
+				option5AnswerSell = IIf(XMac>sl AND XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < MA(10)":
+			
+				option5AnswerSell = IIf(XMac<sl AND XMac<maMcd,1,0);
+				break;
+				
+			case "MACD line > MA(10)":
+			
+				option5AnswerSell = IIf(XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line < MA(10)":
+			
+				option5AnswerSell = IIf(XMac<maMcd,1,0);
+				break;
+			
+			case "MACD hist bar < MACD previous hist bar":
+				option5AnswerSell = IIf(hist < prevNHist,1,0);
+				break;
+				
+			case "MACD hist bar > MACD previous hist bar":
+				option5AnswerSell = IIf(hist>prevNHist,1,0);
+				break;
+				
+			case "Histogram Peak?":
+				option5AnswerSell = IIf(hist < prevHist AND prevHist > bPrevHist,1,0);
+				break;
+				
+			case "Histogram Bottom?":
+				option5AnswerSell = IIf(hist > prevHist AND prevHist < bPrevHist,1,0);
+				break;
+		} 
+		
+	}
+
+	else 
+		option5AnswerSell = sellGr;
+	_SECTION_END();
+	
+	option5AnswerSell_2 = 0;
+	 _SECTION_BEGIN("Option 5 Sell_2");
+	option5Sell_2 = ParamToggle("Option 5 Exit","Off|On",0);
+	option5Value_2 = 0;
+	option5Choice_2 = ParamList("Option 5 Choice Exit","MACD line above Signal line && MACD line > 0|MACD line above Signal line && MACD line < 0|MACD line below Signal line && MACD line > 0|MACD line below Signal line && MACD line < 0|MACD line below Signal line && MACD line < MA(10)|MACD line above Signal line && MACD line > MA(10)|MACD line > MA(10)|MACD line < MA(10)|MACD hist bar < MACD previous hist bar|MACD hist bar > MACD previous hist bar|Histogram Peak?|Histogram Bottom?");
+	//option5Direction = ParamList("option5 Direction Entry/Explore",">|<",0);
+	previousN_2=Param("Previous histogram n bars?",1,0,10,1);
+	if (option5Sell_2 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		hist=XMac - sl;
+		//peakH=hist<Ref(hist,-1) AND Ref(hist,-1)>Ref(hist,-2);
+		//bottomH= hist>Ref(hist,-1) AND Ref(hist,-1)<Ref(hist,-2);
+		maMcd=MA(XMac,MAMACD);
+		prevHist=Ref(hist,-1);
+		bPreVHist=Ref(hist,-2);
+		prevNHist=Ref(hist,-previousN);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//XMac=TimeFrameExpand(XMac,tf,expandmode);
+		//sl=TimeFrameExpand(sl,tf,expandmode);
+		//maMcd=TimeFrameExpand(maMcd,tf,expandmode);
+		//hist=TimeFrameExpand(hist,tf,expandmode);
+		//prevHist=TimeFrameExpand(prevHist,tf,expandmode);
+		//prevNHist=TimeFrameExpand(prevNHist,tf,expandmode);
+		//bPrevHist=TimeFrameExpand(bPrevHist,tf,expandmode);
+		switch (option5Choice_2)
+		{
+			case "MACD line above Signal line && MACD line > 0":
+			
+				option5AnswerSell_2 = IIf(XMac>sl AND XMac>0,1,0);
+				break;
+			
+			case "MACD line above Signal line && MACD line < 0":
+			
+				option5AnswerSell_2 = IIf(XMac>sl AND XMac<0,1,0);
+				break;
+			
+			case "MACD line below Signal line && MACD line > 0":
+			
+				option5AnswerSell_2 = IIf(XMac<sl AND XMac>0,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < 0":
+			
+				option5AnswerSell_2 = IIf(XMac<sl AND XMac<0,1,0);
+				break;
+			
+			
+			case "MACD line above Signal line && MACD line > MA(10)":
+			
+				option5AnswerSell_2 = IIf(XMac>sl AND XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line below Signal line && MACD line < MA(10)":
+			
+				option5AnswerSell_2 = IIf(XMac<sl AND XMac<maMcd,1,0);
+				break;
+				
+			case "MACD line > MA(10)":
+			
+				option5AnswerSell_2 = IIf(XMac>maMcd,1,0);
+				break;
+				
+			case "MACD line < MA(10)":
+			
+				option5AnswerSell_2 = IIf(XMac<maMcd,1,0);
+				break;
+			
+			case "MACD hist bar < MACD previous hist bar":
+				option5AnswerSell_2 = IIf(hist < prevNHist,1,0);
+				break;
+				
+			case "MACD hist bar > MACD previous hist bar":
+				option5AnswerSell_2 = IIf(hist>prevNHist,1,0);
+				break;
+				
+			case "Histogram Peak?":
+				option5AnswerSell_2 = IIf(hist < prevHist AND prevHist > bPrevHist,1,0);
+				break;
+				
+			case "Histogram Bottom?":
+				option5AnswerSell_2 = IIf(hist > prevHist AND prevHist < bPrevHist,1,0);
+				break;
+		} 
+		
+	}
+
+	else 
+		option5AnswerSell_2 = sellGr;
+
+	_SECTION_END();
+	
+	option6AnswerSell = 0;
+	 _SECTION_BEGIN("Option 6 Sell");
+	option6Sell= ParamToggle("Option 6 Exit","Off|On",0);
+	option6Value = 0;
+	option6Choice = ParamList("Option 6 Choice Exit","Close above MA(20) and MA(10)|Close below MA(20) and MA(10)|Close above MA(20)|Close below MA(20)|Close above MA(20) and MA(40)|Close below MA(20) and MA(40)|Close > MA(20) && MA(10)>MA(20)|Close < MA(20) && MA(10)<MA(20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)|Dev20 > MA(Dev20-20)|Dev40 > MA(Dev40-20)|Dev20 < MA(Dev20-20)|Dev40 < MA(Dev40-20)|Dev20-MA > MA(Dev20-MA-20)|Dev20-MA < MA(Dev20-MA-20)");
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);");
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);
+	if (option6Sell == 1)
+	{
+		//TimeFrameSet(tf);
+		MOV1=MA(C,MA5);
+		MOV2= MA(C,MA6);
+		MOV3= MA(C,MA9);
+		dev20=C-Mov2;
+		dev40=C-MOV3;
+		
+		dev40SMA = MA(dev40,MA6);
+		dev20SMA = MA(dev20,MA6);
+		dev40SMA40=MA(dev40,MA9);
+		dev20SMA40=MA(dev20,MA9);
+		
+		dev20_dev20SMA = dev20 - MA(dev20,MA6);
+		dev20SMA2 = MA(dev20_dev20SMA,MA6);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		//MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		//MOV3=TimeFrameExpand(MOV3,tf,expandmode);
+		//cM=TimeFrameExpand(C,tf,expandmode);
+		
+		//dev20=TimeFrameExpand(dev20,tf,expandmode);
+		//dev20SMA=TimeFrameExpand(dev20SMA,tf,expandmode);
+		//dev40=TimeFrameExpand(dev40,tf,expandmode);
+		//dev40SMA=TimeFrameExpand(dev40SMA,tf,expandmode);
+		
+		switch (option6Choice)
+		{
+			case "Close above MA(20) and MA(10)":
+			
+				option6AnswerSell = IIf(C>MOV1 AND C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(10)":
+			
+				option6AnswerSell = IIf(C<MOV1 AND C<MOV2,1,0);
+				break;
+			
+			case "Close above MA(20)":
+			
+				option6AnswerSell = IIf(C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20)":
+			
+				option6AnswerSell = IIf(C<MOV2,1,0);
+				break;
+				
+			case "Close above MA(20) and MA(40)":
+			
+				option6AnswerSell = IIf(C>MOV2 AND C>MOV3,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(40)":
+			
+				option6AnswerSell = IIf(C<MOV2 AND C<MOV3,1,0);
+				break;
+				
+			case "Close > MA(20) && MA(10)>MA(20)":
+			
+				option6AnswerSell = IIf(MOV1>MOV2 AND C>MOV2,1,0);
+				break;
+			
+			case "Close < MA(20) && MA(10)<MA(20)":
+			
+				option6AnswerSell = IIf(MOV1<MOV2 AND C<MOV2,1,0);
+				break;
+			
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)":
+				option6AnswerSell = IIf(dev20>dev20SMA AND dev40>dev40SMA,1,0);
+				break;
+
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)":
+				option6AnswerSell = IIf(dev20>dev20SMA AND dev40>dev40SMA AND dev20>dev20SMA40 AND dev40 > dev40SMA40, 1,0);
+				break;
+					
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)":
+				option6AnswerSell = IIf(dev20<dev20SMA AND dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)":
+				option6AnswerSell = IIf(dev20<dev20SMA AND dev40<dev40SMA AND dev20<dev20SMA40 AND dev40 < dev40SMA40, 1,0);
+				break;
+					
+				
+			case "Dev20 > MA(Dev20-20)":
+				option6AnswerSell = IIf(dev20>dev20SMA,1,0);
+				break;
+				
+			case "Dev40 > MA(Dev40-20)":
+				option6AnswerSell = IIf(dev40>dev40SMA,1,0);
+				break;
+			case "Dev20 < MA(Dev20-20)":
+				option6AnswerSell = IIf(dev20<dev20SMA,1,0);
+				break;
+				
+			case "Dev40 < MA(Dev40-20)":
+				option6AnswerSell = IIf(dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20-MA > MA(Dev20-MA-20)":
+				option6AnswerSell= IIf(dev20_dev20SMA>dev20SMA2,1,0);
+				break;
+			
+			case "Dev20-MA < MA(Dev20-MA-20)":
+				option6AnswerSell = IIf(dev20_dev20SMA<dev20SMA2,1,0);
+				break;
+
+		} 
+		
+	}
+
+	else 
+		option6AnswerSell = sellGr;
+	_SECTION_END();
+	
+	option6AnswerSell_2 = 0;
+	 _SECTION_BEGIN("Option 6 Sell_2");
+	option6Sell_2= ParamToggle("Option 6_2 Exit","Off|On",0);
+	option6Value_2 = 0;
+	option6Choice_2 = ParamList("Option 6_2 Choice Exit","Close above MA(20) and MA(10)|Close below MA(20) and MA(10)|Close above MA(20)|Close below MA(20)|Close above MA(20) and MA(40)|Close below MA(20) and MA(40)|Close > MA(20) && MA(10)>MA(20)|Close < MA(20) && MA(10)<MA(20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)|Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)|Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)|Dev20 > MA(Dev20-20)|Dev40 > MA(Dev40-20)|Dev20 < MA(Dev20-20)|Dev40 < MA(Dev40-20)|Dev20-MA > MA(Dev20-MA-20)|Dev20-MA < MA(Dev20-MA-20)");
+
+	//option5Direction = ParamList("option6 Direction Entry/Explore",">|<",0);
+	if (option6Sell_2 == 1)
+	{
+		//TimeFrameSet(tf);
+		MOV1=MA(C,MA5);
+		MOV2= MA(C,MA6);
+		MOV3= MA(C,MA9);
+		dev20=C-Mov2;
+		dev40=C-MOV3;
+		
+		dev40SMA = MA(dev40,MA6); 
+		dev20SMA = MA(dev20,MA6);
+		dev40SMA40=MA(dev40,MA9);
+		dev20SMA40=MA(dev20,MA9);
+		
+		dev20_dev20SMA = dev20 - MA(dev20,MA6);
+		dev20SMA2 = MA(dev20_dev20SMA,MA6);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		//MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		//MOV3=TimeFrameExpand(MOV3,tf,expandmode);
+		//cM=TimeFrameExpand(C,tf,expandmode);
+		
+		//dev20=TimeFrameExpand(dev20,tf,expandmode);
+		//dev20SMA=TimeFrameExpand(dev20SMA,tf,expandmode);
+		//dev40=TimeFrameExpand(dev40,tf,expandmode);
+		//dev40SMA=TimeFrameExpand(dev40SMA,tf,expandmode);
+		
+		switch (option6Choice_2)
+		{
+			case "Close above MA(20) and MA(10)":
+			
+				option6AnswerSell_2 = IIf(C>MOV1 AND C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(10)":
+			
+				option6AnswerSell_2 = IIf(C<MOV1 AND C<MOV2,1,0);
+				break;
+			
+			case "Close above MA(20)":
+			
+				option6AnswerSell_2 = IIf(C>MOV2,1,0);
+				break;
+			
+			case "Close below MA(20)":
+			
+				option6AnswerSell_2 = IIf(C<MOV2,1,0);
+				break;
+				
+			case "Close above MA(20) and MA(40)":
+			
+				option6AnswerSell_2 = IIf(C>MOV2 AND C>MOV3,1,0);
+				break;
+			
+			case "Close below MA(20) and MA(40)":
+			
+				option6AnswerSell_2 = IIf(C<MOV2 AND C<MOV3,1,0);
+				break;
+				
+			case "Close > MA(20) && MA(10)>MA(20)":
+			
+				option6AnswerSell_2 = IIf(MOV1>MOV2 AND C>MOV2,1,0);
+				break;
+			
+			case "Close < MA(20) && MA(10)<MA(20)":
+			
+				option6AnswerSell_2 = IIf(MOV1<MOV2 AND C<MOV2,1,0);
+				break;
+			
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20)":
+				option6AnswerSell_2 = IIf(dev20>dev20SMA AND dev40>dev40SMA,1,0);
+				break;
+			
+			case "Dev20 > MA(Dev20-20) && Dev40 > MA(Dev40-20) && Dev20 > MA(Dev20-40) && Dev40 > MA(Dev40-40)":
+				option6AnswerSell_2 = IIf(dev20>dev20SMA AND dev40>dev40SMA AND dev20>dev20SMA40 AND dev40 > dev40SMA40, 1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20)":
+				option6AnswerSell_2 = IIf(dev20<dev20SMA AND dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20 < MA(Dev20-20) && Dev40 < MA(Dev40-20) && Dev20 < MA(Dev20-40) && Dev40 < MA(Dev40-40)":
+				option6AnswerSell_2 = IIf(dev20<dev20SMA AND dev40<dev40SMA AND dev20<dev20SMA40 AND dev40 < dev40SMA40, 1,0);
+				break;
+				
+			case "Dev20 > MA(Dev20-20)":
+				option6AnswerSell_2 = IIf(dev20>dev20SMA,1,0);
+				break;
+				
+			case "Dev40 > MA(Dev40-20)":
+				option6AnswerSell_2 = IIf(dev40>dev40SMA,1,0);
+				break;
+			
+							
+			case "Dev20 < MA(Dev20-20)":
+				option6AnswerSell_2 = IIf(dev20<dev20SMA,1,0);
+				break;
+				
+			case "Dev40 < MA(Dev40-20)":
+				option6AnswerSell_2 = IIf(dev40<dev40SMA,1,0);
+				break;
+				
+			case "Dev20-MA > MA(Dev20-MA-20)":
+				option6AnswerSell_2= IIf(dev20_dev20SMA>dev20SMA2,1,0);
+				break;
+			
+			case "Dev20-MA < MA(Dev20-MA-20)":
+				option6AnswerSell_2 = IIf(dev20_dev20SMA<dev20SMA2,1,0);
+				break;
+				
+
+		} 
+		
+	}
+
+	else 
+		option6AnswerSell_2 = sellGr;
+	_SECTION_END();
+	
+	
+	option7AnswerSell = 0;
+	 _SECTION_BEGIN("Option 7 Sell");
+	option7Sell= ParamToggle("Option 7 Exit","Off|On",0);
+	option7Value = 0;
+	option7Choice = ParamList("Option 7 Choice Exit","RSI above MA(20) and MA(10)|RSI below MA(20) and MA(10)|RSI above MA(20)|RSI below MA(20)");
+	//option5Direction = ParamList("option7 Direction Entry/Explore",">|<",0);
+	if (option7Sell == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		MOV1=MA(RSI(14),MA7);
+		MOV2= MA(RSI(14),MA8);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		switch (option7Choice)
+		{
+			case "RSI above MA(20) and MA(10)":
+			
+				option7AnswerSell = IIf(RSI()>MOV1 AND RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20) and MA(10)":
+			
+				option7AnswerSell = IIf(RSI()<MOV1 AND RSI()<MOV2,1,0);
+				break;
+				
+			case "RSI above MA(20)":
+			
+				option7AnswerSell = IIf(RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20)":
+			
+				option7AnswerSell = IIf(RSI()<MOV2,1,0);
+				break;
+			
+			
+		} 
+		//TimeFrameRestore();
+		/*
+		expandmode = expandFirst;
+		MOV1=TimeFrameExpand(MOV1,tf,expandmode);
+		MOV2=TimeFrameExpand(MOV2,tf,expandmode);
+		expandmode = expandLast;
+		rsiM=TimeFrameExpand(RSI(14),tf,expandmode);
+		switch (option7Choice)
+		{
+			case "RSI above MA(20) and MA(10)":
+			
+				option7AnswerSell = IIf(RSI()>MOV1 AND RSI()>MOV2,1,0);
+				break;
+			
+			case "RSI below MA(20) and MA(10)":
+			
+				option7AnswerSell = IIf(RSI()<MOV1 AND RSI()<MOV2,1,0);
+				break;
+			
+			
+			
+		} */
+		
+	}
+
+	else 
+		option7AnswerSell = sellGr;
+	_SECTION_END();
+	
+		option8AnswerSell = 0;
+	 _SECTION_BEGIN("Option 8 Sell");
+	option8 = ParamToggle("Option 8 Exit/Explore","Off|On",0);
+	option8Value = 0;
+	option8Choice = ParamList("Option 8 Choice Exit/Explore","Close with right High|Close with right Low|Close with middle High|Close with middle Low|Close with left High|Close with left Low");
+	//previousN=Param("Previous histogram n bars?",1,0,10,1);
+	peakBottom=ParamList("Historgram Peak/Bottom ?","Peak|Bottom|both");
+	option8Direction = ParamToggle("option8 Direction Exit/Explore",">|<",0);
+	if (option8 == 1)
+	{
+		//TimeFrameSet(tf);
+		//Calculate a MACD Line
+		XMac = MACD(MA3,MA4) ; // MACD in Amibroker always uses Close for MACD calculation
+		sl = Signal(MA3,MA4,SA1);
+		//1st Stochastic: Calculate Stochastic of a MACD
+		hist=XMac - sl;
+		//peakH=hist<Ref(hist,-1) AND Ref(hist,-1)>Ref(hist,-2);
+		//bottomH= hist>Ref(hist,-1) AND Ref(hist,-1)<Ref(hist,-2);
+		maMcd=MA(XMac,MAMACD);
+		rightLow=0;
+		rightHigh=0;
+		middleLow=0;
+		middleHigh=0;
+		leftLow=0;
+		leftHigh=0;
+		peakFlag=0;
+		iPeak=0;
+		bottomFlag=0;
+		iBottom=0;
+		prev=Ref(hist,-1);
+		before=Ref(hist,-2);
+		for (i=BarCount-1;i>BarCount-1000;i--)
+		{
+			if(i>0)
+			{
+				if(peakBottom=="Peak")
+				{
+					PeakH=IIf(hist[i] < prev[i] AND prev[i] > before[i],1,0);
+					if(PeakH[BarCount-1])
+					{
+						rightLow=L[i];
+						rightHigh=H[i];
+						middleLow=L[i-1];
+						middleHigh=H[i-1];
+						leftLow=L[i-2];
+						leftHigh=H[i-2];
+						break;
+					}
+				}
+				if(peakBottom=="Bottom")
+				{
+					bottom=IIf(hist[i] > prev[i] AND prev[i] < before[i],1,0);
+					if(bottom[BarCount-1])
+					{
+						rightLow=L[i];
+						rightHigh=H[i];
+						middleLow=L[i-1];
+						middleHigh=H[i-1];
+						leftLow=L[i-2];
+						leftHigh=H[i-2];
+						break;
+					}
+				}
+				if(peakBottom=="both")
+				{
+					if(peakFlag==0)
+					{
+						PeakH=IIf(hist[i] < prev[i] AND prev[i] > before[i],1,0);
+						if(PeakH[BarCount-1])
+						{
+							peakFlag=1;
+							iPeak=i;
+						}
+						
+					}
+					if(bottomFlag==0)
+					{
+						bottom=IIf(hist[i] > prev[i] AND prev[i] < before[i],1,0);
+						if(bottom[BarCount-1])
+						{
+							bottomFlag=1;
+							iBottom=i;
+						}
+						
+						
+					}
+					
+					if(bottomFlag AND peakFlag)
+					{
+						//AddColumn(L[iPeak],"L[iPeak]"+tf);
+						//AddColumn(L[iBottom],"L[iBottom]"+tf);
+						rightLow=Min(L[iBottom],L[iPeak]);
+						rightHigh=Max(H[iBottom],H[iPeak]);
+						middleLow=Min(L[iBottom-1],L[iPeak-1]);
+						middleHigh=Max(H[iBottom-1],H[iPeak-1]);
+						leftLow=Min(L[iBottom-2],L[iPeak-2]);
+						leftHigh=Max(H[iBottom-2],H[iPeak-2]);
+						break;
+					}
+				}
+			}
+			
+			
+			
+			
+		}
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		
+		//AddColumn(peakH,"peakH");
+		//AddColumn(bottomH,"bH");
+		switch (option8Choice)
+		{
+			case "Close with right High" :
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>rightHigh,1,0);
+					else
+						option8AnswerSell = IIf(C<rightHigh,1,0);
+					break;
+			 case "Close with right Low" :
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>rightLow,1,0);
+					else
+						option8AnswerSell = IIf(C<rightLow,1,0);
+					break;
+			 case "Close with middle High" :
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>middleHigh,1,0);
+					else
+						option8AnswerSell = IIf(C<middleHigh,1,0);
+					break;
+			 case "Close with middle Low" :
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>middleLow,1,0);
+					else
+						option8AnswerSell = IIf(C<middleLow,1,0);
+					break;
+			 case "Close with left High" :
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>leftHigh,1,0);
+					else
+						option8AnswerSell = IIf(C<leftHigh,1,0);
+					break;
+			 case "Close with left Low":
+					if (option8Direction == 0)
+						option8AnswerSell = IIf(C>leftLow,1,0);
+					else
+						option8AnswerSell = IIf(C<leftLow,1,0);
+					break;
+		} 
+		
+	}
+
+	else 
+		option8AnswerSell = sellGr;
+	_SECTION_END();
+	
+option9AnswerSell = 0;
+	 _SECTION_BEGIN("Option 9 Sell");
+	option9 = ParamToggle("Option 9 Exit/Explore","Off|On",0);
+	option9Value = 0;
+	option9Choice = ParamList("Option 9 Choice Exit/Explore","Close with High|Close with Low|Close with Open|Close with Close");
+	previousNSell=Param("Previous n bars Sell ?",1,0,10,1);
+	option9DirectionSell = ParamToggle("option 9 Direction Exit/Explore",">|<",0);
+	hD=0;
+	lD=100000000000;
+	if (option9 == 1)
+	{
+		//TimeFrameSet(tf);
+			cD=Ref(C,-previousNSell);
+			for( i=1;i<=previousNSell;i++)
+			{
+				hd=Max(hd,Ref(H,-i));
+				ld=Min(ld,Ref(L,-i));
+				//lD=Min(lD,L[i]);
+			}
+			//hD=HHV(H,previousNSell);
+			//lD=LLV(L,previousNSell);
+			oD=Ref(O,-previousNSell);
+		//TimeFrameRestore();
+		//expandmode = expandFirst;
+		//cD=TimeFrameExpand(cD,tf,expandmode);
+		//lD=TimeFrameExpand(lD,tf,expandmode);
+		//hD=TimeFrameExpand(hD,tf,expandmode);
+		//oD=TimeFrameExpand(oD,tf,expandmode);
+		//expandmode = expandLast;
+		//AddColumn(peakH,"peakH");
+		//AddColumn(bottomH,"bH");
+		switch (option9Choice)
+		{
+			case "Close with High" : 
+				if (option9DirectionSell == 0)
+					option9AnswerSell = IIf(C>hD,1,0);
+				else
+					option9AnswerSell = IIf(C<hD,1,0);
+				break;
+			case "Close with Low" : 
+			//AddColumn(lD,"lD");
+			//AddColumn(C,"C");
+				if (option9DirectionSell == 0)
+					option9AnswerSell = IIf(C>lD,1,0);
+				else
+					option9AnswerSell = IIf(C<lD,1,0);
+				break;
+			case "Close with Open" : 
+				if (option9DirectionSell == 0)
+					option9AnswerSell = IIf(C>oD,1,0);
+				else
+					option9AnswerSell = IIf(C<oD,1,0);
+				break;
+			case "Close with Close":
+				if (option9DirectionSell == 0)
+					option9AnswerSell = IIf(C>cD,1,0);
+				else
+					option9AnswerSell = IIf(C<cD,1,0);
+				break;
+		} 
+		
+	}
+
+	else 
+		option9AnswerSell = sellGr;
+	//AddColumn(option8Answer,"option8Answer");
+	_SECTION_END();
+	///score = option1Value + option2Value + option3Value+ option4Value;
+	//AddColumn(score,"Score");
+	//FilterBuy = option1Answer And option2Answer And option3Answer And option4Answer And option5AnswerSell;
+	//AddColumn(option3AnswerSell,"option3AnswerSell");
+	//AddColumn(option1AnswerSell ,"option1AnswerSell ");
+	//AddColumn(option2AnswerSell ,"option2AnswerSell ");
+	//AddColumn(option3AnswerSell ,"option3AnswerSell ");
+	//AddColumn(option4AnswerSell ,"option4AnswerSell ");
+	//AddColumn(option5AnswerSell,"option5AnswerSell");
+	//AddColumn(option5AnswerSell_2 ,"option5AnswerSell_2 ");
+	//AddColumn(option6AnswerSell ,"option6AnswerSell ");
+	//AddColumn(option6AnswerSell_2 ,"option6AnswerSell_2 ");
+	//AddColumn(option7AnswerSell,"option7AnswerSell");
+	if(sellGr==0)
+		FilterSell = option1AnswerSell Or option2AnswerSell Or option3AnswerSell Or option4AnswerSell Or option5AnswerSell OR option5AnswerSell_2 Or option6AnswerSell Or option6AnswerSell_2 Or option7AnswerSell Or option9AnswerSell Or option8AnswerSell;
+	else
+		FilterSell = option1AnswerSell And option2AnswerSell And option3AnswerSell AND option4AnswerSell And option5AnswerSell AND option5AnswerSell_2 And option6AnswerSell AND option6AnswerSell_2 And option7AnswerSell And option9AnswerSell And option8AnswerSell;
+	//AddColumn(FilterSell,"FilterSell");
+	return FilterSell;
+
+}
+
+//Filter = FilterBuy;
+
+//AddColumn(C,"CloseOR",1.10);
+
+//FilterBuyRelative=multiTimeframeRelative(bench,tf);
+//AddColumn(FilterBuyRelative,"FilterBuyRelative");
+//Filter = FilterBuy; //FilterBuyRelative AND 
+
+
+//FilterBuyRelativeChart=multiTimeframeRelative(bench,tf);
+//Filter = FilterBuyRelativeChart;
+
+
+//FilterBuy5=0;
+//FilterBuy15=0;
+//FilterBuy1h=0;
+//FilterBuyD=0;
+
+//tf=in5Minute;
+//FilterBuy5=multiTimeframePriceBuy(tf);
+//AddColumn(IIf(exp5m,FilterBuy5,0),"5 minute filter",1.10);
+
+//tf=in15Minute;
+//FilterBuy15=multiTimeframePriceBuy(tf);
+////AddColumn(IIf(exp15m,FilterBuy15,0),"15 minute filter",1.10);
+
+//tf=in15Minute*2;
+//FilterBuy30=multiTimeframePriceBuy(tf);
+//AddColumn(IIf(exp30m,FilterBuy30,0),"30 minute filter",1.10);
+
+//tf=inHourly;
+//FilterBuy1h=multiTimeframePriceBuy(tf);
+//AddColumn(IIf(exp1h,FilterBuy1h,0),"Hourly filter",1.10);
+
+//tf=inHourly*4;
+//FilterBuy4h=multiTimeframePriceBuy(tf);
+//AddColumn(IIf(exp4h,FilterBuy4h,0),"4 Hour filter",1.10);
+
+//tf=inDaily;
+//FilterBuy1D=multiTimeframePriceBuy(tf);
+
+//tf=inWeekly;
+//FilterBuy1W=multiTimeframePriceBuy(tf);
+
+//tf=inMonthly;
+//FilterBuy1M=multiTimeframePriceBuy(tf);
+
+//tf=inYearly;
+//FilterBuy1Y=multiTimeframePriceBuy(tf);
+//AddColumn(IIf(expD,FilterBuy1D,0),"Daily filter",1.10);
+
+SetPositionSize(9.8,method=spsPercentOfEquity);
+
+LongCount=0;
+ShortCount=0;
+
+Watchlist= CategoryGetSymbols(categoryWatchlist,WatchListNum);
+	
+if (Status("stocknum")==0)
+{
+
+	StaticVarSet("LongCount",0);
+    StaticVarSet("ShortCount", 0);
+	
+	for (i=0; (sym= StrExtract(Watchlist,i))!= "" ; i++)
+	{ 
+		Temp1= StaticVarGet("LongCount");
+		Temp2= StaticVarGet("ShortCount");
+		FilterBuy=multiTimeframePriceBuy();
+		FilterSell=multiTimeframePriceSell();
+			
+		SetForeign( sym );
+		//AddColumn (FilterBuy,"FilterBuy");
+		for (j=0 ; j < BarCount ; j++)
+			{
+				if(FilterBuy[j]==1)
+					Temp1[j]++;
+					
+				if(FilterSell[j]==1)
+					Temp2[j]++;
+			}
+		StaticVarSet("LongCount",Temp1);
+		StaticVarSet("ShortCount", Temp2);
+
+	}
+}
+ 
+
+Temp1= StaticVarGet("LongCount");
+Temp2= StaticVarGet("ShortCount");
+Temp3= Temp1-Temp2;
+
+if (LongPlot==1)
+		Plot(Temp1, "LongCount",colorBlack, styleThick);
+		
+if (ShortPlot==1)		
+		Plot(Temp2, "ShortCount",colorBlack, styleThick);
+		
+if (DiffLongShort==1)	
+		Plot(Temp3, "Difference between Long and Short",colorBlack, styleThick);
+		
+if (Plot0Line==1)	
+		Plot(0,"Zero Line", colorGrey50, styleDashed);
+	
+//Buy=IIf(exp5m or exp15m or exp30m or exp1h or exp4h or expD,IIf(exp5m,FilterBuy5,1) AND IIf(exp15m,FilterBuy15,1) AND IIf(exp30m,FilterBuy30,1) AND IIf(exp1h,FilterBuy1h,1) AND IIf(exp4h,FilterBuy4h,1) AND IIf(expD,FilterBuy1D,1) AND IIf(expW,FilterBuy1W,1) AND IIf(expM,FilterBuy1M,1),0);
+//Filter = IIf(exp5m,FilterBuy5,1) AND IIf(exp15m,FilterBuy15,1) AND IIf(exp30m,FilterBuy30,1) AND IIf(exp1h,FilterBuy1h,1) AND IIf(exp4h,FilterBuy4h,1) AND IIf(expD,FilterBuy1D,1);//[BarCount-1]
+Filter=C;//Buy;
+/*
+_SECTION_BEGIN("Sell Timeframes");
+expDs = ParamToggle("Daily signal sell","Off|On",0);
+exp4hs = ParamToggle("4 h  signal sell","Off|On",0);
+exp1hs = ParamToggle("1 h  signal sell","Off|On",0);
+exp30ms = ParamToggle("30 m  signal sell","Off|On",0);
+exp15ms = ParamToggle("15 m  signal sell","Off|On",0);
+exp5ms = ParamToggle("5 m  signal sell","Off|On",0);
+_SECTION_END();
+*/
+
+//FilterSell5=0;
+//FilterSell15=0;
+//FilterSell1h=0;
+//FilterSellD=0;
+
+//tf=in5Minute;
+//FilterSell5=multiTimeframePriceSell(tf);
+//AddColumn(IIf(exp5ms,FilterSell5,0),"5 minute filter",1.10);
+
+//tf=in15Minute;
+//FilterSell15=multiTimeframePriceSell(tf);
+//AddColumn(IIf(exp15ms,FilterSell15,0),"15 minute filter",1.10);
+
+//tf=in15Minute*2;
+//FilterSell30=multiTimeframePriceSell(tf);
+//AddColumn(IIf(exp30ms,FilterSell30,0),"30 minute filter",1.10);
+
+//tf=inHourly;
+//Plot(RSI(14),"RSI",colorWhite);
+//TimeFrameSet(tf);
+//TimeFrameRestore();
+//rsiM=TimeFrameExpand(RSI(14),tf,expandFirst);
+//Plot(rsiM,"M",colorYellow);
+//rsiN=TimeFrameExpand(RSI(14),tf,expandLast);
+//Plot(rsiN,"N",colorRed);
+
+//FilterSell1h=multiTimeframePriceSell(tf);
+//AddColumn(IIf(exp1hs,FilterSell1h,0),"Hourly filter",1.10);
+
+//tf=inHourly*4;
+//FilterSell4h=multiTimeframePriceSell(tf);
+//AddColumn(IIf(exp4hs,FilterSell4h,0),"4 Hour filter",1.10);
+
+//tf=inDaily;
+//FilterSell1D=multiTimeframePriceSell(tf);
+
+//tf=inWeekly;
+//FilterSell1W=multiTimeframePriceSell(tf);
+
+//tf=inMonthly;
+//FilterSell1M=multiTimeframePriceSell(tf);
+
+//tf=inYearly;
+//FilterSell1Y=multiTimeframePriceSell(tf);
+//AddColumn(IIf(expDs,FilterSell1D,0),"Daily filter",1.10);
+
+//Sell=IIf(exp5m or exp15m or exp30m or exp1h or exp4h or expD,IIf(exp5m,FilterSell5,1) AND IIf(exp15m,FilterSell15,1) AND IIf(exp30m,FilterSell30,1) AND IIf(exp1h,FilterSell1h,1) AND IIf(exp4h,FilterSell4h,1) AND IIf(expD,FilterSell1D,1) AND IIf(expW,FilterSell1W,1) AND IIf(expM,FilterSell1M,1),0);
+//Filter = IIf(exp5m,FilterBuy5,1) AND IIf(exp15m,FilterBuy15,1) AND IIf(exp30m,FilterBuy30,1) AND IIf(exp1h,FilterBuy1h,1) AND IIf(exp4h,FilterBuy4h,1) AND IIf(expD,FilterBuy1D,1);//[BarCount-1]
+	//AddtextColumn(WriteIf(FilterBuy1Y[BarCount-1],"L",WriteIf(FilterSell1Y[BarCount-1],"S","")),"Y");
+	//AddtextColumn(WriteIf(FilterBuy1M[BarCount-1],"L",WriteIf(FilterSell1M[BarCount-1],"S","")),"M");
+	//AddtextColumn(WriteIf(FilterBuy1W[BarCount-1],"L",WriteIf(FilterSell1W[BarCount-1],"S","")),"W");
+	//AddtextColumn(WriteIf(FilterBuy1D[BarCount-1],"L",WriteIf(FilterSell1D[BarCount-1],"S","")),"D");
+	//AddtextColumn(WriteIf(FilterBuy4h[BarCount-1],"L",WriteIf(FilterSell4h[BarCount-1],"S","")),"4h");
+	//AddtextColumn(WriteIf(FilterBuy1h[BarCount-1],"L",WriteIf(FilterSell1h[BarCount-1],"S","")),"1h");
+	//AddtextColumn(WriteIf(FilterBuy30[BarCount-1],"L",WriteIf(FilterSell30[BarCount-1],"S","")),"30M");
+	//AddtextColumn(WriteIf(FilterBuy15[BarCount-1],"L",WriteIf(FilterSell15[BarCount-1],"S","")),"15M");
+	//AddtextColumn(WriteIf(FilterBuy5[BarCount-1],"L",WriteIf(FilterSell5[BarCount-1],"S","")),"5M");
+
+_SECTION_BEGIN("MA10");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();
+
+_SECTION_BEGIN("MA11");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") ); 
+_SECTION_END();

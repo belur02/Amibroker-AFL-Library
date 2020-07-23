@@ -1,0 +1,50 @@
+// Downloaded From www.WiseStockTrader.com
+file = "C:\\TEMP\\trades.csv"; // change this to real location of your data file
+dt = DateTime();
+//
+// Initialize variables
+Buy = Sell = possize = 0; 
+//
+fh = fopen( file, "r" );
+//
+if( fh )
+ {
+     while( ! feof( fh ) )
+     {
+         line = fgets( fh );
+         // get the ticker symbol from the file
+         sym = StrExtract( line, 0 );
+         // if ticker matches current symbol
+         if ( Name() == sym )
+         {
+             // extract data from line of text
+             trade = StrExtract( line, 1 );
+             trade_datetime = StrToDateTime( StrExtract( line, 2 ) );
+             price = StrToNum( StrExtract( line, 3 ) );
+             shares = StrToNum( StrExtract( line, 4 ) );
+             //
+             if ( trade == "Buy" )
+             {
+                 newbuy = dt == trade_datetime;
+                 Buy = Buy OR newbuy; // combine previous buy signals with new
+                 BuyPrice = IIf( newbuy, price, BuyPrice );
+                 possize = IIf( newbuy, shares, possize );
+             }
+             //
+             if ( trade == "Sell" )
+             {
+                 newsell = dt == trade_datetime;
+                 Sell = Sell OR newsell; // combine previous sell signals with new
+                 SellPrice = IIf( newsell, price, SellPrice );
+             }
+         }
+     }
+     //
+     fclose( fh );
+ }
+ else
+ {
+     Error( "ERROR: file can not be open" );
+ }
+//
+SetPositionSize( possize, spsShares ); 

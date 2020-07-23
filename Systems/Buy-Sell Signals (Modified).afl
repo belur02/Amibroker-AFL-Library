@@ -1,0 +1,285 @@
+// Downloaded From www.WiseStockTrader.com
+// Best Amibroker Afl with Buy/Sell Signals - Reg. (AFL)
+// URL: http://www.traderji.com/software/27917-best-amibroker-afl-buy-sell-signals-reg-7.html
+//
+// Extra: KAMAS Buy-Sell for Amibroker (AFL)
+//
+
+prev=AMA2(C,1,0);
+d=IIf(C>Ref(Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),-1),Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),
+IIf(C<Ref(Min(Min(L,Ref(L,-20)),Min(Ref(L,-10),Ref(L,-15))),-1),Max(Max(H,Ref(H,-20)),Max(Ref(H,-10),Ref(H,-15))),PREV));
+a=Cross(Close,d);
+b=Cross(d,Close);
+state=IIf(BarsSince(a)<BarsSince(b),1,0);
+s=state>Ref(state,-1);
+ss=state<Ref(state,-1);
+sss=state==Ref(state,-1);
+col=IIf(state == 1 ,51,IIf(state ==0,4,1));
+Plot(C,"",Col,64);
+PlotShapes( shapeUpArrow * s ,colorGreen,0,L);
+PlotShapes( shapeDownArrow *ss ,colorRed,0,H);
+
+
+Filter = s OR ss OR sss ;
+AddColumn(C,"close",1.2);
+AddColumn( IIf( s, 66,1 ), "buy", formatChar, 1, bkcolor =IIf (s,colorYellow, colorPink ));
+AddColumn( IIf( Ss, 83,1 ), "sell", formatChar, 1, bkcolor =IIf (Ss,colorPink, colorYellow ));
+AddColumn( IIf( sss, 87,1 ), "wait", formatChar, 1, bkcolor =IIf (sss,colorYellow, colorRed ));
+
+
+_SECTION_BEGIN("Buy/Sell Signals");
+_N(Title = EncodeColor(colorWhite) + "{{NAME}} - {{INTERVAL}} {{DATE}}: "+_DEFAULT_NAME()+" : {{OHLCX}} {{VALUES}}"
++"\n"+EncodeColor(colorYellow)+
+WriteIf(s,"EXIT all Short positions\nif trading long positions, enter long Now-\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(L+.75*ATR(5),1.4)+" ,","")+
+WriteIf(ss,"Exit all long positions today with a Market On Close (MOC) order\nOR at the market price on tomorrow's Open with stop="+EncodeColor(4)+WriteVal(Ref(H+.75*ATR(5), -1),1.4)+",","")+
+WriteIf( sss ,"No trading signals today.","") );
+_SECTION_END();
+
+
+_SECTION_BEGIN("Buy Sell Arrow Signals");
+Buy = s;
+Sell = ss;
+
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorGreen, 0, L, Offset=-30);
+PlotShapes(IIf(Buy, shapeSquare, shapeNone),colorLime, 0, L, Offset=-40);                      
+PlotShapes(IIf(Buy, shapeUpArrow, shapeNone),colorWhite, 0,L, Offset=-35); 
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorRed, 0, H, Offset=30);
+PlotShapes(IIf(Sell, shapeSquare, shapeNone),colorOrange, 0,H, Offset=40);                      
+PlotShapes(IIf(Sell, shapeDownArrow, shapeNone),colorWhite, 0,H, Offset=-35);
+
+dist = 2*ATR(20); //0.8
+dist1 = 2*ATR(20); //1.2
+for( i = 0; i < BarCount; i++ ) 
+{ 
+ if( Buy[i] ) 
+ {
+  PlotText( "\nBuy:" + L[ i ] + "\nT= " + (L[i]*1.005) + "\nSL= " + (L[i]*0.9975), i, L[ i ]-dist[i], colorLightBlue);
+ }
+ if( Sell[i] )
+ {
+  PlotText( "Sell:" + H[ i ] + "\nT= " + (H[i]*0.995) + "\nSL= " + (H[i]*1.0025), i, H[ i ]+dist1[i], colorLightBlue); 
+ }
+}
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Swing");
+no=20;
+res=HHV(H,no);
+sup=LLV(L,no);
+avd=IIf(C>Ref(res,-1),1,IIf(C<Ref(sup,-1),-1,0));
+avn=ValueWhen(avd!=0,avd,1);
+supres=IIf(avn==1,sup,res);
+
+a=Cross(C,supres);
+b=Cross(supres,C);
+
+style = a * styleStaircase + b * styleStaircase;
+
+PlotShapes(a,style, IIf(a,colorGreen,colorRed), 0, IIf(a,Low,High));
+
+
+_SECTION_END();
+
+
+
+_SECTION_BEGIN("Trend");
+uptrend=PDI(20)>MDI(10)AND Signal(29)<MACD(13);
+downtrend=MDI(10)>PDI(20)AND Signal(29)>MACD(13);
+
+
+Plot( 2, /* defines the height of the ribbon in percent of pane width */"ribbon",
+IIf( uptrend, colorGreen, IIf( downtrend, colorRed, 0 )), /* choose color */
+styleOwnScale|styleArea|styleNoLabel, -0.5, 100 );
+_SECTION_END();
+
+//d = Close > Ref( ChandelierHL(ATR(3),20), -1);
+//e =Close < Ref( ChandelierHL(ATR(3),20), -1);
+//f = Close < Ref( ChandelierHL(ATR(3),20), -1);
+//g = Close > Ref( ChandelierHL(ATR(3),20), -1);
+
+Buy = s AND a AND uptrend ;
+Short = ss AND b AND downtrend ;
+Sell = ss AND b AND downtrend ;
+Cover = s AND a AND uptrend ;
+
+Buy=ExRem(Buy,Sell);
+Sell=ExRem(Sell,Buy);
+Cover=ExRem(Cover,Short);
+Short=ExRem(Short,Cover);
+
+Filter=Buy OR Sell;
+Filter= Cover OR Short;
+
+AddColumn( Buy, "Buy", 1);
+AddColumn(Sell, "Sell", 1);
+AddColumn(Close,"Close",1.2);
+AddColumn(Volume,"Volume",1.0);
+
+
+_SECTION_BEGIN("Volume");
+Plot( Volume, _DEFAULT_NAME(), ParamColor("Color", ColorRGB(20,20,20) ), styleNoTitle | ParamStyle( "Style", styleHistogram | styleOwnScale | styleThick | styleNoLabel, maskHistogram ), 2 );
+_SECTION_END();
+
+
+// Plot the Buy and Sell arrows.
+shape = Buy * shapeUpArrow + Sell * shapeDownArrow;
+PlotShapes(shape, IIf(Buy,colorGreen,colorRed), 0, IIf(Buy,Low,High));
+
+Plot(supres,"Swing",colorYellow,styleStaircase);
+
+//SetChartBkGradientFill( ParamColor("BgTop", ColorRGB( 172,172,172 )),
+
+//ParamColor("BgBottom", ColorRGB( 172,172,172 )),ParamColor("titleblock",ColorRGB( 172,172,172 )));
+//Alerts
+AlertIf( Buy, "SOUND C:\\Windows\\Media\\tada.wav", "Buy",2);
+AlertIf( Short, "SOUND C:\\Windows\\Media\\notify.wav", "Short", 2 );
+
+GraphXSpace = 5; 
+
+/* -------------------------------------------------------------------------------------- */
+
+
+SetChartBkColor(colorBlack);
+SetChartOptions(0,chartShowArrows|chartShowDates);
+
+_SECTION_BEGIN("MA1");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+_SECTION_BEGIN("MA3");
+P = ParamField("Price field",-1);
+Periods = Param("Periods", 15, 2, 300, 1, 10 );
+Plot( MA( P, Periods ), _DEFAULT_NAME(), ParamColor( "Color", colorCycle ), ParamStyle("Style") );
+_SECTION_END();
+
+/* -------------------------------------------------------------------------------------- */
+
+//KAMAS Buy-Sell for Amibroker (AFL)
+
+_SECTION_BEGIN("KAMA System 1.0");
+
+//SetChartOptions(0,chartShowArrows|chartShowDates);
+//Title = ("KAMA SYSTEM - " + Name()+"  " + Date() +"  "+Interval(2) +"  "+ EncodeColor(colorLime)+",Open "+Open +" ,High "+H+" ,Low "+L+" ,Close "+C+" "+"{{VALUES}}");
+
+
+//{{VALUES}}"+ O+ H+ L+C);
+
+
+//_N(Title =StrFormat("{{Name}} - {{Interval}} {{Date}} Open %g, Hi %g, Lo %g, Close %g (%.1f%%) {{VALUES}}", O, H, L, C, SelectedValue( ROC( C, 1 ) ) ));
+
+
+// Buy adjustments
+bs=Param("BUY Sensitivity",7,2,20,1);
+bf=Param("BUY Finetune",2,0.1,20,0.1);
+
+///uncommentf for optimization
+//bs=Optimize("BUY Sensitivity",7,2,20,1);
+//bf=Optimize("BUY Finetune",2,0.1,20,0.1);
+// Sell Adjustments
+ss=Param("SELL Sensitivity",5,2,20,1);
+sf=Param("SELL Finetune",1,0.1,20,0.1);
+
+///uncommentf for optimization
+ss=Optimize("SELL Sensitivity",5,2,20,1);
+sf=Optimize("SELL Finetune",1,0.1,20,0.1);
+
+
+//stock selection parameters
+MyCL = Param( "CL", 10, 10, 100, 10 );
+MyVK = Param( "VK", 30, 10, 100, 10 );
+MyTL = Param( "TL", 300, 100, 1000, 100 );
+//stock selection
+//TLM = EMA(C*V/100000,100) ;
+//include = C> MyCL AND V/1000> MyVK AND C*V/100000 > MyTL AND TLM > 0.333 * MyTL ; 
+
+// common
+fast = 2/(2+1);
+slow = 2/(30+1);
+//BUY part
+dirb=abs(Close-Ref(Close,-bs));
+volb=Sum(abs(Close-Ref(Close,-1)),bs);
+ERb=dirb/volb;
+scb =( ERb*(fast-slow)+slow)^2; 
+xb = AMA( C, scb ); 
+flb=bf*StDev(xb-Ref(xb,-1),20);
+j=xb-Ref(xb,-3);
+
+
+//SELL part
+dirs=abs(Close-Ref(Close,-ss));
+vols=Sum(abs(Close-Ref(Close,-1)),ss);
+ERs=dirs/vols;
+scs =( ERs*(fast-slow)+slow)^2; 
+xs = AMA( C, scs ); 
+fls=sf*StDev(xs-Ref(xs,-1),20);
+k=Ref(Xs,-3)-Xs;
+
+Buy=Cross(j,flb) ;
+Sell=Cross(k,fls);
+mycolor=IIf(C>xb,colorLime,colorRed);
+//Plot( C, "Close", mycolor,styleNoTitle | styleCandle  ); 
+//Plot(xb,"KAMA-BUY",colorRed,1);
+//Plot(xs,"KAMA-SELL",colorOrange,1);
+Buy = ExRem(Buy,Sell);
+Sell = ExRem(Sell,Buy);
+
+shape = Buy * shapeHollowUpArrow + Sell * shapeHollowDownArrow ;
+PlotShapes( shape, IIf( Buy, colorYellow , colorYellow ),0, IIf( Buy, Low, High ) );
+
+//SetChartBkColor(colorBlack);
+//GraphXSpace = 5;
+dist = 2*ATR(20); //0.8
+dist1 = 2*ATR(20); //1.2
+
+for( i = 0; i < BarCount; i++ ) 
+{ 
+if( Buy[i] ) PlotText( "Buy@" + C[ i ], i, L[ i ]-dist[i], colorYellow ); 
+if( Sell[i] ) PlotText( "Sell@" + C[ i ], i, L[ i ]+dist1[i], colorYellow ); 
+} 
+Filter= Buy OR Sell;
+
+PositionScore=100/C;
+PositionSize = - 20;
+SetBarsRequired(10000, 10000);
+SetFormulaName("KAMA System");
+
+_SECTION_END();
+
+/* -------------------------------------------------------------------------------------- */
+
+_SECTION_BEGIN("Show Values at H&L");
+n=Param("Values back",20,1,200,1);
+p=Param("zig %",5,1,100,1);
+dist = 1.5*ATR(15); //0.8  15
+
+for( i = 1; i < n; i++ )
+{
+PlotText(""+LastValue(Peak(H,p,i),True),BarCount-2-LastValue(PeakBars(H,p,i)),LastValue(dist,True)+LastValue(Peak(H,p,i),False),colorGreen
+);//colorWhite,colorDarkGreen
+PlotText(""+LastValue(Trough(L,p,i),True),BarCount-2-LastValue(TroughBars(L,p,i)),LastValue(Trough(L,p,i),False)-LastValue(dist,True),colorRed
+);//colorWhite,colorDarkRed
+}
+_SECTION_END();
+
+/* -------------------------------------------------------------------------------------- */
+
+_SECTION_BEGIN("Name");
+GfxSetOverlayMode(1);
+GfxSelectFont("Tahoma", Status("pxheight")/8 );
+GfxSetTextAlign( 6 );// center alignment
+GfxSetTextColor( ColorHSB( 42, 42, 42 ) );
+GfxSetBkMode(0); // transparent
+GfxTextOut( Name(), Status("pxwidth")/2, Status("pxheight")/12 );
+GfxSelectFont("Tahoma", Status("pxheight")/18 );
+GfxTextOut( IndustryID(1), Status("pxwidth")/2, Status("pxheight")/4 );
+
+GfxSelectFont("Tahoma", Status("pxheight")/18 );
+GfxSelectFont("Tahoma", Status("pxheight")/36 );
+GfxTextOut( "Buy/Sell Signals", Status("pxwidth")/2, Status("pxheight")/3 );
+_SECTION_END();
+
+/* -------------------------------------------------------------------------------------- */

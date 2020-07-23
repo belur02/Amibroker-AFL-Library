@@ -1,0 +1,11 @@
+_SECTION_BEGIN( "Volume" );
+ShowVolume  = ParamToggle( "Show Volume","No|Yes" , 1 );
+if ( ShowVolume )
+{
+    VolColor = ( C >= O)*ParamColor ("UpColor" ,colorGreen) +
+                ( C < O)*ParamColor( "DnColor" ,colorRed) ;
+  
+    PlotOHLC(0, V, 0, V, "V", VolColor , styleCandle,  10) ;
+    //Plot(MA(V, 10), "AvgVol", colorGrey40, styleLine);
+}
+_SECTION_END();

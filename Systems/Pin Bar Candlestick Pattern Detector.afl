@@ -1,0 +1,157 @@
+// Downloaded From www.WiseStockTrader.com
+_SECTION_BEGIN( "Pin Bar AFL" );
+
+SetBarsRequired( 100000, 0 );
+
+GraphXSpace = 15;
+
+SetChartOptions( 0, chartShowArrows | chartShowDates );
+
+SetChartBkColor( ParamColor( "bkcolor", ColorRGB( 0, 0, 0 ) ) );
+
+GfxSetBkMode( 0 );
+
+GfxSetOverlayMode( 1 );
+
+SetBarFillColor( IIf( C > O, ParamColor( "Candle UP Color", colorGreen ), IIf( C <= O, ParamColor( "Candle Down Color", colorRed ), colorLightGrey ) ) );
+
+Plot( C, "\nPrice", IIf( C > O, ParamColor( "Wick UP Color", colorDarkGreen ), IIf( C <= O, ParamColor( "Wick Down Color", colorDarkRed ), colorLightGrey ) ), 64, 0, 0, 0, 0 );
+
+dec = ( Param( "Decimals", 2, 0, 7, 1 ) / 10 ) + 1;
+Title = EncodeColor( 55 ) +  Title = Name() + "     " + EncodeColor( 32 ) + Date() +
+                                     "      " + EncodeColor( 5 ) + "{{INTERVAL}}  " +
+                                     EncodeColor( 55 ) + "     Open = " + EncodeColor( 52 ) + WriteVal( O, dec ) +
+                                     EncodeColor( 55 ) + "     High = " + EncodeColor( 5 ) + WriteVal( H, dec ) +
+                                     EncodeColor( 55 ) + "      Low = " + EncodeColor( 32 ) + WriteVal( L, dec ) +
+                                     EncodeColor( 55 ) + "    Close = " + EncodeColor( 52 ) + WriteVal( C, dec ) +
+                                     EncodeColor( 55 ) + "    Volume = " + EncodeColor( 52 ) + WriteVal( V, 1 );
+
+
+MaxNoseBodySize = 0.33; // Max. Body / Candle length ratio of the Nose Bar
+NoseBodyPosition = 0.4; // Body position in Nose Bar (e.g. top/bottom 40%)
+LeftEyeOppositeDirection = True; // true = Direction of Left Eye Bar should be opposite to pattern (bearish bar for bullish Pinbar pattern and vice versa)
+NoseSameDirection = False; // true = Direction of Nose Bar should be the same as of pattern (bullish bar for bullish Pinbar pattern and vice versa)
+NoseBodyInsideLeftEyeBody = False; // true = Nose Body should be contained inside Left Eye Body
+LeftEyeMinBodySize = 0.1; // Min. Body / Candle length ratio of the Left Eye Bar
+NoseProtruding = 0.5; // Minmum protrusion of Nose Bar compared to Nose Bar length
+NoseBodyToLeftEyeBody = 1; // Maximum relative size of the Nose Bar Body to Left Eye Bar Body
+NoseLengthToLeftEyeLength = 0; // Minimum relative size of the Nose Bar Length to Left Eye Bar Length
+LeftEyeDepth = 0.2; // Minimum relative depth of the Left Eye to its length; depth is difference with Nose's back
+
+up = down = 0;
+point = 0.1;
+blpin = brpin = False;
+
+for( i = 1; i < BarCount; i++ )
+{
+
+    NoseLength = High[i] - Low[i];
+
+    if( NoseLength == 0 ) NoseLength = Point;
+
+    LeftEyeLength = High[i - 1] - Low[i - 1];
+
+    if( LeftEyeLength == 0 ) LeftEyeLength = Point;
+
+    NoseBody = abs( Open[i] - Close[i] );
+
+    if( NoseBody == 0 ) NoseBody = point;
+
+    LeftEyeBody = abs( Open[i - 1] - Close[i - 1] );
+
+    if( LeftEyeBody == 0 ) LeftEyeBody = point;
+
+    // Bearish Pinbar
+    if( High[i] - High[i - 1] >= NoseLength * NoseProtruding ) // Nose protrusion
+    {
+        if( NoseBody / NoseLength <= MaxNoseBodySize ) // Nose body to candle length ratio
+        {
+            if( 1 - ( High[i] - Max( Open[i], Close[i] ) ) / NoseLength < NoseBodyPosition ) // Nose body position in bottom part of the bar
+            {
+                if( ( !LeftEyeOppositeDirection ) || ( Close[i - 1] > Open[i - 1] ) ) // Left Eye bullish if required
+                {
+                    if( ( !NoseSameDirection ) || ( Close[i] < Open[i] ) ) // Nose bearish if required
+                    {
+                        if( LeftEyeBody / LeftEyeLength  >= LeftEyeMinBodySize ) // Left eye body to candle length ratio
+                        {
+                            if( ( Max( Open[i], Close[i] ) <= High[i - 1] ) && ( Min( Open[i], Close[i] ) >= Low[i - 1] ) ) // Nose body inside Left Eye bar
+                            {
+                                if( NoseBody / LeftEyeBody <= NoseBodyToLeftEyeBody ) // Nose body to Left Eye body ratio
+                                {
+                                    if( NoseLength / LeftEyeLength >= NoseLengthToLeftEyeLength ) // Nose length to Left Eye length ratio
+                                    {
+                                        if( Low[i] - Low[i - 1] >= LeftEyeLength * LeftEyeDepth ) // Left Eye low is low enough
+                                        {
+                                            if( ( !NoseBodyInsideLeftEyeBody ) || ( ( Max( Open[i], Close[i] ) <= Max( Open[i - 1], Close[i - 1] ) ) && ( Min( Open[i], Close[i] ) >= Min( Open[i - 1], Close[i - 1] ) ) ) ) // Nose body inside Left Eye body if required
+                                            {
+                                                Down[i] = High[i] + 5 * Point + NoseLength / 5;
+                                                brpin[i] = True;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Bullish Pinbar
+    if( Low[i - 1] - Low[i] >= NoseLength * NoseProtruding ) // Nose protrusion
+    {
+        if( NoseBody / NoseLength <= MaxNoseBodySize ) // Nose body to candle length ratio
+        {
+            if( 1 - ( Min( Open[i], Close[i] ) - Low[i] ) / NoseLength < NoseBodyPosition ) // Nose body position in top part of the bar
+            {
+                if( ( !LeftEyeOppositeDirection ) || ( Close[i - 1] < Open[i - 1] ) ) // Left Eye bearish if required
+                {
+                    if( ( !NoseSameDirection ) || ( Close[i] > Open[i] ) ) // Nose bullish if required
+                    {
+                        if( LeftEyeBody / LeftEyeLength >= LeftEyeMinBodySize ) // Left eye body to candle length ratio
+                        {
+                            if( ( Max( Open[i], Close[i] ) <= High[i - 1] ) && ( Min( Open[i], Close[i] ) >= Low[i - 1] ) ) // Nose body inside Left Eye bar
+                            {
+                                if( NoseBody / LeftEyeBody <= NoseBodyToLeftEyeBody ) // Nose body to Left Eye body ratio
+                                {
+                                    if( NoseLength / LeftEyeLength >= NoseLengthToLeftEyeLength ) // Nose length to Left Eye length ratio
+                                    {
+                                        if( High[i - 1] - High[i] >= LeftEyeLength * LeftEyeDepth ) // Left Eye high is high enough
+                                        {
+                                            if( ( !NoseBodyInsideLeftEyeBody ) || ( ( Max( Open[i], Close[i] ) <= Max( Open[i - 1], Close[i - 1] ) ) && ( Min( Open[i], Close[i] ) >= Min( Open[i - 1], Close[i - 1] ) ) ) ) // Nose body inside Left Eye body if required
+                                            {
+                                                Up[i] = Low[i] - 5 * Point - NoseLength / 5;
+                                                blpin[i] = True;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+for( i = 1; i < BarCount; i++ )
+{
+    if( blpin[i] ) PlotText( "bull.pin " , i, L[ i ] - 2.5, colorLime );
+
+    if( brpin[i] ) PlotText( " bear pin" , i, H[ i ] + 2.5, colorOrange );
+}
+
+PlotShapes( shapeHollowSmallSquare*brpin, 4, 0, H , 5 );
+PlotShapes( shapeHollowSmallSquare*blpin, 5, 0, L , -5 );
+
+pinbarSTATUS =
+WriteIf(brpin,"Bearish Pin",
+WriteIf(blpin,"Bullish Pin", " "));
+
+//Filter = brpin OR blpin;
+//AddColumn( brpin, "Bearish Pin", 1.2 );
+//AddColumn( blpin, "Bullish Pin", 1.2 );
+AddTextColumn(pinbarSTATUS,"Pin Bar Status",1, colordefault, colorDefault, width = 80);
+_SECTION_END();

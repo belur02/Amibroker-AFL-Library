@@ -1,0 +1,29 @@
+// Downloaded From www.WiseStockTrader.com
+_SECTION_BEGIN("GAP SCANNER");
+
+/*********** Volume Down for Chart and Exploration ***********************/
+
+
+VolumeChange = ((TimeFrameGetPrice("V", inDaily, 0))/TimeFrameGetPrice("V", inDaily, -1)) * 100; 
+OIChange = ((TimeFrameGetPrice("I", inDaily, 0)-TimeFrameGetPrice("I", inDaily, -1))/TimeFrameGetPrice("I", inDaily, -1)) * 100; 
+PriceChange = ((TimeFrameGetPrice("C", inDaily, 0)-TimeFrameGetPrice("C", inDaily, -1))/TimeFrameGetPrice("C", inDaily, -1)) * 100;
+
+
+ydayhigh = TimeFrameGetPrice("H", inDaily, -1);
+ydaylow = TimeFrameGetPrice("L", inDaily, -1);
+todayopen = TimeFrameGetPrice("O", inDaily, 0);;
+
+gapupvar = ydayhigh < todayopen;
+gapdownvar = ydaylow > todayopen;
+
+Filter = gapupvar || gapdownvar;
+
+AddTextColumn(WriteIf(gapupvar,"GAP UP", "GAP DOWN") , "GAP", 6.2, colorDefault, IIf(gapupvar,colorGreen, colorOrange), 84);
+AddColumn( O, "Today Open", 1.2, colorDefault, colorDefault, 84);
+AddColumn( TimeFrameGetPrice("L", inDaily, -1), "Yday Low", 1.2, colorDefault, colorDefault, 84);
+AddColumn(PriceChange , "Price Change", 6.2, colorDefault, colorDefault, 84);
+AddColumn(VolumeChange , "Vol Change", 6.2, colorDefault, colorDefault, 84);
+AddColumn(OIChange , "OI Change", 6.2, colorDefault, colorDefault, 84);
+
+
+_SECTION_END();

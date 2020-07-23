@@ -1,0 +1,9 @@
+_SECTION_BEGIN("Explore All");
+Filter=1;
+AddColumn(C,"Close",1.2);
+AddColumn(OpenInt,"OpenInt",1.2);
+AddColumn(V,"Volume",1.2);
+AddColumn(ROC(C,1),"% Price change",1.2);
+AddColumn(ROC(OpenInt,1),"% OpenInt change",1.2);
+AddColumn(ROC(V,1),"% Volume change",1.2);
+_SECTION_END();
