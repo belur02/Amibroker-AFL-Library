@@ -1,4 +1,6 @@
 // Relative Strength ranking of stocks
+
+_SECTION_BEGIN("IBDs RS");
 wlnum = GetOption( "FilterIncludeWatchlist" );
 List = CategoryGetSymbols( categoryWatchlist, wlnum ) ;
 ListQty = StrCount(List, ",") + 1; 
@@ -46,12 +48,12 @@ Rank  = StaticVarGet ("RS_" +  Name());
 // exploration code for verification
 Filter=1;
 //AddColumn( Close, "Close" );
-rank = PercentRank( Close, 50 );
-Color = ColorHSB( rank * 64/100, 255, 255 );
-AddColumn( rank, "50d RS", 1.0, colorDefault, Color, -1, rank );
+ibdrank = PercentRank( Close, 50 );
+ibdcolor = ColorHSB( rank * 64/100, 255, 255 );
+AddColumn( Rank, "IBD/RS", 1.0, colorDefault, ibdcolor, -1, rank );
 
 //Avoid penny stock, and has at least two years worth of data and vol at least 10k;
 //Filter = (Rank >= 95)  AND (C > 50) AND (V > 1000) AND (BarCount >= 50);
 
-if( Status( "Action" ) == actionExplore ) SetSortColumns(-4,1);
- 
+//if( Status( "Action" ) == actionExplore ) SetSortColumns(-4,1);
+_SECTION_END();
