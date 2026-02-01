@@ -490,15 +490,7 @@ function multiTimeframePriceBuy()
 		//Frac1 = IIf(Value2 > 0, ((XMac - Value1) / Value2) * 100, Ref(FRAC1,-1));
 		// have to "prime" first value so that reference to "i-1" does not result in subscript out of range
 		// since MACD for both periods is not defined until MA2 period, 0 seems to be mathematically correct priming value
-		frac1=0;
-		for (i = 1; i < BarCount; i++) {
-		if (Value2[i] > 0) {
-			frac1[i] = ((XMac[i] - Value1[i])/Value2[i])*100;
-			}
-		else {
-			frac1[i]= frac1[i-1];
-			}
-		}
+		frac1 = Nz(ValueWhen(Value2 > 0, ((XMac - Value1)/Value2)*100));
 
 		//Smoothed calculation for %FastD of MACD
 
@@ -519,15 +511,7 @@ function multiTimeframePriceBuy()
 		Frac2 = IIf(Value4 > 0, ((PF - Value3) / Value4) * 100, Ref(FRAC2,-1));
 		*/
 
-		frac2[0]=0;
-		for (i = 1; i < BarCount; i++) {
-			if (Value4[i] > 0 ) {
-				frac2[i]=((PF[i] - Value3[i])/Value4[i])*100;
-			}
-			else {
-				frac2[i]=frac2[i-1];
-			}
-		}
+		frac2 = Nz(ValueWhen(Value4 > 0, ((PF - Value3)/Value4)*100));
 
 		//Smoothed calculation for %FastD of PF
 		PFF[0]=frac2[0];
@@ -1739,15 +1723,7 @@ option4AnswerSell = 0;
 		//Frac1 = IIf(Value2 > 0, ((XMac - Value1) / Value2) * 100, Ref(FRAC1,-1));
 		// have to "prime" first value so that reference to "i-1" does not result in subscript out of range
 		// since MACD for both periods is not defined until MA2 period, 0 seems to be mathematically correct priming value
-		frac1=0;
-		for (i = 1; i < BarCount; i++) {
-		if (Value2[i] > 0) {
-			frac1[i] = ((XMac[i] - Value1[i])/Value2[i])*100;
-			}
-		else {
-			frac1[i]= frac1[i-1];
-			}
-		}
+		frac1 = Nz(ValueWhen(Value2 > 0, ((XMac - Value1)/Value2)*100));
 
 		//Smoothed calculation for %FastD of MACD
 
@@ -1768,15 +1744,7 @@ option4AnswerSell = 0;
 		Frac2 = IIf(Value4 > 0, ((PF - Value3) / Value4) * 100, Ref(FRAC2,-1));
 		*/
 
-		frac2[0]=0;
-		for (i = 1; i < BarCount; i++) {
-			if (Value4[i] > 0 ) {
-				frac2[i]=((PF[i] - Value3[i])/Value4[i])*100;
-			}
-			else {
-				frac2[i]=frac2[i-1];
-			}
-		}
+		frac2 = Nz(ValueWhen(Value4 > 0, ((PF - Value3)/Value4)*100));
 
 		//Smoothed calculation for %FastD of PF
 		PFF[0]=frac2[0];
